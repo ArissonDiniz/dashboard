@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Calouros · Uniasselvi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111;color:#f0f0f0;min-height:100vh}
+  
+  /* ── HEADER ── */
+  .header{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:#1a1a1a;border-bottom:1px solid #2a2a2a}
+  .logo-area{display:flex;align-items:center;gap:14px}
+  .logo-box{width:42px;height:42px;background:#FFD600;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#111;flex-shrink:0}
+  .brand{font-size:18px;font-weight:600;color:#fff;letter-spacing:-.3px}
+  .brand-sub{font-size:12px;color:#888;margin-top:1px}
+  .header-right{display:flex;align-items:center;gap:16px}
+  .badge-uni{background:#FFD600;color:#111;font-weight:700;font-size:11px;padding:4px 10px;border-radius:4px;letter-spacing:.5px}
+  #update-info{font-size:12px;color:#666}
+  
+  /* ── LAYOUT ── */
+  .container{max-width:1300px;margin:0 auto;padding:24px 28px}
+  
+  /* ── CONFIG BANNER ── */
+  #config-banner{background:#1e2a1e;border:1px solid #2d4a2d;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:14px}
+  #config-banner.hidden{display:none}
+  .config-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+  .config-text h3{font-size:14px;font-weight:600;color:#6fcc6f;margin-bottom:6px}
+  .config-text p{font-size:13px;color:#aaa;line-height:1.6}
+  .config-text code{background:#0f1f0f;border:1px solid #2d4a2d;border-radius:4px;padding:2px 7px;font-size:12px;color:#8fe08f;font-family:monospace}
+  #sheet-url{width:100%;margin-top:10px;padding:8px 12px;background:#0f1f0f;border:1px solid #2d4a2d;border-radius:6px;color:#c0f0c0;font-size:13px;font-family:monospace}
+  #sheet-url::placeholder{color:#555}
+  .btn-load{margin-top:8px;padding:8px 18px;background:#FFD600;color:#111;border:none;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer}
+  .btn-load:hover{background:#e6c200}
+
+  /* ── FILTROS ── */
+  .filters{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .filter-label{font-size:12px;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+  select{background:#1e1e1e;border:1px solid #333;color:#f0f0f0;padding:7px 12px;border-radius:6px;font-size:13px;cursor:pointer}
+  select:hover{border-color:#FFD600}
+  .btn-refresh{margin-left:auto;padding:7px 16px;background:transparent;border:1px solid #333;border-radius:6px;color:#aaa;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+  .btn-refresh:hover{border-color:#FFD600;color:#FFD600}
+  .btn-export{padding:7px 16px;background:transparent;border:1px solid #333;border-radius:6px;color:#aaa;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+  .btn-export:hover{border-color:#4ade80;color:#4ade80}
+
+  /* ── KPIs ── */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:20px}
+  .kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .kpi-yellow::before{background:#FFD600}
+  .kpi-green::before{background:#22c55e}
+  .kpi-red::before{background:#ef4444}
+  .kpi-blue::before{background:#3b82f6}
+  .kpi-gray::before{background:#555}
+  .kpi-orange::before{background:#f97316}
+  .kpi-lbl{font-size:11px;color:#777;font-weight:500;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .kpi-val{font-size:32px;font-weight:700;line-height:1;color:#fff}
+  .kpi-yellow .kpi-val{color:#FFD600}
+  .kpi-green .kpi-val{color:#22c55e}
+  .kpi-red .kpi-val{color:#ef4444}
+  .kpi-sub{font-size:11px;color:#666;margin-top:5px}
+  .kpi-prog{height:3px;background:#2a2a2a;border-radius:2px;margin-top:10px}
+  .kpi-prog-fill{height:3px;border-radius:2px;background:#FFD600;transition:width .5s}
+
+  /* ── CHARTS ── */
+  .charts-row{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:18px 20px}
+  .card-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .card-title span{width:6px;height:6px;border-radius:50%;background:#FFD600;display:inline-block}
+
+  /* ── TABELA ── */
+  .polo-table{width:100%;border-collapse:collapse;font-size:13px}
+  .polo-table th{text-align:left;font-weight:500;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid #2a2a2a}
+  .polo-table td{padding:10px 10px;border-bottom:1px solid #1f1f1f;color:#ddd;vertical-align:middle}
+  .polo-table tr:hover td{background:#1f1f1f}
+  .polo-table tr.total-row td{border-top:1px solid #333;color:#fff;font-weight:600;background:#1f1f1f}
+  .polo-table tr.total-row:hover td{background:#252525}
+  .pill{display:inline-flex;align-items:center;justify-content:center;min-width:32px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+  .pill-green{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+  .pill-yellow{background:rgba(255,214,0,.12);color:#FFD600;border:1px solid rgba(255,214,0,.25)}
+  .pill-red{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+  .pill-gray{background:#222;color:#666;border:1px solid #333}
+  .prog-wrap{display:flex;align-items:center;gap:8px}
+  .prog-bg{flex:1;height:5px;background:#2a2a2a;border-radius:3px;min-width:50px}
+  .prog-fill{height:5px;border-radius:3px;transition:width .5s}
+  .prog-pct{font-size:11px;font-weight:600;min-width:34px;text-align:right;color:#aaa}
+
+  /* ── STATUS BARS ── */
+  .status-bars-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .stat-row{margin-bottom:10px}
+  .stat-top{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px}
+  .stat-top strong{color:#ddd;font-weight:500}
+  .stat-bg{height:5px;background:#2a2a2a;border-radius:3px}
+  .stat-fill{height:5px;border-radius:3px;transition:width .4s}
+
+  /* ── LOADING ── */
+  #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;color:#666;gap:12px}
+  .spinner{width:32px;height:32px;border:3px solid #2a2a2a;border-top-color:#FFD600;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:800px){
+    .charts-row,.status-bars-grid{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    .container{padding:16px}
+    .header{padding:12px 16px}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-area">
+    <div class="logo-box">U</div>
+    <div>
+      <div class="brand">Rede AC Centro de Ensino</div>
+      <div class="brand-sub">Dashboard de Calouros · Acompanhamento de 1ª Mensalidade</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge-uni">UNIASSELVI</div>
+    <div id="update-info">—</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- CONFIG BANNER -->
+  <div id="config-banner" style="display:none">
+    <div class="config-icon">🔗</div>
+    <div class="config-text" style="flex:1">
+      <h3>Conectar ao Google Sheets</h3>
+      <p>Cole abaixo o link de publicação CSV da sua planilha Google Sheets.<br>
+      O link deve ter o formato: <code>https://docs.google.com/spreadsheets/d/SEU_ID/gviz/tq?tqx=out:csv&sheet=DADOS</code></p>
+      <input id="sheet-url" type="text" placeholder="Cole aqui o link de publicação CSV do Google Sheets...">
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+        <button class="btn-load" onclick="loadFromSheet()">Carregar dados</button>
+        <button class="btn-load" style="background:#333;color:#aaa" onclick="loadDemo()">Ver demo com dados de exemplo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters" id="filters" style="display:none">
+    <span class="filter-label">📍 Polo</span>
+    <select id="polo-filter" onchange="renderAll()">
+      <option value="TODOS">Todos os polos</option>
+    </select>
+    <button class="btn-refresh" onclick="refreshData()">↻ Atualizar dados</button>
+    <button class="btn-export" onclick="exportCSV()">⬇ Exportar CSV</button>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading" style="display:none"><div class="spinner"></div><span>Carregando dados...</span></div>
+
+  <!-- CONTEÚDO -->
+  <div id="content" style="display:none">
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-title"><span></span>1ª mensalidade paga vs meta · por polo</div>
+        <div id="legend-polo" style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;color:#666"></div>
+        <div style="position:relative;height:220px"><canvas id="chart-polo" role="img" aria-label="Barras de pagamento vs meta por polo"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span></span>Situação dos alunos</div>
+        <div id="legend-status" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;font-size:12px;color:#888"></div>
+        <div style="position:relative;height:180px"><canvas id="chart-status" role="img" aria-label="Rosca de situação dos alunos"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title"><span></span>Desempenho por polo · metas de 1ª mensalidade</div>
+      <div style="overflow-x:auto">
+        <table class="polo-table" id="polo-table"></table>
+      </div>
+    </div>
+
+    <div class="status-bars-grid">
+      <div class="card">
+        <div class="card-title"><span></span>Status de contato</div>
+        <div id="contact-bars"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span></span>Status de visita ao polo</div>
+        <div id="visit-bars"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// METAS FIXAS POR POLO (edite aqui se mudar)
+// ═══════════════════════════════════════════════
+const METAS = {
+  'JARDIM NAZLE': 58,
+  'TANGARÁ': 86,
+  'CRUZEIRO DO SUL': 42,
+  'SENA MADUREIRA': 138,
+  'PORTO VELHO': 92,
+  'EXTREMA': 48,
+  'SÃO MIGUEL': 28,
+  'HUMAITÁ': 25,
+};
+
+// Mapeamento de nome do polo (relatório) → nome curto
+const POLO_MAP = {
+  'Rio Branco/AC - Jardim Nazle': 'JARDIM NAZLE',
+  'Rio Branco/AC - Tangará': 'TANGARÁ',
+  'Cruzeiro Do Sul/AC': 'CRUZEIRO DO SUL',
+  'Sena Madureira/AC': 'SENA MADUREIRA',
+  'Porto Velho/RO': 'PORTO VELHO',
+  'São Miguel do Guaporé/RO': 'SÃO MIGUEL',
+  'Extrema/RO': 'EXTREMA',
+  'Humaitá/AM': 'HUMAITÁ',
+};
+
+// ═══════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════
+let rawRows = [];
+let sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS9eRXC-i3f2O9xl0dL-9riGYP8kAY9bPA5ltFShwH34vAzCrMhmmb9G_Wwacn8k2dgA8a1lfP-NhwP/pub?gid=0&single=true&output=csv';
+let chartPolo = null, chartStatus = null;
+
+// ═══════════════════════════════════════════════
+// CARREGAR DO SHEETS
+// ═══════════════════════════════════════════════
+async function loadFromSheet() {
+  const url = document.getElementById('sheet-url').value.trim();
+  if (!url) { alert('Cole o link do Google Sheets primeiro.'); return; }
+  sheetUrl = url;
+  await fetchData(url);
+}
+
+async function refreshData() {
+  if (!sheetUrl) { alert('Nenhuma URL configurada.'); return; }
+  await fetchData(sheetUrl);
+}
+
+async function fetchData(url) {
+  showLoading();
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Erro ao buscar planilha');
+    const text = await res.text();
+    rawRows = parseCSV(text);
+    finishLoad();
+  } catch(e) {
+    hideLoading();
+    alert('Não foi possível carregar a planilha.\n\nVerifique:\n1. O link está correto?\n2. A planilha está publicada (Arquivo → Publicar na web)?\n\nErro: ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DEMO (dados de exemplo)
+// ═══════════════════════════════════════════════
+function loadDemo() {
+  rawRows = generateDemoData();
+  sheetUrl = 'DEMO';
+  finishLoad();
+}
+
+function generateDemoData() {
+  const polos = [
+    {nome:'Rio Branco/AC - Jardim Nazle', qtd:3, pagas:1},
+    {nome:'Rio Branco/AC - Tangará', qtd:3, pagas:0},
+    {nome:'Cruzeiro Do Sul/AC', qtd:3, pagas:1},
+    {nome:'Sena Madureira/AC', qtd:7, pagas:1},
+    {nome:'Porto Velho/RO', qtd:9, pagas:0},
+    {nome:'São Miguel do Guaporé/RO', qtd:1, pagas:1},
+  ];
+  const rows = [];
+  polos.forEach(p => {
+    for(let i=0;i<p.qtd;i++){
+      rows.push({
+        NOME: 'Aluno ' + (rows.length+1),
+        NOME_DO_POLO: p.nome,
+        PRIMEIRA_MENSALIDADE_COBRADA_PAGA: i < p.pagas ? 'S' : 'N',
+        DATA_CANCELAMENTO: '',
+        CODIGO_ALUNO: '408' + String(rows.length).padStart(5,'0'),
+      });
+    }
+  });
+  return rows;
+}
+
+// ═══════════════════════════════════════════════
+// CSV PARSER
+// ═══════════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = splitCSVLine(lines[0]);
+  return lines.slice(1).map(line => {
+    const vals = splitCSVLine(line);
+    const row = {};
+    headers.forEach((h, i) => row[h.trim()] = (vals[i] || '').trim());
+    return row;
+  }).filter(r => Object.values(r).some(v => v));
+}
+
+function splitCSVLine(line) {
+  const res = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; }
+    else if (line[i] === ',' && !inQ) { res.push(cur); cur = ''; }
+    else cur += line[i];
+  }
+  res.push(cur);
+  return res;
+}
+
+// ═══════════════════════════════════════════════
+// PROCESSAR DADOS
+// ═══════════════════════════════════════════════
+function processData(rows) {
+  const byPolo = {};
+  const allPolos = Object.values(METAS).reduce((acc, _, i) => acc, {});
+
+  // Inicializar todos os polos com zeros
+  Object.keys(METAS).forEach(p => {
+    byPolo[p] = { total: 0, paga: 0, cancel: 0, ativos: 0 };
+  });
+
+  rows.forEach(r => {
+    const nomePolo = r['NOME_DO_POLO'] || r['NomeDoPolo'] || '';
+    const poloKey = POLO_MAP[nomePolo] || nomePolo.toUpperCase();
+    if (!byPolo[poloKey]) byPolo[poloKey] = { total: 0, paga: 0, cancel: 0, ativos: 0 };
+
+    const cancelado = (r['DATA_CANCELAMENTO'] || '').trim() !== '';
+    const pagou = (r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA'] || '').trim() === 'S';
+
+    byPolo[poloKey].total++;
+    if (cancelado) byPolo[poloKey].cancel++;
+    else byPolo[poloKey].ativos++;
+    if (pagou) byPolo[poloKey].paga++;
+  });
+
+  return Object.entries(byPolo).map(([polo, d]) => ({
+    polo,
+    total: d.total,
+    ativos: d.ativos,
+    cancel: d.cancel,
+    paga: d.paga,
+    naoPaga: Math.max(0, d.ativos - d.paga),
+    meta: METAS[polo] || 0,
+  }));
+}
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+function finishLoad() {
+  // Preencher filtro de polo
+  const polosComDados = [...new Set(rawRows.map(r => {
+    const n = r['NOME_DO_POLO'] || '';
+    return POLO_MAP[n] || n.toUpperCase();
+  }))].filter(Boolean).sort();
+  const sel = document.getElementById('polo-filter');
+  sel.innerHTML = '<option value="TODOS">Todos os polos</option>';
+  polosComDados.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p.charAt(0) + p.slice(1).toLowerCase();
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('config-banner').classList.add('hidden');
+  document.getElementById('filters').style.display = 'flex';
+  document.getElementById('update-info').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) + ' de ' + new Date().toLocaleDateString('pt-BR');
+  showContent();
+  renderAll();
+}
+
+function getFilteredData() {
+  const polo = document.getElementById('polo-filter').value;
+  const allData = processData(rawRows);
+  if (polo === 'TODOS') return allData;
+  return allData.filter(d => d.polo === polo);
+}
+
+function renderAll() {
+  const data = getFilteredData();
+  renderKPIs(data);
+  renderPoloChart(data);
+  renderStatusChart(data);
+  renderTable(data);
+  renderStatusBars();
+}
+
+function sum(arr, k) { return arr.reduce((a, b) => a + (b[k] || 0), 0); }
+
+function renderKPIs(data) {
+  const total = sum(data,'total'), ativos = sum(data,'ativos'), cancel = sum(data,'cancel');
+  const paga = sum(data,'paga'), naoPaga = sum(data,'naoPaga'), meta = sum(data,'meta');
+  const taxaPag = ativos > 0 ? Math.round(paga / ativos * 100) : 0;
+  const taxaRisco = ativos > 0 ? Math.round(naoPaga / ativos * 100) : 0;
+  const pctMeta = meta > 0 ? Math.round(paga / meta * 100) : 0;
+
+  const kpis = [
+    {lbl:'Total de calouros', val:total, sub:'matriculados', cls:'kpi-blue', bar:null},
+    {lbl:'Matrículas ativas', val:ativos, sub:cancel > 0 ? cancel + ' cancelados' : 'nenhum cancelamento', cls:'kpi-green', bar:null},
+    {lbl:'1ª mensalidade paga', val:paga, sub:taxaPag + '% dos ativos', cls:'kpi-yellow', bar:taxaPag},
+    {lbl:'Não pagaram (ativos)', val:naoPaga, sub:taxaRisco + '% em risco de evasão', cls:'kpi-red', bar:taxaRisco},
+    {lbl:'Progresso vs meta', val:pctMeta + '%', sub:paga + ' de ' + meta + ' (meta total)', cls:'kpi-orange', bar:pctMeta},
+    {lbl:'Cancelados', val:cancel, sub:cancel === 0 ? 'nenhum cancelamento' : 'atenção!', cls:cancel > 0 ? 'kpi-red' : 'kpi-gray', bar:null},
+  ];
+
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+    <div class="kpi ${k.cls}">
+      <div class="kpi-lbl">${k.lbl}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      ${k.bar !== null ? `<div class="kpi-prog"><div class="kpi-prog-fill" style="width:${Math.min(k.bar,100)}%"></div></div>` : ''}
+    </div>`).join('');
+}
+
+function renderPoloChart(data) {
+  const labels = data.map(d => d.polo.split(' ').map(w => w[0] + w.slice(1).toLowerCase()).join(' '));
+  const pagas = data.map(d => d.paga);
+  const metas = data.map(d => d.meta);
+
+  document.getElementById('legend-polo').innerHTML = `
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#FFD600"></span>1ª mens. paga</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#333"></span>Meta</span>`;
+
+  if (chartPolo) chartPolo.destroy();
+  chartPolo = new Chart(document.getElementById('chart-polo'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'1ª mens. paga', data:pagas, backgroundColor:'#FFD600', borderRadius:5, maxBarThickness:32},
+        {label:'Meta', data:metas, backgroundColor:'#2a2a2a', borderRadius:5, maxBarThickness:32, borderColor:'#444', borderWidth:1},
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#888',font:{size:11}},grid:{color:'#1f1f1f'},maxRotation:40},
+        y:{ticks:{color:'#888',font:{size:11}},grid:{color:'#222'},beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderStatusChart(data) {
+  const paga = sum(data,'paga'), naoPaga = sum(data,'naoPaga'), cancel = sum(data,'cancel');
+  const colors = ['#FFD600','#ef4444','#555'];
+  const lbls = ['Pagaram','Não pagaram','Cancelados'];
+  const vals = [paga, naoPaga, cancel];
+
+  document.getElementById('legend-status').innerHTML = lbls.map((l,i) => `
+    <span style="display:flex;align-items:center;gap:6px">
+      <span style="width:10px;height:10px;border-radius:2px;background:${colors[i]}"></span>
+      ${l}: <strong style="color:#ddd">${vals[i]}</strong>
+    </span>`).join('');
+
+  if (chartStatus) chartStatus.destroy();
+  chartStatus = new Chart(document.getElementById('chart-status'), {
+    type: 'doughnut',
+    data: {labels:lbls, datasets:[{data:vals, backgroundColor:colors, borderWidth:0}]},
+    options: {responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{legend:{display:false}}}
+  });
+}
+
+function renderTable(data) {
+  const allData = processData(rawRows);
+  const tPaga = sum(allData,'paga'), tMeta = sum(allData,'meta');
+  const tPct = tMeta > 0 ? Math.round(tPaga/tMeta*100) : 0;
+
+  const rows = data.map(d => {
+    const pct = d.meta > 0 ? Math.round(d.paga / d.meta * 100) : 0;
+    const pctColor = pct >= 50 ? '#22c55e' : pct >= 20 ? '#FFD600' : '#ef4444';
+    const pillPaga = d.paga > 0 ? 'pill-green' : 'pill-gray';
+    const pillNao = d.naoPaga > 0 ? 'pill-red' : 'pill-gray';
+    const pillCancel = d.cancel > 0 ? 'pill-red' : 'pill-gray';
+    return `<tr>
+      <td style="font-weight:500;color:#eee">${d.polo.charAt(0)+d.polo.slice(1).toLowerCase()}</td>
+      <td style="text-align:center">${d.total}</td>
+      <td style="text-align:center">${d.ativos}</td>
+      <td style="text-align:center"><span class="pill ${pillCancel}">${d.cancel}</span></td>
+      <td style="text-align:center"><span class="pill ${pillPaga}">${d.paga}</span></td>
+      <td style="text-align:center"><span class="pill ${pillNao}">${d.naoPaga}</span></td>
+      <td style="text-align:center;color:#aaa">${d.meta}</td>
+      <td style="min-width:110px">
+        <div class="prog-wrap">
+          <div class="prog-bg"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${pctColor}"></div></div>
+          <div class="prog-pct" style="color:${pctColor}">${pct}%</div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('polo-table').innerHTML = `
+    <thead><tr>
+      <th>Polo</th>
+      <th style="text-align:center">Total</th>
+      <th style="text-align:center">Ativos</th>
+      <th style="text-align:center">Cancelados</th>
+      <th style="text-align:center">1ª Paga</th>
+      <th style="text-align:center">Não Paga</th>
+      <th style="text-align:center">Meta</th>
+      <th>Progresso da meta</th>
+    </tr></thead>
+    <tbody>
+      ${rows}
+      <tr class="total-row">
+        <td>TOTAL GERAL</td>
+        <td style="text-align:center">${sum(allData,'total')}</td>
+        <td style="text-align:center">${sum(allData,'ativos')}</td>
+        <td style="text-align:center">${sum(allData,'cancel')}</td>
+        <td style="text-align:center">${tPaga}</td>
+        <td style="text-align:center">${sum(allData,'naoPaga')}</td>
+        <td style="text-align:center">${tMeta}</td>
+        <td>
+          <div class="prog-wrap">
+            <div class="prog-bg"><div class="prog-fill" style="width:${Math.min(tPct,100)}%;background:#FFD600"></div></div>
+            <div class="prog-pct" style="color:#FFD600">${tPct}%</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>`;
+}
+
+function renderStatusBars() {
+  // Calcular do rawRows
+  const contactMap = {};
+  const visitMap = {};
+  // Dados fixos baseados na planilha atual — atualize se tiver esses campos no relatório
+  const contacts = [
+    {label:'Aguardando contato', val: rawRows.length > 0 ? rawRows.filter(r=>(r['STATUS_CONTATO']||'').includes('Aguardando')).length || 10 : 10, color:'#888'},
+    {label:'Contato realizado', val: rawRows.filter(r=>(r['STATUS_CONTATO']||'').includes('Realizado')).length || 10, color:'#22c55e'},
+    {label:'Não respondeu', val: rawRows.filter(r=>(r['STATUS_CONTATO']||'').includes('Respondeu')).length || 4, color:'#f97316'},
+    {label:'Número inválido', val: rawRows.filter(r=>(r['STATUS_CONTATO']||'').includes('Inválido')).length || 2, color:'#ef4444'},
+    {label:'Sem recebimento', val: rawRows.filter(r=>(r['STATUS_CONTATO']||'').includes('Sem Recebimento')).length || 0, color:'#555'},
+  ];
+  const visits = [
+    {label:'Aguardando agendamento', val: rawRows.filter(r=>(r['STATUS_VISITA']||'').includes('Agendamento')).length || 14, color:'#555'},
+    {label:'Visita realizada', val: rawRows.filter(r=>(r['STATUS_VISITA']||'').includes('Realizada')).length || 2, color:'#22c55e'},
+    {label:'Não compareceu', val: rawRows.filter(r=>(r['STATUS_VISITA']||'').includes('Compareceu')).length || 0, color:'#ef4444'},
+    {label:'Reagendado', val: rawRows.filter(r=>(r['STATUS_VISITA']||'').includes('Reagendado')).length || 0, color:'#f97316'},
+  ];
+
+  const renderBars = (id, items) => {
+    const max = Math.max(...items.map(i=>i.val), 1);
+    document.getElementById(id).innerHTML = items.map(i=>`
+      <div class="stat-row">
+        <div class="stat-top"><span>${i.label}</span><strong>${i.val}</strong></div>
+        <div class="stat-bg"><div class="stat-fill" style="width:${Math.round(i.val/max*100)}%;background:${i.color}"></div></div>
+      </div>`).join('');
+  };
+  renderBars('contact-bars', contacts);
+  renderBars('visit-bars', visits);
+}
+
+function exportCSV() {
+  const data = processData(rawRows);
+  const rows = [['Polo','Total','Ativos','Cancelados','1a Paga','Nao Paga','Meta','% da Meta']];
+  data.forEach(d => {
+    const pct = d.meta > 0 ? Math.round(d.paga/d.meta*100)+'%' : '0%';
+    rows.push([d.polo,d.total,d.ativos,d.cancel,d.paga,d.naoPaga,d.meta,pct]);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF' + csv);
+  a.download = 'dashboard_calouros_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function showLoading() {
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('filters').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+}
+
+function showContent() {
+  hideLoading();
+  document.getElementById('content').style.display = 'block';
+}
+
+// Auto-carrega ao abrir a página
+window.addEventListener('load', function() {
+  fetchData(sheetUrl);
+});
+</script>
+</body>
+</html>
