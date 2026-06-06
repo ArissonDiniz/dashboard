@@ -1070,4 +1070,146 @@ function renderNaoChart(data){
   });
 }
 function renderDistChart(data){
-  const r=data.filter(d=>d.total>0)
+  const r=data.filter(d=>d.total>0);
+  if(charts.dist)charts.dist.destroy();
+  charts.dist=new Chart(document.getElementById('ch-dist'),{type:'pie',
+    data:{labels:r.map(d=>cap(d.polo)),datasets:[{data:r.map(d=>d.total),
+      backgroundColor:PC.slice(0,r.length).map(c=>c+'aa'),borderColor:'#0c0d11',borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#444',font:{size:9,family:'Inter'},boxWidth:7,padding:6}},tooltip:TO}}
+  });
+}
+
+// ══════ RANK COLABORADOR ══════
+function renderRankColab(rows){
+  const colabs=getColabs(rows);
+  const maxP=Math.max(...colabs.map(c=>c.paga),1);
+  const TOP=5;
+
+  function mkItem(c,i){
+    const medal=i<3?MEDALS[i]:'';
+    const color=i===0?'#FFD600':i===1?'#c0c0c0':i===2?'#cd7f32':PC[i%PC.length];
+    const pct=Math.round(c.paga/maxP*100);
+    return `<div class="ritem">
+      ${medal?`<div class="rmed">${medal}</div>`:`<div class="rnum">${i+1}º</div>`}
+      <div class="rinfo">
+        <div class="rname">${c.nome}</div>
+        <div class="rpolo">${c.polo||'—'}</div>
+        <div class="rbg"><div class="rbf" style="width:${pct}%;background:${color}"></div></div>
+      </div>
+      <div style="text-align:right">
+        <div class="rbadge" style="background:${i===0?'rgba(255,214,0,.1)':'rgba(255,255,255,.04)'};color:${color};border:1px solid ${color}22">
+          ${c.paga} pago${c.paga!==1?'s':''}
+        </div>
+        <div style="font-size:9px;color:var(--tx3);margin-top:3px">${c.total} matrícula${c.total!==1?'s':''}</div>
+      </div>
+    </div>`;
+  }
+
+  if(!colabs.length){
+    document.getElementById('rank-top').innerHTML='<div style="color:var(--tx3);font-size:12px;padding:12px">Sem dados no período/filtro selecionado.</div>';
+    document.getElementById('rank-more-btn').style.display='none';
+    return;
+  }
+
+  document.getElementById('rank-top').innerHTML=colabs.slice(0,TOP).map((c,i)=>mkItem(c,i)).join('');
+  document.getElementById('rank-rest').innerHTML=colabs.slice(TOP).map((c,i)=>mkItem(c,i+TOP)).join('');
+
+  const btn=document.getElementById('rank-more-btn');
+  const rest=colabs.slice(TOP).length;
+  if(rest>0){
+    btn.style.display='flex';
+    document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');
+    document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';
+    document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+rest+' colaborador'+(rest!==1?'es':'');
+  }else btn.style.display='none';
+}
+function toggleRankMore(){
+  rankExpanded=!rankExpanded;
+  document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');
+  document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';
+  const n=document.getElementById('rank-rest').children.length;
+  document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+n+' colaborador'+(n!==1?'es':'');
+}
+
+// ══════ CURSOS ══════
+function renderCursos(rows){
+  const cursos=getCursos(rows);
+  const maxT=Math.max(...cursos.map(c=>c.total),1);
+  if(!cursos.length){document.getElementById('cursos-list').innerHTML='<div style="color:var(--tx3);font-size:12px">Sem dados.</div>';return}
+  const top=cursos.slice(0,5);
+  const bot=cursos.length>5?cursos.slice(-3).filter(c=>c.total<(top[top.length-1]?.total||999)):[];
+  const topColors=['#FFD600','#22c55e','#3b82f6','#a855f7','#06b6d4'];
+  const mkci=(c,i,color)=>`<div class="ci">
+    <div class="ci-rank">${i+1}º</div>
+    <div class="ci-name" title="${c.nome}">${c.nome}</div>
+    <div class="ci-bg"><div class="ci-f" style="width:${Math.round(c.total/maxT*100)}%;background:${color}"></div></div>
+    <div class="ci-n" style="color:${color}">${c.total}</div>
+  </div>`;
+  let html=`<div class="curso-sec"><div class="curso-sec-label">🔝 Mais vendidos</div>${top.map((c,i)=>mkci(c,i,topColors[i]||'#555')).join('')}</div>`;
+  if(bot.length)html+=`<div class="curso-sec"><div class="curso-sec-label">🔻 Menos vendidos</div>${bot.map((c,i)=>mkci(c,cursos.length-bot.length+i,'#ef4444')).join('')}</div>`;
+  document.getElementById('cursos-list').innerHTML=html;
+}
+
+// ══════ TABLE ══════
+function renderTable(data){
+  const tP=sum(data,'paga'),tM=sum(data,'meta'),tPct=tM>0?Math.round(tP/tM*100):0;
+  const ranked=[...data].sort((a,b)=>{
+    const pa=a.meta>0?a.paga/a.meta:0,pb=b.meta>0?b.paga/b.meta:0;return pb-pa;
+  });
+  const regiaoColors={AC:'var(--g)',RO:'var(--bl)',AM:'var(--p)'};
+  const rows=ranked.map((d,i)=>{
+    const pct=d.meta>0?Math.round(d.paga/d.meta*100):0;
+    const pc=pct>=50?'#22c55e':pct>=25?'#FFD600':'#ef4444';
+    const medal=i<3&&d.total>0?MEDALS[i]:`<span style="color:var(--tx3);font-size:10px">${i+1}º</span>`;
+    const regTag=d.regiao&&d.regiao!=='?'?`<span style="font-size:8px;color:${regiaoColors[d.regiao]||'#666'};font-weight:700;margin-left:5px;opacity:.8">${d.regiao}</span>`:'';
+    return `<tr>
+      <td style="padding-left:18px;font-size:14px;width:44px">${medal}</td>
+      <td><span style="font-weight:700;color:#eee;font-size:12.5px">${cap(d.polo)}</span>${regTag}</td>
+      <td style="text-align:center">${d.total}</td>
+      <td style="text-align:center">${d.ativos}</td>
+      <td style="text-align:center"><span class="pl ${d.cancel>0?'pr2':'px'}">${d.cancel}</span></td>
+      <td style="text-align:center"><span class="pl ${d.paga>0?'pg':'px'}">${d.paga}</span></td>
+      <td style="text-align:center"><span class="pl ${d.naoPaga>0?'pr2':'px'}">${d.naoPaga}</span></td>
+      <td style="text-align:center;color:var(--tx3)">${d.meta||'—'}</td>
+      <td style="padding-right:16px;min-width:130px">
+        ${d.meta>0
+          ?`<div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(pct,100)}%;background:${pc}"></div></div><div class="pp" style="color:${pc}">${pct}%</div></div>`
+          :'<span style="color:var(--tx3);font-size:10px">sem meta</span>'}
+      </td></tr>`;
+  }).join('');
+  document.getElementById('polo-table').innerHTML=`
+    <thead><tr>
+      <th style="padding-left:18px">#</th><th>Polo</th>
+      <th style="text-align:center">Total</th><th style="text-align:center">Ativos</th>
+      <th style="text-align:center">Cancelados</th><th style="text-align:center">1ª Paga</th>
+      <th style="text-align:center">Não Paga</th><th style="text-align:center">Meta</th>
+      <th style="padding-right:16px">Progresso</th>
+    </tr></thead>
+    <tbody>${rows}
+      <tr class="tr-tot">
+        <td style="padding-left:18px">—</td><td><strong>TOTAL FILTRADO</strong></td>
+        <td style="text-align:center">${sum(data,'total')}</td>
+        <td style="text-align:center">${sum(data,'ativos')}</td>
+        <td style="text-align:center">${sum(data,'cancel')}</td>
+        <td style="text-align:center">${tP}</td>
+        <td style="text-align:center">${sum(data,'naoPaga')}</td>
+        <td style="text-align:center">${tM}</td>
+        <td style="padding-right:16px"><div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(tPct,100)}%;background:#FFD600"></div></div><div class="pp" style="color:#FFD600">${tPct}%</div></div></td>
+      </tr>
+    </tbody>`;
+}
+
+// ══════ UI ══════
+function showLoading(){
+  ['content','filters','hero-sec','proj-bar'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none'});
+  document.getElementById('loading').style.display='flex';
+}
+function hideLoading(){document.getElementById('loading').style.display='none'}
+function showContent(){hideLoading();document.getElementById('content').style.display='block'}
+
+// ══════ BOOT ══════
+window.addEventListener('load',fetchData);
+</script>
+</body>
+</html>
