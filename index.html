@@ -5,266 +5,246 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Dashboard Calouros · Uniasselvi</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --y:#FFD600;--yg:rgba(255,214,0,.15);--yd:rgba(255,214,0,.07);--yd2:rgba(255,214,0,.03);
+  --y:#FFD600;--yg:rgba(255,214,0,.15);--yd:rgba(255,214,0,.07);
   --bg:#06070a;--b2:#0c0d11;--b3:#111318;--b4:#181a20;--b5:#1e2028;--b6:#252830;
   --br:rgba(255,255,255,.055);--br2:rgba(255,255,255,.1);--br3:rgba(255,255,255,.16);
   --tx:#eef0f4;--tx2:#8a8f9e;--tx3:#3e4250;
   --g:#22c55e;--r:#ef4444;--o:#f97316;--bl:#3b82f6;--p:#a855f7;--cy:#06b6d4;
   --radius:14px;--radius-sm:9px;--radius-lg:18px;
-  --shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 12px 48px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);
+  min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  cursor:none!important}
+*{cursor:none!important}
 
-/* ── SCROLLBAR ── */
+/* ── CURSOR CUSTOMIZADO ── */
+#cursor{
+  position:fixed;width:12px;height:12px;
+  background:var(--y);border-radius:50%;
+  pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 10px var(--y),0 0 20px rgba(255,214,0,.4);
+  transition:transform .1s ease,width .2s ease,height .2s ease,background .2s ease;
+  mix-blend-mode:normal;
+}
+#cursor.hover{width:28px;height:28px;background:rgba(255,214,0,.2);
+  box-shadow:0 0 20px var(--y),0 0 40px rgba(255,214,0,.3);
+  border:1.5px solid var(--y)}
+#cursor.click{transform:translate(-50%,-50%) scale(1.8);background:var(--y)}
+#cursor-trail{
+  position:fixed;width:28px;height:28px;
+  border:1.5px solid rgba(255,214,0,.35);border-radius:50%;
+  pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:left .12s ease,top .12s ease;
+}
+
+/* SPARK */
+.spark{
+  position:fixed;pointer-events:none;z-index:99997;
+  border-radius:50%;animation:spark-out .6s ease forwards;
+}
+@keyframes spark-out{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0)}
+}
+
+/* SCROLLBAR */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--b2)}
 ::-webkit-scrollbar-thumb{background:var(--b5);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--b6)}
 
-/* ── WATERMARK ── */
+/* WATERMARK */
 .wm{position:fixed;right:-58px;top:50%;transform:translateY(-50%) rotate(90deg);
   font-size:9px;font-weight:700;letter-spacing:5px;color:rgba(255,214,0,.04);
   text-transform:uppercase;pointer-events:none;z-index:9999;white-space:nowrap;user-select:none}
 
-/* ── HEADER ── */
-.hdr{
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
-  padding:0 32px;height:66px;
-  background:rgba(6,7,10,.92);
-  border-bottom:1px solid var(--br);
-  position:sticky;top:0;z-index:300;
-  backdrop-filter:blur(32px) saturate(180%);
-  -webkit-backdrop-filter:blur(32px) saturate(180%);
-}
+/* HEADER */
+.hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:0 32px;height:66px;background:rgba(6,7,10,.94);
+  border-bottom:1px solid var(--br);position:sticky;top:0;z-index:300;
+  backdrop-filter:blur(32px) saturate(180%)}
 .logo-wrap{display:flex;align-items:center;gap:13px}
-.logo-img{height:32px;filter:brightness(0) invert(1);opacity:.9;transition:opacity .2s}
-.logo-img:hover{opacity:1}
+.logo-img{height:32px;filter:brightness(0) invert(1);opacity:.9}
 .logo-fb{width:36px;height:36px;background:var(--y);border-radius:8px;
   display:none;align-items:center;justify-content:center;
-  font-weight:900;font-size:17px;color:#000;
-  box-shadow:0 0 20px var(--yg),0 0 40px rgba(255,214,0,.08)}
-.brand{font-size:13.5px;font-weight:700;color:#fff;letter-spacing:-.3px;line-height:1.2}
-.brand-sub{font-size:9.5px;color:var(--tx3);margin-top:2px;letter-spacing:.3px;font-weight:400}
-
+  font-weight:900;font-size:17px;color:#000;box-shadow:0 0 20px var(--yg)}
+.brand{font-size:13.5px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.brand-sub{font-size:9.5px;color:var(--tx3);margin-top:2px;letter-spacing:.3px}
 .clock-c{text-align:center;user-select:none}
-#ck-t{
-  font-size:20px;font-weight:900;color:var(--y);
-  letter-spacing:3px;line-height:1;font-variant-numeric:tabular-nums;
-  text-shadow:0 0 30px rgba(255,214,0,.4);
-}
+#ck-t{font-size:20px;font-weight:900;color:var(--y);letter-spacing:3px;
+  text-shadow:0 0 30px rgba(255,214,0,.4);font-variant-numeric:tabular-nums}
 #ck-d{font-size:9.5px;color:var(--tx3);margin-top:3px;letter-spacing:.4px}
-
 .hdr-r{display:flex;align-items:center;justify-content:flex-end;gap:10px}
 .live-wrap{display:flex;align-items:center;gap:6px}
-.live{width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0;
+.live{width:6px;height:6px;border-radius:50%;background:var(--g);
   box-shadow:0 0 8px var(--g);animation:pls 2.5s ease infinite}
 .live-tx{font-size:9px;color:var(--tx3);letter-spacing:.4px;font-weight:500}
-@keyframes pls{0%,100%{box-shadow:0 0 5px var(--g),0 0 0 0 rgba(34,197,94,.3)}
-  50%{box-shadow:0 0 14px var(--g),0 0 20px rgba(34,197,94,.15)}}
-.badge{
-  background:var(--y);color:#000;font-weight:800;font-size:9.5px;
-  padding:5px 12px;border-radius:6px;letter-spacing:1.5px;
-  box-shadow:0 0 18px var(--yg),0 2px 8px rgba(255,214,0,.2);
-}
+@keyframes pls{0%,100%{box-shadow:0 0 5px var(--g)}50%{box-shadow:0 0 14px var(--g),0 0 24px rgba(34,197,94,.2)}}
+.badge{background:var(--y);color:#000;font-weight:800;font-size:9.5px;
+  padding:5px 12px;border-radius:6px;letter-spacing:1.5px;box-shadow:0 0 18px var(--yg)}
 
-/* ── CONTAINER ── */
 .wrap{max-width:1420px;margin:0 auto;padding:22px 28px 40px}
 
-/* ── HERO ── */
-.hero{
-  background:linear-gradient(135deg,#0e0b00 0%,#09090e 55%,#06070a 100%);
-  border:1px solid rgba(255,214,0,.1);
-  border-radius:var(--radius-lg);
-  padding:24px 28px;margin-bottom:16px;
-  position:relative;overflow:hidden;
-  animation:fsi .45s cubic-bezier(.2,.8,.2,1) both;
-}
-.hero::before{content:'';position:absolute;top:-100px;right:-100px;
-  width:360px;height:360px;
-  background:radial-gradient(circle,rgba(255,214,0,.07) 0%,transparent 70%);
-  pointer-events:none}
+/* HERO */
+.hero{background:linear-gradient(135deg,#0e0b00,#09090e 55%,#06070a);
+  border:1px solid rgba(255,214,0,.1);border-radius:var(--radius-lg);
+  padding:24px 28px;margin-bottom:16px;position:relative;overflow:hidden;
+  animation:fsi .45s cubic-bezier(.2,.8,.2,1) both}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:360px;height:360px;
+  background:radial-gradient(circle,rgba(255,214,0,.07),transparent 70%);pointer-events:none}
 .hero::after{content:'UNIASSELVI';position:absolute;bottom:-32px;right:16px;
   font-size:108px;font-weight:900;letter-spacing:-4px;
   color:rgba(255,214,0,.022);pointer-events:none;user-select:none;line-height:1}
 .hero-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
 .hero-title{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.4px}
-.hero-sub{font-size:11px;color:var(--tx3);margin-top:3px;letter-spacing:.2px}
-.hero-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hero-sub{font-size:11px;color:var(--tx3);margin-top:3px}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap}
 .hero-stats{display:flex;gap:0;flex-wrap:wrap}
-.hs{padding:0 24px;border-right:1px solid var(--br)}
-.hs:first-child{padding-left:0}
-.hs:last-child{border-right:none}
+.hs{padding:0 22px;border-right:1px solid var(--br)}
+.hs:first-child{padding-left:0}.hs:last-child{border-right:none}
 .hs-v{font-size:22px;font-weight:900;color:var(--y);line-height:1;letter-spacing:-.5px}
 .hs-l{font-size:9px;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
 
-/* ── PROJEÇÃO ── */
-.proj{
-  display:flex;align-items:stretch;gap:0;
-  background:var(--b2);border:1px solid var(--br);
-  border-radius:var(--radius);margin-bottom:16px;overflow:hidden;
-  animation:fsi .45s .07s cubic-bezier(.2,.8,.2,1) both;
-}
-.pj{flex:1;display:flex;align-items:center;gap:12px;padding:14px 20px;
+/* PROJEÇÃO */
+.proj{display:flex;align-items:stretch;background:var(--b2);
+  border:1px solid var(--br);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;
+  animation:fsi .45s .07s cubic-bezier(.2,.8,.2,1) both}
+.pj{flex:1;display:flex;align-items:center;gap:11px;padding:13px 18px;
   border-right:1px solid var(--br);transition:background .2s}
 .pj:last-child{border-right:none}
 .pj:hover{background:var(--b3)}
-.pj-ic{font-size:20px;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(255,214,0,.3))}
+.pj-ic{font-size:19px;flex-shrink:0}
 .pj-l{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:3px}
-.pj-v{font-size:13px;font-weight:700;color:var(--y)}
+.pj-v{font-size:12.5px;font-weight:700;color:var(--y)}
 
-/* ── FILTROS ── */
-.filter-wrap{
-  background:var(--b2);border:1px solid var(--br);border-radius:var(--radius);
-  padding:14px 18px;margin-bottom:18px;
+/* FILTROS */
+.filter-wrap{background:var(--b2);border:1px solid var(--br);border-radius:var(--radius);
+  padding:13px 16px;margin-bottom:18px;
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  animation:fsi .45s .1s cubic-bezier(.2,.8,.2,1) both;
-}
+  animation:fsi .45s .1s cubic-bezier(.2,.8,.2,1) both}
 .fl{font-size:9.5px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
-.divv{width:1px;height:26px;background:var(--br);flex-shrink:0}
+.divv{width:1px;height:24px;background:var(--br2);flex-shrink:0}
+.filter-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
 select,input[type=date]{
   background:var(--b4);border:1px solid var(--br2);color:var(--tx);
   padding:7px 11px;border-radius:var(--radius-sm);font-size:12px;
-  font-family:'Inter',sans-serif;cursor:pointer;outline:none;
+  font-family:'Inter',sans-serif;outline:none;
   transition:border-color .2s,box-shadow .2s,background .2s;
-  appearance:none;-webkit-appearance:none;
 }
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;appearance:none}
 select:hover,select:focus,input[type=date]:hover,input[type=date]:focus{
   border-color:var(--y);box-shadow:0 0 0 3px var(--yd);background:var(--b3)}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:pointer}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
+.date-sep{font-size:11px;color:var(--tx3)}
 
-/* ── BOTÕES ── */
-.btn{
-  padding:8px 18px;border-radius:var(--radius-sm);font-size:12px;
-  font-family:'Inter',sans-serif;font-weight:700;cursor:pointer;border:none;
+/* BOTÕES — amarelo com texto preto */
+.btn{padding:8px 18px;border-radius:var(--radius-sm);font-size:12px;
+  font-family:'Inter',sans-serif;font-weight:700;
   display:inline-flex;align-items:center;gap:7px;
   transition:all .2s cubic-bezier(.2,.8,.2,1);
   position:relative;overflow:hidden;letter-spacing:.1px;white-space:nowrap;
-}
-/* AMARELO com texto preto — padrão */
-.btn{background:var(--y);color:#000;box-shadow:0 2px 12px rgba(255,214,0,.25)}
+  background:var(--y);color:#000;border:none;
+  box-shadow:0 2px 12px rgba(255,214,0,.22)}
 .btn:hover{background:#ffe033;box-shadow:0 4px 24px rgba(255,214,0,.4);transform:translateY(-2px)}
-.btn:active{transform:scale(.97) translateY(0);box-shadow:0 1px 8px rgba(255,214,0,.2)}
-/* Ghost */
-.btn-gh{background:transparent;color:var(--tx2);box-shadow:none;
-  border:1px solid var(--br2);}
-.btn-gh:hover{background:var(--y);color:#000;border-color:var(--y);
-  box-shadow:0 4px 20px rgba(255,214,0,.3);transform:translateY(-2px)}
-/* Danger */
-.btn-danger{background:transparent;color:var(--r);box-shadow:none;border:1px solid rgba(239,68,68,.25)}
-.btn-danger:hover{background:var(--r);color:#fff;transform:translateY(-2px)}
+.btn:active{transform:scale(.97) translateY(0)}
+.btn-gh{background:transparent;color:var(--tx2);box-shadow:none;border:1px solid var(--br2)}
+.btn-gh:hover{background:var(--y);color:#000;border-color:var(--y);box-shadow:0 4px 20px rgba(255,214,0,.3)}
+.btn-sm{padding:6px 13px;font-size:11px}
 
-/* RIPPLE */
-.ripple{position:absolute;border-radius:50%;background:rgba(0,0,0,.2);
-  transform:scale(0);animation:rip .55s linear;pointer-events:none}
+.ripple{position:absolute;border-radius:50%;background:rgba(0,0,0,.15);
+  transform:scale(0);animation:rip .5s linear;pointer-events:none}
 @keyframes rip{to{transform:scale(4);opacity:0}}
 
-/* ── KPI GRID ── */
+/* KPIs */
 .kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:11px;margin-bottom:11px}
-
-.kpi{
-  background:var(--b3);
-  border:1px solid var(--br);
-  border-radius:var(--radius);
-  padding:17px 18px 15px;
-  position:relative;overflow:hidden;cursor:pointer;
-  transition:transform .25s cubic-bezier(.2,.8,.2,1),
-             border-color .25s,box-shadow .3s,background .2s;
-  animation:fsi .4s ease both;
-}
+.kpi{background:var(--b3);border:1px solid var(--br);border-radius:var(--radius);
+  padding:17px 18px 14px;position:relative;overflow:hidden;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .3s;
+  animation:fsi .4s ease both}
 .kpi::before{content:'';position:absolute;inset:0;opacity:0;
-  background:radial-gradient(circle at 50% 0%,rgba(255,214,0,.06),transparent 70%);
+  background:radial-gradient(ellipse at 50% -10%,rgba(255,214,0,.07),transparent 65%);
   transition:opacity .3s}
-.kpi:hover{transform:translateY(-5px);border-color:rgba(255,214,0,.22);
-  box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(255,214,0,.08)}
+.kpi:hover{transform:translateY(-5px);border-color:rgba(255,214,0,.2);
+  box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(255,214,0,.07)}
 .kpi:hover::before{opacity:1}
-.kpi.kpi-on{border-color:rgba(255,214,0,.4)!important;
-  box-shadow:0 0 0 2px rgba(255,214,0,.18),0 16px 40px rgba(0,0,0,.5)!important;
-  background:var(--b4)!important}
-
-.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
-.kpi-ic{width:33px;height:33px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.kpi-click{font-size:8.5px;color:var(--tx3);font-weight:600;letter-spacing:.3px;
-  background:var(--b5);padding:3px 7px;border-radius:4px;white-space:nowrap;
-  border:1px solid var(--br);transition:all .2s}
+.kpi.kpi-on{border-color:rgba(255,214,0,.38)!important;
+  box-shadow:0 0 0 2px rgba(255,214,0,.16),0 16px 40px rgba(0,0,0,.5)!important}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px}
+.kpi-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.kpi-click{font-size:8px;color:var(--tx3);font-weight:600;letter-spacing:.3px;
+  background:var(--b5);padding:3px 7px;border-radius:4px;border:1px solid var(--br);
+  transition:all .2s;white-space:nowrap}
 .kpi:hover .kpi-click{border-color:rgba(255,214,0,.2);color:var(--y)}
-.kpi-l{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;
-  letter-spacing:.7px;margin-bottom:3px}
+.kpi-l{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
 .kpi-v{font-size:28px;font-weight:900;line-height:1;letter-spacing:-.5px}
 .kpi-s{font-size:10px;color:var(--tx3);margin-top:4px;line-height:1.45}
-.kpi-bw{height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:11px;overflow:hidden}
+.kpi-bw{height:2px;background:rgba(255,255,255,.05);border-radius:1px;margin-top:11px;overflow:hidden}
 .kpi-bf{height:2px;border-radius:1px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 
-/* KPI color variants */
-.ky .kpi-ac{background:linear-gradient(90deg,var(--y),#ffec60)}.ky .kpi-ic{background:var(--yd)}.ky .kpi-v{color:var(--y)}.ky .kpi-bf{background:linear-gradient(90deg,var(--y),#ffec60)}
-.kg2c .kpi-ac{background:linear-gradient(90deg,var(--g),#4ade80)}.kg2c .kpi-ic{background:rgba(34,197,94,.1)}.kg2c .kpi-v{color:var(--g)}.kg2c .kpi-bf{background:var(--g)}
-.kr .kpi-ac{background:linear-gradient(90deg,var(--r),#f87171)}.kr .kpi-ic{background:rgba(239,68,68,.1)}.kr .kpi-v{color:var(--r)}.kr .kpi-bf{background:var(--r)}
-.kb .kpi-ac{background:linear-gradient(90deg,var(--bl),#60a5fa)}.kb .kpi-ic{background:rgba(59,130,246,.1)}.kb .kpi-v{color:var(--bl)}.kb .kpi-bf{background:var(--bl)}
-.ko .kpi-ac{background:linear-gradient(90deg,var(--o),#fb923c)}.ko .kpi-ic{background:rgba(249,115,22,.1)}.ko .kpi-v{color:var(--o)}.ko .kpi-bf{background:var(--o)}
-.kp .kpi-ac{background:linear-gradient(90deg,var(--p),#c084fc)}.kp .kpi-ic{background:rgba(168,85,247,.1)}.kp .kpi-v{color:var(--p)}.kp .kpi-bf{background:var(--p)}
-.kw .kpi-ac{background:linear-gradient(90deg,#fff,#ccc)}.kw .kpi-ic{background:rgba(255,255,255,.05)}.kw .kpi-v{color:#fff}.kw .kpi-bf{background:#fff}
+.ky .kpi-ic{background:var(--yd)}.ky .kpi-v{color:var(--y)}.ky .kpi-bf{background:var(--y)}
+.kg2c .kpi-ic{background:rgba(34,197,94,.1)}.kg2c .kpi-v{color:var(--g)}.kg2c .kpi-bf{background:var(--g)}
+.kr .kpi-ic{background:rgba(239,68,68,.1)}.kr .kpi-v{color:var(--r)}.kr .kpi-bf{background:var(--r)}
+.kb .kpi-ic{background:rgba(59,130,246,.1)}.kb .kpi-v{color:var(--bl)}.kb .kpi-bf{background:var(--bl)}
+.ko .kpi-ic{background:rgba(249,115,22,.1)}.ko .kpi-v{color:var(--o)}.ko .kpi-bf{background:var(--o)}
+.kp .kpi-ic{background:rgba(168,85,247,.1)}.kp .kpi-v{color:var(--p)}.kp .kpi-bf{background:var(--p)}
+.kw .kpi-ic{background:rgba(255,255,255,.05)}.kw .kpi-v{color:#fff}.kw .kpi-bf{background:#fff}
 
-/* ── SECTION ── */
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(14px);animation:fadein .2s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.mbox{background:var(--b3);border:1px solid rgba(255,214,0,.15);border-radius:var(--radius-lg);
+  padding:24px;width:100%;max-width:540px;max-height:78vh;overflow-y:auto;
+  animation:min .28s cubic-bezier(.34,1.56,.64,1) both;
+  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,214,0,.05)}
+@keyframes min{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:none}}
+.mhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.mtitle{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.2px}
+.mclose{width:28px;height:28px;border-radius:7px;border:1px solid var(--br2);
+  background:transparent;color:var(--tx2);font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:.2s}
+.mclose:hover{border-color:var(--r);color:var(--r);background:rgba(239,68,68,.08)}
+.mrow{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 13px;border-radius:9px;margin-bottom:5px;
+  background:var(--b4);border:1px solid transparent;transition:all .15s}
+.mrow:hover{background:var(--b5);border-color:var(--br)}
+.mname{font-size:12px;font-weight:600;color:var(--tx)}
+.mprog{display:flex;align-items:center;gap:7px;margin-top:5px}
+.mpb{flex:1;height:3px;background:var(--b6);border-radius:2px;overflow:hidden}
+.mpf{height:3px;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.mval{font-size:13px;font-weight:800;flex-shrink:0;margin-left:14px}
+.msub{font-size:10px;color:var(--tx3);margin-top:1px}
+
+/* SECTION */
 .sh{display:flex;align-items:center;gap:12px;margin:20px 0 13px}
 .st{font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;
   letter-spacing:.8px;white-space:nowrap;display:flex;align-items:center;gap:7px}
 .st-dot{width:5px;height:5px;border-radius:50%;background:var(--y);box-shadow:0 0 8px var(--y)}
 .sl{flex:1;height:1px;background:linear-gradient(90deg,var(--br2),transparent)}
 
-/* ── CARDS ── */
-.card{
-  background:var(--b3);border:1px solid var(--br);border-radius:var(--radius);
-  padding:18px 20px;transition:border-color .2s;
-  animation:fsi .5s ease both;
-}
+/* CARDS */
+.card{background:var(--b3);border:1px solid var(--br);border-radius:var(--radius);
+  padding:18px 20px;transition:border-color .2s;animation:fsi .5s ease both}
 .card:hover{border-color:var(--br2)}
 .ct{font-size:9.5px;font-weight:700;color:var(--tx3);text-transform:uppercase;
   letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
-.ctd{width:4px;height:4px;border-radius:50%;background:var(--y);box-shadow:0 0 6px var(--y);flex-shrink:0}
+.ctd{width:4px;height:4px;border-radius:50%;background:var(--y);box-shadow:0 0 6px var(--y)}
 
-/* grids */
 .cr2{display:grid;grid-template-columns:1.65fr 1fr;gap:13px;margin-bottom:13px}
 .cr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:13px}
 .cr2b{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
 
-/* ── MODAL ── */
-.mover{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:400;
-  display:flex;align-items:center;justify-content:center;padding:20px;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:fadein .2s ease}
-@keyframes fadein{from{opacity:0}to{opacity:1}}
-.mbox{
-  background:var(--b3);border:1px solid rgba(255,214,0,.15);
-  border-radius:var(--radius-lg);padding:24px;
-  width:100%;max-width:560px;max-height:78vh;overflow-y:auto;
-  animation:min .28s cubic-bezier(.34,1.56,.64,1) both;
-  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,214,0,.05);
-}
-@keyframes min{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:none}}
-.mhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.mtitle{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.2px}
-.mclose{width:28px;height:28px;border-radius:7px;border:1px solid var(--br2);
-  background:transparent;color:var(--tx2);cursor:pointer;font-size:14px;
-  display:flex;align-items:center;justify-content:center;transition:.2s}
-.mclose:hover{border-color:var(--r);color:var(--r);background:rgba(239,68,68,.08)}
-.mrow{display:flex;align-items:center;justify-content:space-between;
-  padding:10px 13px;border-radius:9px;margin-bottom:5px;background:var(--b4);
-  border:1px solid transparent;transition:all .15s}
-.mrow:hover{background:var(--b5);border-color:var(--br)}
-.mname{font-size:12px;font-weight:600;color:var(--tx)}
-.mprog{display:flex;align-items:center;gap:7px;margin-top:5px}
-.mpb{flex:1;height:3px;background:var(--b6);border-radius:2px;overflow:hidden}
-.mpf{height:3px;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.mval{font-size:13px;font-weight:800;flex-shrink:0}
-
-/* ── TABLE ── */
+/* TABLE */
 .tw{overflow-x:auto;border-radius:10px}
 .pt{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
 .pt th{text-align:left;font-weight:700;color:var(--tx3);font-size:9px;
@@ -272,9 +252,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   border-bottom:1px solid var(--br);white-space:nowrap;background:var(--b2)}
 .pt td{padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.03);color:#d8dae0;vertical-align:middle}
 .pt tbody tr{transition:background .12s}
-.pt tbody tr:hover td{background:rgba(255,214,0,.035)}
-.pt tr.tr-tot td{border-top:1px solid rgba(255,214,0,.12);color:#fff;font-weight:700;
-  background:rgba(255,214,0,.03)}
+.pt tbody tr:hover td{background:rgba(255,214,0,.03)}
+.pt tr.tr-tot td{border-top:1px solid rgba(255,214,0,.12);color:#fff;font-weight:700;background:rgba(255,214,0,.03)}
 .pl{display:inline-flex;align-items:center;justify-content:center;
   min-width:30px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .pg{background:rgba(34,197,94,.1);color:var(--g);border:1px solid rgba(34,197,94,.18)}
@@ -285,105 +264,95 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
 .pf{height:4px;border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 .pp{font-size:10px;font-weight:700;min-width:34px;text-align:right}
 
-/* ── RANK COLABORADOR ── */
+/* RANK */
 .rank-list{display:flex;flex-direction:column;gap:7px}
-.ritem{
-  display:flex;align-items:center;gap:11px;padding:11px 14px;
+.ritem{display:flex;align-items:center;gap:11px;padding:11px 13px;
   background:var(--b4);border-radius:10px;border:1px solid var(--br);
-  transition:all .2s cubic-bezier(.2,.8,.2,1);
-}
-.ritem:hover{background:var(--b5);border-color:rgba(255,214,0,.18);transform:translateX(3px)}
-.rmed{font-size:17px;width:24px;text-align:center;flex-shrink:0;line-height:1}
-.rnum{font-size:10px;font-weight:700;color:var(--tx3);width:18px;text-align:center;flex-shrink:0}
+  transition:all .22s cubic-bezier(.2,.8,.2,1)}
+.ritem:hover{background:var(--b5);border-color:rgba(255,214,0,.18);transform:translateX(4px)}
+.rmed{font-size:17px;width:24px;text-align:center;flex-shrink:0}
+.rnum{font-size:10px;font-weight:700;color:var(--tx3);width:20px;text-align:center;flex-shrink:0}
 .rinfo{flex:1;min-width:0}
-.rname{font-size:12.5px;font-weight:700;color:var(--tx);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rpolo{font-size:9.5px;color:var(--tx3);margin-top:1px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rname{font-size:12.5px;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpolo{font-size:9.5px;color:var(--tx3);margin-top:1px}
 .rbg{height:3px;background:var(--b6);border-radius:2px;margin-top:6px}
-.rbf{height:3px;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.rbadge{font-size:11px;font-weight:800;padding:4px 11px;border-radius:20px;
-  white-space:nowrap;flex-shrink:0}
-.rmore-btn{
-  width:100%;padding:9px;border-radius:9px;border:1px dashed var(--br2);
+.rbf{height:3px;border-radius:2px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.rbadge{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.rmore-btn{width:100%;padding:9px;border-radius:9px;border:1px dashed var(--br2);
   background:transparent;color:var(--tx3);font-size:11px;font-weight:600;
-  cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.3px;
-  transition:all .2s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px;
-}
+  font-family:'Inter',sans-serif;letter-spacing:.3px;
+  transition:all .2s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px}
 .rmore-btn:hover{border-color:var(--y);color:var(--y);background:var(--yd)}
-.rmore-hidden{display:none}
-.rmore-hidden.open{display:flex;flex-direction:column;gap:7px}
+.rmore-hidden{display:none;flex-direction:column;gap:7px}
+.rmore-hidden.open{display:flex}
 
-/* ── CURSOS ── */
-.curso-sec{margin-bottom:16px}
-.curso-sec-label{font-size:9px;color:var(--tx3);font-weight:700;
-  text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px;
-  display:flex;align-items:center;gap:6px}
+/* CURSOS */
+.curso-sec{margin-bottom:14px}
+.curso-sec-label{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .curso-sec-label::after{content:'';flex:1;height:1px;background:var(--br)}
 .ci{display:flex;align-items:center;gap:9px;padding:7px 0;
   border-bottom:1px solid rgba(255,255,255,.03)}
 .ci:last-child{border-bottom:none}
-.ci-rank{font-size:9.5px;color:var(--tx3);font-weight:700;width:16px;text-align:right;flex-shrink:0}
-.ci-name{flex:1;font-size:12px;color:var(--tx);font-weight:500;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ci-bg{width:60px;height:3px;background:var(--b5);border-radius:2px;flex-shrink:0}
-.ci-f{height:3px;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.ci-n{font-size:12px;font-weight:700;flex-shrink:0;min-width:20px;text-align:right}
+.ci-rank{font-size:9px;color:var(--tx3);font-weight:700;width:16px;text-align:right;flex-shrink:0}
+.ci-name{flex:1;font-size:11.5px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-bg{width:56px;height:3px;background:var(--b5);border-radius:2px;flex-shrink:0}
+.ci-f{height:3px;border-radius:2px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.ci-n{font-size:12px;font-weight:700;flex-shrink:0;min-width:18px;text-align:right}
 
-/* ── GAUGE ── */
+/* GAUGE */
 .gc{display:flex;flex-direction:column;align-items:center;padding:4px 0}
-.gv{font-size:40px;font-weight:900;color:var(--y);line-height:1;letter-spacing:-1px;
+.gv{font-size:38px;font-weight:900;color:var(--y);line-height:1;letter-spacing:-1px;
   text-shadow:0 0 28px rgba(255,214,0,.35)}
 .gl{font-size:9px;color:var(--tx3);margin-top:4px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
 
-/* ── ALERT ── */
+/* ALERT */
 .alrt{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);
   border-radius:var(--radius);padding:12px 16px;
-  display:flex;align-items:center;gap:10px;margin-bottom:14px;
-  animation:fsi .3s ease both}
+  display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .alrt-tx{font-size:12px;color:#fca5a5;line-height:1.5}
 
-/* ── LOADING ── */
-#loading{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:80px;gap:16px}
-.spin{width:40px;height:40px;border:2.5px solid var(--b5);
-  border-top-color:var(--y);border-radius:50%;
-  animation:sp .7s linear infinite;box-shadow:0 0 20px var(--yg)}
+/* LOADING */
+#loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px;gap:16px}
+.spin{width:40px;height:40px;border:2.5px solid var(--b5);border-top-color:var(--y);
+  border-radius:50%;animation:sp .7s linear infinite;box-shadow:0 0 20px var(--yg)}
 @keyframes sp{to{transform:rotate(360deg)}}
-.ld-tx{font-size:12px;color:var(--tx3);
-  animation:bk 1.4s ease infinite;letter-spacing:.2px}
+.ld-tx{font-size:12px;color:var(--tx3);animation:bk 1.4s ease infinite}
 @keyframes bk{0%,100%{opacity:.3}50%{opacity:1}}
 
-/* ── FOOTER ── */
+/* FOOTER */
 .ftr{text-align:center;padding:20px 0 0;font-size:10px;color:var(--tx3);
-  border-top:1px solid var(--br);margin-top:10px;letter-spacing:.5px;font-weight:500}
+  border-top:1px solid var(--br);margin-top:10px;letter-spacing:.5px}
 .ftr span{color:var(--y);font-weight:700}
 
-/* ── DATE CUSTOM ── */
-#custom-dates{align-items:center;gap:7px;display:none}
+/* REGIÃO TAGS */
+.regiao-tag{display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-left:6px}
+.tag-ac{background:rgba(34,197,94,.1);color:var(--g);border:1px solid rgba(34,197,94,.2)}
+.tag-ro{background:rgba(59,130,246,.1);color:var(--bl);border:1px solid rgba(59,130,246,.2)}
+.tag-am{background:rgba(168,85,247,.1);color:var(--p);border:1px solid rgba(168,85,247,.2)}
 
-/* ── ANIMAÇÕES ── */
+/* ANIMAÇÕES */
 @keyframes fsi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── RESPONSIVE ── */
+/* RESPONSIVE */
 @media(max-width:1000px){
   .cr2,.cr3,.cr2b{grid-template-columns:1fr}
   .kg{grid-template-columns:repeat(2,1fr)}
-  .wrap{padding:12px 14px 30px}
-  .hdr{padding:0 16px;height:58px}
-  .clock-c,.badge{display:none}
-  .hero::after{display:none}
-  .hs{padding:0 14px}
-  .proj{flex-wrap:wrap}
-  .pj{min-width:45%}
-}
-@media(max-width:560px){
-  .kg{grid-template-columns:1fr 1fr}
-  .hs{padding:0 10px}
+  .wrap{padding:12px 14px 30px}.hdr{padding:0 16px;height:58px}
+  .clock-c,.badge{display:none}.hero::after{display:none}
+  .proj{flex-wrap:wrap}.pj{min-width:45%}
+  body,*{cursor:auto!important}
+  #cursor,#cursor-trail{display:none}
 }
 </style>
 </head>
 <body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+
 <div class="wm">BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ</div>
 
 <!-- HEADER -->
@@ -425,7 +394,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   <div class="hero-top">
     <div>
       <div class="hero-title">📊 Painel de Calouros</div>
-      <div class="hero-sub" id="hero-sub">Monitoramento em tempo real · Rede de polos</div>
+      <div class="hero-sub" id="hero-sub">Monitoramento em tempo real</div>
     </div>
     <div class="hero-actions">
       <button class="btn btn-gh" onclick="refreshData(event)">↻ Atualizar dados</button>
@@ -444,10 +413,20 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
 
 <!-- FILTROS -->
 <div class="filter-wrap" id="filters" style="display:none">
+  <span class="fl">🗺️ Região</span>
+  <select id="f-regiao" onchange="onRegiaoChange()">
+    <option value="TODOS">Todas as regiões</option>
+    <option value="AC">Acre · AC</option>
+    <option value="RO">Rondônia · RO</option>
+    <option value="AM">Amazonas · AM</option>
+  </select>
+
+  <div class="divv"></div>
   <span class="fl">🎯 Polo</span>
   <select id="f-polo" onchange="renderAll()">
     <option value="TODOS">Todos os polos</option>
   </select>
+
   <div class="divv"></div>
   <span class="fl">📅 Período de pagamento</span>
   <select id="f-period" onchange="onPeriodChange()">
@@ -458,12 +437,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
     <option value="year">Este ano</option>
     <option value="custom">Personalizado</option>
   </select>
-  <div id="custom-dates">
+  <div id="custom-dates" style="display:none;align-items:center;gap:7px">
     <input type="date" id="f-from">
-    <span style="font-size:11px;color:var(--tx3)">até</span>
+    <span class="date-sep">até</span>
     <input type="date" id="f-to">
-    <button class="btn" style="padding:7px 14px;font-size:11px" onclick="renderAll()">Filtrar</button>
+    <button class="btn btn-sm" onclick="renderAll()">Filtrar</button>
   </div>
+
   <button class="btn btn-gh" style="margin-left:auto" onclick="refreshData(event)">↻ Atualizar</button>
 </div>
 
@@ -475,17 +455,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
 
 <!-- CONTENT -->
 <div id="content" style="display:none">
-
   <div id="alrt" class="alrt" style="display:none">
     <span style="font-size:18px">⚠️</span>
     <div class="alrt-tx" id="alrt-tx"></div>
   </div>
 
-  <!-- KPIs -->
   <div class="kg" id="kg1"></div>
   <div class="kg" id="kg2" style="margin-bottom:18px"></div>
 
-  <!-- CHARTS POLO -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Visão por polo</div><div class="sl"></div></div>
   <div class="cr2">
     <div class="card">
@@ -504,15 +481,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
     </div>
   </div>
 
-  <!-- CHARTS ANÁLISE -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Análise avançada</div><div class="sl"></div></div>
   <div class="cr3">
     <div class="card">
-      <div class="ct"><div class="ctd"></div>% da meta · radar por polo</div>
+      <div class="ct"><div class="ctd"></div>% da meta · radar</div>
       <div style="position:relative;height:205px"><canvas id="ch-radar"></canvas></div>
     </div>
     <div class="card">
-      <div class="ct"><div class="ctd"></div>Ativos sem pagamento · ranking</div>
+      <div class="ct"><div class="ctd"></div>Ativos sem pagamento</div>
       <div style="position:relative;height:205px"><canvas id="ch-nao"></canvas></div>
     </div>
     <div class="card">
@@ -521,56 +497,128 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
     </div>
   </div>
 
-  <!-- RANKINGS -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Rankings</div><div class="sl"></div></div>
   <div class="cr2b">
-
-    <!-- COLABORADORES -->
     <div class="card">
-      <div class="ct"><div class="ctd"></div>🏆 Ranking de colaboradores · 1ª mensalidade paga</div>
+      <div class="ct"><div class="ctd"></div>🏆 Colaboradores · mais pagamentos confirmados</div>
       <div class="rank-list" id="rank-top"></div>
       <div class="rmore-hidden" id="rank-rest"></div>
       <button class="rmore-btn" id="rank-more-btn" onclick="toggleRankMore()" style="display:none">
-        <span id="rank-more-ic">▼</span><span id="rank-more-tx">Ver mais colaboradores</span>
+        <span id="rmi">▼</span><span id="rmtx">Ver mais</span>
       </button>
     </div>
-
-    <!-- CURSOS -->
     <div class="card">
       <div class="ct"><div class="ctd"></div>📚 Cursos mais e menos vendidos</div>
       <div id="cursos-list"></div>
     </div>
   </div>
 
-  <!-- TABELA RANKING POLOS -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Ranking de polos · desempenho na meta</div><div class="sl"></div></div>
   <div class="card" style="margin-bottom:10px;padding:0">
     <div class="tw"><table class="pt" id="polo-table"></table></div>
   </div>
+</div>
 
-</div><!-- /content -->
 <div class="ftr">
   Dashboard desenvolvido para <span>Rede AC Centro de Ensino · Uniasselvi</span> &nbsp;·&nbsp; by: <span>Arisson Diniz</span>
 </div>
-</div><!-- /wrap -->
+</div>
 
 <script>
 // ══════ CONFIG ══════
 const SHEET_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vS9eRXC-i3f2O9xl0dL-9riGYP8kAY9bPA5ltFShwH34vAzCrMhmmb9G_Wwacn8k2dgA8a1lfP-NhwP/pub?gid=0&single=true&output=csv';
-const METAS={'JARDIM NAZLE':58,'TANGARÁ':86,'CRUZEIRO DO SUL':42,'SENA MADUREIRA':138,'PORTO VELHO':92,'EXTREMA':48,'SÃO MIGUEL':28,'HUMAITÁ':25,'ARIQUEMES':0};
-const POLO_MAP={
-  'Rio Branco/AC - Jardim Nazle':'JARDIM NAZLE','Rio Branco/AC - Tangará':'TANGARÁ',
-  'Cruzeiro Do Sul/AC':'CRUZEIRO DO SUL','Sena Madureira/AC':'SENA MADUREIRA',
-  'Porto Velho/RO':'PORTO VELHO',
-  'Porto Velho/RO - Distrito de Extrema':'EXTREMA','Porto Velho/RO - Distrito De Extrema':'EXTREMA',
-  'São Miguel do Guaporé/RO':'SÃO MIGUEL','Humaitá/AM':'HUMAITÁ','Ariquemes/RO':'ARIQUEMES',
+
+const METAS={
+  'JARDIM NAZLE':58,'TANGARÁ':86,'CRUZEIRO DO SUL':42,'SENA MADUREIRA':138,
+  'PORTO VELHO':92,'EXTREMA':48,'SÃO MIGUEL':28,'HUMAITÁ':25,'ARIQUEMES':0
+};
+// Polo → {key, regiao}
+const POLO_CFG={
+  'Rio Branco/AC - Jardim Nazle':{k:'JARDIM NAZLE',r:'AC'},
+  'Rio Branco/AC - Tangará':{k:'TANGARÁ',r:'AC'},
+  'Cruzeiro Do Sul/AC':{k:'CRUZEIRO DO SUL',r:'AC'},
+  'Sena Madureira/AC':{k:'SENA MADUREIRA',r:'AC'},
+  'Porto Velho/RO':{k:'PORTO VELHO',r:'RO'},
+  'Porto Velho/RO - Distrito de Extrema':{k:'EXTREMA',r:'RO'},
+  'Porto Velho/RO - Distrito De Extrema':{k:'EXTREMA',r:'RO'},
+  'São Miguel do Guaporé/RO':{k:'SÃO MIGUEL',r:'RO'},
+  'Ariquemes/RO':{k:'ARIQUEMES',r:'RO'},
+  'Humaitá/AM':{k:'HUMAITÁ',r:'AM'},
+};
+const POLO_REGIAO={
+  'JARDIM NAZLE':'AC','TANGARÁ':'AC','CRUZEIRO DO SUL':'AC','SENA MADUREIRA':'AC',
+  'PORTO VELHO':'RO','EXTREMA':'RO','SÃO MIGUEL':'RO','ARIQUEMES':'RO','HUMAITÁ':'AM'
 };
 const PC=['#FFD600','#22c55e','#3b82f6','#f97316','#a855f7','#06b6d4','#ec4899','#84cc16','#f59e0b'];
 const MEDALS=['🥇','🥈','🥉'];
 const SISTEMA=['sistema leo','leo web','leo app'];
 
-// ══════ ESTADO ══════
 let rawRows=[],charts={},lastLoad=null,rankExpanded=false;
+
+// ══════ CURSOR CUSTOMIZADO ══════
+(()=>{
+  const cur=document.getElementById('cursor');
+  const trail=document.getElementById('cursor-trail');
+  let tx=0,ty=0,cx=0,cy=0;
+
+  document.addEventListener('mousemove',e=>{
+    cx=e.clientX;cy=e.clientY;
+    cur.style.left=cx+'px';cur.style.top=cy+'px';
+  });
+
+  // Trail com lag suave
+  function animTrail(){
+    tx+=(cx-tx)*0.18;ty+=(cy-ty)*0.18;
+    trail.style.left=tx+'px';trail.style.top=ty+'px';
+    requestAnimationFrame(animTrail);
+  }
+  animTrail();
+
+  // Hover em elementos clicáveis
+  document.addEventListener('mouseover',e=>{
+    if(e.target.closest('button,select,.kpi,a,.ritem,.mrow,.ci')){
+      cur.classList.add('hover');
+    }
+  });
+  document.addEventListener('mouseout',e=>{
+    if(e.target.closest('button,select,.kpi,a,.ritem,.mrow,.ci')){
+      cur.classList.remove('hover');
+    }
+  });
+
+  // Click effect
+  document.addEventListener('mousedown',()=>cur.classList.add('click'));
+  document.addEventListener('mouseup',()=>cur.classList.remove('click'));
+})();
+
+// ══════ SPARKS NO CLIQUE ══════
+document.addEventListener('click',e=>{
+  const n=8;
+  for(let i=0;i<n;i++){
+    const s=document.createElement('div');
+    s.className='spark';
+    const angle=(360/n)*i*(Math.PI/180);
+    const dist=30+Math.random()*30;
+    const sx=Math.cos(angle)*dist+'px';
+    const sy=Math.sin(angle)*dist+'px';
+    const size=3+Math.random()*4;
+    s.style.cssText=`left:${e.clientX}px;top:${e.clientY}px;width:${size}px;height:${size}px;
+      background:${Math.random()>.5?'#FFD600':'#fff'};
+      --sx:${sx};--sy:${sy};animation-duration:${0.4+Math.random()*.3}s`;
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),700);
+  }
+});
+
+// ══════ RIPPLE ══════
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.btn');
+  if(!b)return;
+  const r=document.createElement('span');r.className='ripple';
+  const rc=b.getBoundingClientRect(),sz=Math.max(rc.width,rc.height)*2;
+  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rc.left-sz/2}px;top:${e.clientY-rc.top-sz/2}px`;
+  b.appendChild(r);setTimeout(()=>r.remove(),550);
+});
 
 // ══════ CLOCK ══════
 (()=>{
@@ -584,16 +632,6 @@ let rawRows=[],charts={},lastLoad=null,rankExpanded=false;
   };
   tick();setInterval(tick,1000);
 })();
-
-// ══════ RIPPLE ══════
-document.addEventListener('click',e=>{
-  const b=e.target.closest('.btn');
-  if(!b||b.classList.contains('rmore-btn'))return;
-  const r=document.createElement('span');r.className='ripple';
-  const rc=b.getBoundingClientRect(),sz=Math.max(rc.width,rc.height)*2;
-  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rc.left-sz/2}px;top:${e.clientY-rc.top-sz/2}px`;
-  b.appendChild(r);setTimeout(()=>r.remove(),600);
-});
 
 // ══════ FETCH ══════
 async function refreshData(e){if(e)e.stopPropagation();await fetchData();}
@@ -626,15 +664,44 @@ function sl(line){
   res.push(c);return res;
 }
 
-// ══════ FILTRO DATA ══════
-// O filtro de data filtra pela DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA (data que pagou)
-// KPIs de "paga" só contam quem pagou dentro do período
-// KPIs de "total/ativos/cancelados" mostram todos (sem filtro de data)
+// ══════ POLO KEY ══════
+function getPoloInfo(row){
+  const n=(row['NOME_DO_POLO']||'').trim();
+  // Tentativa exata
+  if(POLO_CFG[n])return POLO_CFG[n];
+  // Case insensitive
+  const nl=n.toLowerCase();
+  const found=Object.entries(POLO_CFG).find(([key])=>key.toLowerCase()===nl);
+  if(found)return found[1];
+  // Fallback
+  return{k:n.toUpperCase(),r:'?'};
+}
+function getPoloKey(row){return getPoloInfo(row).k;}
+function getPoloRegiao(row){return getPoloInfo(row).r;}
+
+// ══════ FILTRO PERÍODO ══════
 function onPeriodChange(){
   const v=document.getElementById('f-period').value;
   document.getElementById('custom-dates').style.display=v==='custom'?'flex':'none';
   if(v!=='custom')renderAll();
 }
+function onRegiaoChange(){
+  // Ao mudar região, atualiza os polos disponíveis no select
+  const regiao=document.getElementById('f-regiao').value;
+  const sel=document.getElementById('f-polo');
+  const prev=sel.value;
+  sel.innerHTML='<option value="TODOS">Todos os polos</option>';
+  const polos=[...new Set(rawRows.map(r=>{
+    const info=getPoloInfo(r);
+    if(regiao!=='TODOS'&&info.r!==regiao)return null;
+    return info.k;
+  }))].filter(Boolean).sort();
+  polos.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=cap(p)+regiaoTag(POLO_REGIAO[p]);sel.appendChild(o)});
+  if(polos.includes(prev))sel.value=prev;
+  renderAll();
+}
+function regiaoTag(r){return r?` (${r})`:''}
+
 function getDateRange(){
   const v=document.getElementById('f-period').value;
   const now=new Date();
@@ -654,10 +721,32 @@ function getDateRange(){
   if(v==='custom'){
     const f=document.getElementById('f-from').value;
     const t=document.getElementById('f-to').value;
-    return{from:f?new Date(f):null,to:t?new Date(t+'T23:59:59'):null};
+    return{from:f?new Date(f+'T00:00:00'):null,to:t?new Date(t+'T23:59:59'):null};
   }
   return{from:null,to:null};
 }
+
+// ── PARSE DATA PAGAMENTO corretamente ──
+function parseDatePag(row){
+  const raw=(row['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim();
+  if(!raw)return null;
+  // formato ISO: "2026-06-03" ou "2026-06-03 00:00:00"
+  const d=new Date(raw.replace(' ','T'));
+  return isNaN(d)?null:d;
+}
+
+function pagouNoPeriodo(row){
+  // Só conta se realmente pagou
+  if((row['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()!=='S')return false;
+  const{from,to}=getDateRange();
+  if(!from&&!to)return true; // sem filtro de data: conta todos que pagaram
+  const d=parseDatePag(row);
+  if(!d)return false;
+  if(from&&d<from)return false;
+  if(to&&d>to)return false;
+  return true;
+}
+
 function periodLabel(){
   const v=document.getElementById('f-period').value;
   if(v==='all')return'Todo o período';if(v==='today')return'Hoje';
@@ -667,78 +756,92 @@ function periodLabel(){
   return'Personalizado';
 }
 
-// Verifica se a DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA está dentro do range
-function pagouNoPeriodo(row){
-  const{from,to}=getDateRange();
-  if(!from&&!to)return true; // sem filtro: conta tudo
-  const raw=row['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'';
-  if(!raw)return false;
-  // formato pode ser "2026-06-03" ou "06/03/2026"
-  const d=new Date(raw.includes('/')?raw.split('/').reverse().join('-'):raw);
-  if(isNaN(d))return false;
-  if(from&&d<from)return false;
-  if(to&&d>to)return false;
-  return true;
-}
-
 // ══════ PROCESS ══════
-function getPoloKey(row){
-  const n=row['NOME_DO_POLO']||'';
-  let k=POLO_MAP[n];
-  if(!k){const nl=n.toLowerCase();k=Object.entries(POLO_MAP).find(([key])=>key.toLowerCase()===nl)?.[1];}
-  return k||(n.toUpperCase());
-}
 function processData(rows){
   const bp={};
-  Object.keys(METAS).forEach(p=>{bp[p]={total:0,paga:0,cancel:0,ativos:0}});
+  Object.keys(METAS).forEach(p=>{bp[p]={total:0,paga:0,cancel:0,ativos:0,regiao:POLO_REGIAO[p]||'?'}});
+
+  const regiao=document.getElementById('f-regiao').value;
+  const polo=document.getElementById('f-polo').value;
+
   rows.forEach(r=>{
-    const pk=getPoloKey(r);
-    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0};
+    const info=getPoloInfo(r);
+    const pk=info.k,pr=info.r;
+    // filtro região
+    if(regiao!=='TODOS'&&pr!==regiao)return;
+    // filtro polo
+    if(polo!=='TODOS'&&pk!==polo)return;
+
+    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0,regiao:pr};
     const ca=(r['DATA_CANCELAMENTO']||'').trim()!=='';
-    // paga: deve ter PRIMEIRA_MENSALIDADE_COBRADA_PAGA=S E a data deve estar no período
-    const pgBase=(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
-    const pgPeriodo=pgBase&&pagouNoPeriodo(r);
+    const pgPer=pagouNoPeriodo(r);
     bp[pk].total++;
     if(ca)bp[pk].cancel++;else bp[pk].ativos++;
-    if(pgPeriodo)bp[pk].paga++;
+    if(pgPer)bp[pk].paga++;
   });
-  return Object.entries(bp).map(([polo,d])=>({
-    polo,total:d.total,ativos:d.ativos,cancel:d.cancel,
-    paga:d.paga,naoPaga:Math.max(0,d.ativos-d.paga),meta:METAS[polo]||0
-  }));
+
+  return Object.entries(bp)
+    .filter(([polo])=>{
+      if(regiao!=='TODOS'&&POLO_REGIAO[polo]!==regiao)return false;
+      return true;
+    })
+    .map(([polo,d])=>({
+      polo,total:d.total,ativos:d.ativos,cancel:d.cancel,
+      paga:d.paga,naoPaga:Math.max(0,d.ativos-d.paga),
+      meta:METAS[polo]||0,regiao:d.regiao
+    }));
 }
+
 function getColabs(rows){
   const mp={};
+  const regiao=document.getElementById('f-regiao').value;
+  const polo=document.getElementById('f-polo').value;
+
   rows.forEach(r=>{
+    const info=getPoloInfo(r);
+    if(regiao!=='TODOS'&&info.r!==regiao)return;
+    if(polo!=='TODOS'&&info.k!==polo)return;
+
     const nome=(r['ESPECIALIZACAO_MATRICULOU']||'').trim();
     if(!nome||SISTEMA.some(s=>nome.toLowerCase().includes(s)))return;
-    const pgBase=(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
-    const pgPer=pgBase&&pagouNoPeriodo(r);
-    const polo=POLO_MAP[r['NOME_DO_POLO']||'']||'';
-    if(!mp[nome])mp[nome]={nome,total:0,paga:0,polo};
+    const pgPer=pagouNoPeriodo(r);
+    if(!mp[nome])mp[nome]={nome,total:0,paga:0,polo:cap(info.k)};
     mp[nome].total++;
     if(pgPer)mp[nome].paga++;
   });
   return Object.values(mp).sort((a,b)=>b.paga-a.paga||b.total-a.total);
 }
+
 function getCursos(rows){
   const mp={};
+  const regiao=document.getElementById('f-regiao').value;
+  const polo=document.getElementById('f-polo').value;
   rows.forEach(r=>{
+    const info=getPoloInfo(r);
+    if(regiao!=='TODOS'&&info.r!==regiao)return;
+    if(polo!=='TODOS'&&info.k!==polo)return;
     const c=(r['NOME_DO_CURSO']||'').trim();if(!c)return;
     if(!mp[c])mp[c]={nome:c,total:0};
     mp[c].total++;
   });
   return Object.values(mp).sort((a,b)=>b.total-a.total);
 }
+
 function sum(a,k){return a.reduce((s,b)=>s+(b[k]||0),0)}
 function cap(s){return(s||'').split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(' ')}
 
 // ══════ FINISH LOAD ══════
 function finishLoad(){
+  // Popular select de polo (todos)
   const polos=[...new Set(rawRows.map(r=>getPoloKey(r)))].filter(Boolean).sort();
   const sel=document.getElementById('f-polo');
   sel.innerHTML='<option value="TODOS">Todos os polos</option>';
-  polos.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=cap(p);sel.appendChild(o)});
+  polos.forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p;
+    o.textContent=cap(p)+regiaoTag(POLO_REGIAO[p]);
+    sel.appendChild(o);
+  });
   document.getElementById('hero-sec').style.display='block';
   document.getElementById('proj-bar').style.display='flex';
   document.getElementById('filters').style.display='flex';
@@ -747,66 +850,66 @@ function finishLoad(){
 
 // ══════ RENDER ALL ══════
 function renderAll(){
-  const polo=document.getElementById('f-polo').value;
-  const all=processData(rawRows);
-  const data=polo==='TODOS'?all:all.filter(d=>d.polo===polo);
-  const filtPolo=polo==='TODOS'?rawRows:rawRows.filter(r=>getPoloKey(r)===polo);
+  const data=processData(rawRows);
+  const all=processData(rawRows); // sem filtro polo p/ totais globais
 
-  renderHero(all);renderProj(all);renderAlert(all);
-  renderKPIs(data,all);
+  renderHero(data);renderProj(data);renderAlert(data);
+  renderKPIs(data);
   renderPoloChart(data);renderStatusChart(data);
-  renderRadarChart(all);renderNaoChart(all);renderDistChart(all);
-  renderRankColab(filtPolo);renderCursos(filtPolo);
-  renderTable(data,all);
+  renderRadarChart(data);renderNaoChart(data);renderDistChart(data);
+  renderRankColab(rawRows);renderCursos(rawRows);
+  renderTable(data);
 }
 
 // ══════ HERO ══════
-function renderHero(all){
-  const total=sum(all,'total'),meta=sum(all,'meta'),paga=sum(all,'paga'),ativos=sum(all,'ativos');
+function renderHero(data){
+  const total=sum(data,'total'),meta=sum(data,'meta'),paga=sum(data,'paga'),ativos=sum(data,'ativos');
   const pct=meta>0?Math.round(paga/meta*100):0;
-  document.getElementById('hero-sub').textContent='Monitoramento em tempo real · '+periodLabel();
+  const reg=document.getElementById('f-regiao').value;
+  const regLabel=reg==='TODOS'?'Todos os polos':reg==='AC'?'Acre · AC':reg==='RO'?'Rondônia · RO':'Amazonas · AM';
+  document.getElementById('hero-sub').textContent='Monitoramento em tempo real · '+regLabel+' · '+periodLabel();
   document.getElementById('hero-st').innerHTML=[
     {v:total,l:'Calouros'},{v:ativos,l:'Ativos'},
-    {v:paga,l:'1ª Paga'},
-    {v:meta,l:'Meta total'},{v:pct+'%',l:'Da meta'},
+    {v:paga,l:'1ª Paga'},{v:meta,l:'Meta total'},
+    {v:pct+'%',l:'Da meta'},
     {v:lastLoad?lastLoad.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—',l:'Atualizado'}
   ].map(s=>`<div class="hs"><div class="hs-v">${s.v}</div><div class="hs-l">${s.l}</div></div>`).join('');
 }
 
 // ══════ PROJEÇÃO ══════
-function renderProj(all){
-  const paga=sum(all,'paga'),meta=sum(all,'meta'),faltam=Math.max(0,meta-paga);
+function renderProj(data){
+  const paga=sum(data,'paga'),meta=sum(data,'meta'),faltam=Math.max(0,meta-paga);
   const ritmo=paga>0?Math.round(paga/30*7):0;
   let proj='—';
   if(ritmo>0&&faltam>0){const dp=new Date();dp.setDate(dp.getDate()+Math.ceil(faltam/ritmo)*7);proj=dp.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});}
   else if(faltam===0)proj='🎉 Meta atingida!';
   document.getElementById('pj-d').textContent=proj;
-  document.getElementById('pj-r').textContent=ritmo>0?ritmo+' pagamentos/semana':'Insuficiente';
+  document.getElementById('pj-r').textContent=ritmo>0?ritmo+' pag./semana':'Insuficiente';
   document.getElementById('pj-f').textContent=faltam+' pagamento'+(faltam!==1?'s':'');
   document.getElementById('pj-per').textContent=periodLabel();
 }
 
 // ══════ ALERT ══════
-function renderAlert(all){
-  const c=sum(all,'cancel'),el=document.getElementById('alrt');
+function renderAlert(data){
+  const c=sum(data,'cancel'),el=document.getElementById('alrt');
   if(c>0){el.style.display='flex';document.getElementById('alrt-tx').innerHTML=`<strong>${c} aluno(s) cancelado(s)</strong> identificado(s). Verifique os polos afetados imediatamente.`;}
   else el.style.display='none';
 }
 
 // ══════ KPIs ══════
-function renderKPIs(data,all){
+function renderKPIs(data){
   const tot=sum(data,'total'),at=sum(data,'ativos'),ca=sum(data,'cancel');
   const pg=sum(data,'paga'),np=sum(data,'naoPaga'),mt=sum(data,'meta');
   const tp=at>0?Math.round(pg/at*100):0;
   const tr=at>0?Math.round(np/at*100):0;
   const pm=mt>0?Math.round(pg/mt*100):0;
   const ft=Math.max(0,mt-pg);
-  const pcp=all.filter(d=>d.paga>0).length;
-  const ntot=Object.keys(METAS).length;
-  const pm2=all.filter(d=>d.meta>0);
+  const pcp=data.filter(d=>d.paga>0).length;
+  const ntot=data.length||1;
+  const pm2=data.filter(d=>d.meta>0);
   const melhor=pm2.length?pm2.reduce((a,b)=>(b.paga/b.meta>a.paga/a.meta)?b:a):null;
-  const period=periodLabel();
-  const periodSuffix=period==='Todo o período'?'':' · '+period;
+  const per=periodLabel();
+  const ps=per==='Todo o período'?'':' · '+per;
 
   const mk=(id,kpis)=>{
     document.getElementById(id).innerHTML=kpis.map((k,i)=>`
@@ -816,60 +919,59 @@ function renderKPIs(data,all){
           <div class="kpi-click">ver detalhes ▸</div>
         </div>
         <div class="kpi-l">${k.l}</div>
-        <div class="kpi-v" style="${k.sm?'font-size:16px;font-weight:800;line-height:1.3':''}">${k.v}</div>
+        <div class="kpi-v" style="${k.sm?'font-size:15px;font-weight:800;line-height:1.3':''}">${k.v}</div>
         <div class="kpi-s">${k.s}</div>
         ${k.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(k.b||0,100)}%"></div></div>`:''}
       </div>`).join('');
   };
 
   mk('kg1',[
-    {l:'Total de calouros',v:tot,s:'matriculados na base atual',ic:'🎓',c:'kb',b:null,mid:'total',ml:'Total por polo'},
-    {l:'Matrículas ativas',v:at,s:ca>0?ca+' cancelamentos registrados':'zero cancelamentos',ic:'✅',c:'kg2c',b:Math.round(at/Math.max(tot,1)*100),mid:'ativos',ml:'Matrículas ativas por polo'},
-    {l:'1ª mensalidade paga',v:pg,s:tp+'% dos alunos ativos'+periodSuffix,ic:'💰',c:'ky',b:tp,mid:'paga',ml:'1ª mensalidade paga por polo'},
-    {l:'Ativos sem pagamento',v:np,s:tr+'% em risco de evasão',ic:'⚠️',c:'kr',b:tr,mid:'naoPaga',ml:'Ativos sem pagamento por polo'},
-    {l:'Progresso da meta',v:pm+'%',s:pg+' de '+mt+' pagamentos',ic:'🎯',c:'ko',b:pm,mid:'meta',ml:'Progresso da meta por polo'},
-    {l:'Cancelados',v:ca,s:ca===0?'excelente retenção!':'requer atenção imediata',ic:'❌',c:ca>0?'kr':'kg2c',b:null,mid:'cancel',ml:'Cancelados por polo'},
+    {l:'Total de calouros',v:tot,s:'matriculados na base',ic:'🎓',c:'kb',b:null,mid:'total',ml:'Total por polo'},
+    {l:'Matrículas ativas',v:at,s:ca>0?ca+' cancelamentos':'zero cancelamentos',ic:'✅',c:'kg2c',b:Math.round(at/Math.max(tot,1)*100),mid:'ativos',ml:'Ativos por polo'},
+    {l:'1ª mensalidade paga',v:pg,s:tp+'% dos ativos'+ps,ic:'💰',c:'ky',b:tp,mid:'paga',ml:'1ª mensalidade paga por polo'},
+    {l:'Não pagaram (ativos)',v:np,s:tr+'% em risco de evasão',ic:'⚠️',c:'kr',b:tr,mid:'naoPaga',ml:'Sem pagamento por polo'},
+    {l:'Progresso da meta',v:pm+'%',s:pg+' de '+mt+' pagamentos',ic:'🎯',c:'ko',b:pm,mid:'meta',ml:'Progresso por polo'},
+    {l:'Cancelados',v:ca,s:ca===0?'excelente retenção!':'requer atenção',ic:'❌',c:ca>0?'kr':'kg2c',b:null,mid:'cancel',ml:'Cancelados por polo'},
   ]);
   mk('kg2',[
-    {l:'Faltam para meta',v:ft,s:'pagamentos restantes para fechar',ic:'⏳',c:'ko',b:null,mid:'faltam',ml:'Faltam para a meta por polo'},
-    {l:'Taxa de conversão',v:tp+'%',s:'pagamentos ÷ matrículas ativas',ic:'📈',c:tp>=50?'kg2c':tp>=25?'ky':'kr',b:tp,mid:'conv',ml:'Taxa de conversão por polo'},
-    {l:'Meta total da rede',v:mt,s:'pagamentos esperados no período',ic:'📋',c:'kw',b:null,mid:'metaT',ml:'Meta por polo'},
-    {l:'Polos com pagamentos',v:pcp,s:'de '+ntot+' polos cadastrados',ic:'🏫',c:'kp',b:Math.round(pcp/ntot*100),mid:'polosPag',ml:'Polos com pagamentos'},
-    {l:'Polo destaque',v:melhor?cap(melhor.polo):'—',s:melhor&&melhor.meta>0?Math.round(melhor.paga/melhor.meta*100)+'% da meta atingida':'—',ic:'🏆',c:'ky',b:null,sm:true,mid:'destaque',ml:'Top 3 polos'},
-    {l:'Alunos em risco',v:np,s:'ativos que ainda não pagaram',ic:'🔴',c:np>10?'kr':'ko',b:Math.round(np/Math.max(at,1)*100),mid:'risco',ml:'Alunos em risco por polo'},
+    {l:'Faltam para meta',v:ft,s:'pagamentos restantes',ic:'⏳',c:'ko',b:null,mid:'faltam',ml:'Faltam por polo'},
+    {l:'Taxa de conversão',v:tp+'%',s:'pagamentos ÷ ativos',ic:'📈',c:tp>=50?'kg2c':tp>=25?'ky':'kr',b:tp,mid:'conv',ml:'Taxa por polo'},
+    {l:'Meta total da rede',v:mt,s:'pagamentos esperados',ic:'📋',c:'kw',b:null,mid:'metaT',ml:'Meta por polo'},
+    {l:'Polos com pagamentos',v:pcp,s:'de '+ntot+' polos filtrados',ic:'🏫',c:'kp',b:Math.round(pcp/ntot*100),mid:'polosPag',ml:'Polos com pagamentos'},
+    {l:'Polo destaque',v:melhor?cap(melhor.polo):'—',s:melhor&&melhor.meta>0?Math.round(melhor.paga/melhor.meta*100)+'% da meta':'—',ic:'🏆',c:'ky',b:null,sm:true,mid:'destaque',ml:'Top 3 polos'},
+    {l:'Alunos em risco',v:np,s:'ativos sem pagamento',ic:'🔴',c:np>10?'kr':'ko',b:Math.round(np/Math.max(at,1)*100),mid:'risco',ml:'Em risco por polo'},
   ]);
 }
 
 // ══════ MODAL ══════
 function openModal(tipo,titulo){
-  const all=processData(rawRows);
-  const polo=document.getElementById('f-polo').value;
-  const data=polo==='TODOS'?all:all.filter(d=>d.polo===polo);
+  const data=processData(rawRows);
   document.getElementById('mtitle').textContent=titulo;
 
-  const rowH=(name,val,color,pct,extra='')=>`
+  const rowH=(name,val,color,pct,sub='')=>`
     <div class="mrow">
       <div style="flex:1">
         <div class="mname">${name}</div>
-        ${extra?`<div style="font-size:10px;color:var(--tx3);margin-top:1px">${extra}</div>`:''}
+        ${sub?`<div class="msub">${sub}</div>`:''}
         <div class="mprog"><div class="mpb"><div class="mpf" style="width:${pct||0}%;background:${color}"></div></div></div>
       </div>
-      <div class="mval" style="color:${color};margin-left:14px">${val}</div>
+      <div class="mval" style="color:${color}">${val}</div>
     </div>`;
 
   let rows=[];
+  const colors={total:'#3b82f6',ativos:'#22c55e',paga:'#FFD600',naoPaga:'#ef4444',cancel:'#ef4444'};
+
   if(['total','ativos','paga','naoPaga','cancel'].includes(tipo)){
-    const key=tipo;
-    const maxV=Math.max(...data.map(d=>d[key]||0),1);
-    const colors={total:'#3b82f6',ativos:'#22c55e',paga:'#FFD600',naoPaga:'#ef4444',cancel:'#ef4444'};
-    rows=data.filter(d=>d.total>0).sort((a,b)=>(b[key]||0)-(a[key]||0)).map(d=>{
-      return rowH(cap(d.polo),d[key]||0,colors[key],Math.round((d[key]||0)/maxV*100));
+    const maxV=Math.max(...data.map(d=>d[tipo]||0),1);
+    rows=data.filter(d=>d.total>0).sort((a,b)=>(b[tipo]||0)-(a[tipo]||0)).map(d=>{
+      const tag=d.regiao&&d.regiao!=='?'?` <span style="font-size:9px;color:var(--tx3)">${d.regiao}</span>`:'';
+      return rowH(cap(d.polo)+tag,d[tipo]||0,colors[tipo],Math.round((d[tipo]||0)/maxV*100));
     });
   }else if(tipo==='meta'||tipo==='conv'){
     rows=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).map(d=>{
       const pct=Math.round(d.paga/d.meta*100);
       const c=pct>=50?'#22c55e':pct>=25?'#FFD600':'#ef4444';
-      return rowH(cap(d.polo),tipo==='conv'?pct+'%':d.paga+'/'+d.meta,c,Math.min(pct,100),tipo==='meta'?pct+'% da meta':'');
+      return rowH(cap(d.polo),tipo==='conv'?pct+'%':d.paga+'/'+d.meta,c,Math.min(pct,100),pct+'% da meta');
     });
   }else if(tipo==='faltam'){
     rows=data.filter(d=>d.meta>0).sort((a,b)=>Math.max(0,b.meta-b.paga)-Math.max(0,a.meta-a.paga)).map(d=>{
@@ -877,14 +979,13 @@ function openModal(tipo,titulo){
       return rowH(cap(d.polo),f+' restantes','#f97316',Math.round(f/d.meta*100));
     });
   }else if(tipo==='metaT'){
-    rows=data.sort((a,b)=>b.meta-a.meta).map(d=>rowH(cap(d.polo),d.meta||'sem meta','#fff',0));
+    rows=data.sort((a,b)=>b.meta-a.meta).map(d=>rowH(cap(d.polo),d.meta||'—','#fff',0));
   }else if(tipo==='polosPag'){
     rows=data.filter(d=>d.paga>0).sort((a,b)=>b.paga-a.paga).map(d=>{
       return rowH(cap(d.polo),d.paga+' pagamentos','#FFD600',Math.round(d.paga/Math.max(...data.map(x=>x.paga),1)*100));
     });
   }else if(tipo==='destaque'){
-    const sorted=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).slice(0,3);
-    rows=sorted.map((d,i)=>{
+    rows=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).slice(0,3).map((d,i)=>{
       const pct=Math.round(d.paga/d.meta*100);
       return rowH((MEDALS[i]||'')+' '+cap(d.polo),pct+'% da meta','#FFD600',pct);
     });
@@ -894,7 +995,7 @@ function openModal(tipo,titulo){
     });
   }
 
-  if(!rows.length)rows=['<div style="padding:24px;text-align:center;color:var(--tx3);font-size:13px">Sem dados para exibir no período selecionado.</div>'];
+  if(!rows.length)rows=['<div style="padding:24px;text-align:center;color:var(--tx3);font-size:13px">Sem dados para exibir no período/filtro selecionado.</div>'];
   document.getElementById('mbody').innerHTML=rows.join('');
   document.getElementById('modal').style.display='flex';
 }
@@ -902,32 +1003,30 @@ function closeModal(){document.getElementById('modal').style.display='none'}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
 // ══════ CHARTS ══════
-const CHART_OPTS={
-  tooltip:{backgroundColor:'#1a1a1a',borderColor:'rgba(255,214,0,.2)',borderWidth:1,
-    titleColor:'#fff',bodyColor:'#aaa',padding:11,cornerRadius:9,
-    titleFont:{family:'Inter',weight:'700'},bodyFont:{family:'Inter'}}
-};
+const TO={backgroundColor:'#14151a',borderColor:'rgba(255,214,0,.18)',borderWidth:1,
+  titleColor:'#fff',bodyColor:'#888',padding:11,cornerRadius:9,
+  titleFont:{family:'Inter',weight:'700',size:12},bodyFont:{family:'Inter',size:11}};
 
 function renderPoloChart(data){
   document.getElementById('leg-polo').innerHTML=[
-    {c:'#FFD600',l:'1ª mensalidade paga'},{c:'rgba(255,255,255,.05)',b:'1px solid rgba(255,255,255,.08)',l:'Meta restante'}
-  ].map(x=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:${x.c};border:${x.b||'none'};display:inline-block"></span>${x.l}</span>`).join('');
+    {c:'#FFD600',l:'1ª mensalidade paga'},{c:'rgba(255,255,255,.05)',b:'1px solid rgba(255,255,255,.07)',l:'Meta restante'}
+  ].map(x=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:${x.c};border:${x.b||'none'};display:inline-block"></span>${x.l}</span>`).join('');
   if(charts.polo)charts.polo.destroy();
   charts.polo=new Chart(document.getElementById('ch-polo'),{type:'bar',
     data:{labels:data.map(d=>cap(d.polo)),datasets:[
       {label:'1ª paga',data:data.map(d=>d.paga),backgroundColor:'#FFD600',borderRadius:5,maxBarThickness:30,order:1},
       {label:'Restante',data:data.map(d=>Math.max(0,d.meta-d.paga)),backgroundColor:'rgba(255,255,255,.04)',borderRadius:5,maxBarThickness:30,borderColor:'rgba(255,255,255,.07)',borderWidth:1,order:2},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:CHART_OPTS.tooltip},
-      scales:{x:{stacked:true,ticks:{color:'#444',font:{size:10,family:'Inter'}},grid:{color:'rgba(255,255,255,.025)'},maxRotation:40},
-        y:{stacked:true,ticks:{color:'#444',font:{size:10,family:'Inter'}},grid:{color:'rgba(255,255,255,.035)'},beginAtZero:true}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TO},
+      scales:{x:{stacked:true,ticks:{color:'#3e4250',font:{size:10,family:'Inter'}},grid:{color:'rgba(255,255,255,.025)'},maxRotation:40},
+        y:{stacked:true,ticks:{color:'#3e4250',font:{size:10,family:'Inter'}},grid:{color:'rgba(255,255,255,.03)'},beginAtZero:true}}}
   });
 }
 function renderStatusChart(data){
   const pg=sum(data,'paga'),np=sum(data,'naoPaga'),ca=sum(data,'cancel'),at=sum(data,'ativos');
   const tp=at>0?Math.round(pg/at*100):0;
   document.getElementById('taxa-pag').textContent=tp+'%';
-  const colors=['#FFD600','#ef4444','#2a2d36'],lbls=['Pagaram','Não pagaram','Cancelados'],vals=[pg,np,ca];
+  const colors=['#FFD600','#ef4444','#252830'],lbls=['Pagaram','Não pagaram','Cancelados'],vals=[pg,np,ca];
   document.getElementById('leg-st').innerHTML=lbls.map((l,i)=>`
     <div style="display:flex;align-items:center;justify-content:space-between">
       <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#bbb">
@@ -936,13 +1035,12 @@ function renderStatusChart(data){
     </div>`).join('');
   if(charts.st)charts.st.destroy();
   charts.st=new Chart(document.getElementById('ch-st'),{type:'doughnut',
-    data:{labels:lbls,datasets:[{data:vals,backgroundColor:colors,borderWidth:3,borderColor:'#111318',hoverBorderColor:'#1e2028'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
-      plugins:{legend:{display:false},tooltip:CHART_OPTS.tooltip}}
+    data:{labels:lbls,datasets:[{data:vals,backgroundColor:colors,borderWidth:3,borderColor:'#111318'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:TO}}
   });
 }
-function renderRadarChart(all){
-  const rel=all.filter(d=>d.meta>0);
+function renderRadarChart(data){
+  const rel=data.filter(d=>d.meta>0);
   if(charts.radar)charts.radar.destroy();
   charts.radar=new Chart(document.getElementById('ch-radar'),{type:'radar',
     data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',
@@ -950,15 +1048,14 @@ function renderRadarChart(all){
       backgroundColor:'rgba(255,214,0,.07)',borderColor:'#FFD600',borderWidth:2,
       pointBackgroundColor:'#FFD600',pointRadius:3,pointHoverRadius:6,pointBorderColor:'#000'}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{...CHART_OPTS.tooltip,callbacks:{label:ctx=>ctx.raw+'%'}}},
-      scales:{r:{ticks:{color:'#333',backdropColor:'transparent',font:{size:8}},
+      plugins:{legend:{display:false},tooltip:{...TO,callbacks:{label:ctx=>ctx.raw+'%'}}},
+      scales:{r:{ticks:{color:'#2e3040',backdropColor:'transparent',font:{size:8}},
         grid:{color:'rgba(255,255,255,.04)'},
-        pointLabels:{color:'#555',font:{size:8.5,family:'Inter'}},
-        beginAtZero:true,max:100}}}
+        pointLabels:{color:'#555',font:{size:8.5,family:'Inter'}},beginAtZero:true,max:100}}}
   });
 }
-function renderNaoChart(all){
-  const s=[...all].filter(d=>d.total>0).sort((a,b)=>b.naoPaga-a.naoPaga);
+function renderNaoChart(data){
+  const s=[...data].filter(d=>d.total>0).sort((a,b)=>b.naoPaga-a.naoPaga);
   if(charts.nao)charts.nao.destroy();
   charts.nao=new Chart(document.getElementById('ch-nao'),{type:'bar',
     data:{labels:s.map(d=>cap(d.polo)),datasets:[{label:'Não pagaram',
@@ -967,20 +1064,19 @@ function renderNaoChart(all){
       borderColor:s.map((_,i)=>PC[i%PC.length]),
       borderWidth:1,borderRadius:4,maxBarThickness:18}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:CHART_OPTS.tooltip},
-      scales:{x:{ticks:{color:'#444',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'},beginAtZero:true},
+      plugins:{legend:{display:false},tooltip:TO},
+      scales:{x:{ticks:{color:'#3e4250',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'},beginAtZero:true},
         y:{ticks:{color:'#888',font:{size:10,family:'Inter'}},grid:{display:false}}}}
   });
 }
-function renderDistChart(all){
-  const r=all.filter(d=>d.total>0);
+function renderDistChart(data){
+  const r=data.filter(d=>d.total>0);
   if(charts.dist)charts.dist.destroy();
   charts.dist=new Chart(document.getElementById('ch-dist'),{type:'pie',
     data:{labels:r.map(d=>cap(d.polo)),datasets:[{data:r.map(d=>d.total),
       backgroundColor:PC.slice(0,r.length).map(c=>c+'aa'),borderColor:'#0c0d11',borderWidth:3}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:true,position:'bottom',labels:{color:'#444',font:{size:9,family:'Inter'},boxWidth:7,padding:6}},
-        tooltip:CHART_OPTS.tooltip}}
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#444',font:{size:9,family:'Inter'},boxWidth:7,padding:6}},tooltip:TO}}
   });
 }
 
@@ -998,11 +1094,11 @@ function renderRankColab(rows){
       ${medal?`<div class="rmed">${medal}</div>`:`<div class="rnum">${i+1}º</div>`}
       <div class="rinfo">
         <div class="rname">${c.nome}</div>
-        <div class="rpolo">${cap(c.polo)||'Todos os polos'}</div>
+        <div class="rpolo">${c.polo||'—'}</div>
         <div class="rbg"><div class="rbf" style="width:${pct}%;background:${color}"></div></div>
       </div>
-      <div style="text-align:center">
-        <div class="rbadge" style="background:${i===0?'rgba(255,214,0,.1)':'rgba(255,255,255,.05)'};color:${color};border:1px solid ${color}22">
+      <div style="text-align:right">
+        <div class="rbadge" style="background:${i===0?'rgba(255,214,0,.1)':'rgba(255,255,255,.04)'};color:${color};border:1px solid ${color}22">
           ${c.paga} pago${c.paga!==1?'s':''}
         </div>
         <div style="font-size:9px;color:var(--tx3);margin-top:3px">${c.total} matrícula${c.total!==1?'s':''}</div>
@@ -1011,33 +1107,29 @@ function renderRankColab(rows){
   }
 
   if(!colabs.length){
-    document.getElementById('rank-top').innerHTML='<div style="color:var(--tx3);font-size:12px;padding:12px">Sem dados de colaboradores no período.</div>';
+    document.getElementById('rank-top').innerHTML='<div style="color:var(--tx3);font-size:12px;padding:12px">Sem dados no período/filtro selecionado.</div>';
     document.getElementById('rank-more-btn').style.display='none';
     return;
   }
 
-  const top=colabs.slice(0,TOP);
-  const rest=colabs.slice(TOP);
-
-  document.getElementById('rank-top').innerHTML=top.map((c,i)=>mkItem(c,i)).join('');
-  document.getElementById('rank-rest').innerHTML=rest.map((c,i)=>mkItem(c,i+TOP)).join('');
+  document.getElementById('rank-top').innerHTML=colabs.slice(0,TOP).map((c,i)=>mkItem(c,i)).join('');
+  document.getElementById('rank-rest').innerHTML=colabs.slice(TOP).map((c,i)=>mkItem(c,i+TOP)).join('');
 
   const btn=document.getElementById('rank-more-btn');
-  if(rest.length>0){
+  const rest=colabs.slice(TOP).length;
+  if(rest>0){
     btn.style.display='flex';
-    document.getElementById('rank-more-ic').textContent=rankExpanded?'▲':'▼';
-    document.getElementById('rank-more-tx').textContent=rankExpanded?'Recolher':'Ver mais '+rest.length+' colaborador'+(rest.length!==1?'es':'');
     document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');
-  }else{
-    btn.style.display='none';
-  }
+    document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';
+    document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+rest+' colaborador'+(rest!==1?'es':'');
+  }else btn.style.display='none';
 }
 function toggleRankMore(){
   rankExpanded=!rankExpanded;
   document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');
-  document.getElementById('rank-more-ic').textContent=rankExpanded?'▲':'▼';
-  const rest=document.getElementById('rank-rest').children.length;
-  document.getElementById('rank-more-tx').textContent=rankExpanded?'Recolher':'Ver mais '+rest+' colaborador'+(rest!==1?'es':'');
+  document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';
+  const n=document.getElementById('rank-rest').children.length;
+  document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+n+' colaborador'+(n!==1?'es':'');
 }
 
 // ══════ CURSOS ══════
@@ -1045,44 +1137,35 @@ function renderCursos(rows){
   const cursos=getCursos(rows);
   const maxT=Math.max(...cursos.map(c=>c.total),1);
   if(!cursos.length){document.getElementById('cursos-list').innerHTML='<div style="color:var(--tx3);font-size:12px">Sem dados.</div>';return}
-
   const top=cursos.slice(0,5);
   const bot=cursos.length>5?cursos.slice(-3).filter(c=>c.total<(top[top.length-1]?.total||999)):[];
   const topColors=['#FFD600','#22c55e','#3b82f6','#a855f7','#06b6d4'];
-
   const mkci=(c,i,color)=>`<div class="ci">
     <div class="ci-rank">${i+1}º</div>
     <div class="ci-name" title="${c.nome}">${c.nome}</div>
     <div class="ci-bg"><div class="ci-f" style="width:${Math.round(c.total/maxT*100)}%;background:${color}"></div></div>
     <div class="ci-n" style="color:${color}">${c.total}</div>
   </div>`;
-
-  let html=`<div class="curso-sec">
-    <div class="curso-sec-label">🔝 Mais vendidos</div>
-    ${top.map((c,i)=>mkci(c,i,topColors[i]||'#555')).join('')}
-  </div>`;
-  if(bot.length){
-    html+=`<div class="curso-sec">
-      <div class="curso-sec-label">🔻 Menos vendidos</div>
-      ${bot.map((c,i)=>mkci(c,cursos.length-bot.length+i,'#ef4444')).join('')}
-    </div>`;
-  }
+  let html=`<div class="curso-sec"><div class="curso-sec-label">🔝 Mais vendidos</div>${top.map((c,i)=>mkci(c,i,topColors[i]||'#555')).join('')}</div>`;
+  if(bot.length)html+=`<div class="curso-sec"><div class="curso-sec-label">🔻 Menos vendidos</div>${bot.map((c,i)=>mkci(c,cursos.length-bot.length+i,'#ef4444')).join('')}</div>`;
   document.getElementById('cursos-list').innerHTML=html;
 }
 
 // ══════ TABLE ══════
-function renderTable(data,all){
-  const tP=sum(all,'paga'),tM=sum(all,'meta'),tPct=tM>0?Math.round(tP/tM*100):0;
+function renderTable(data){
+  const tP=sum(data,'paga'),tM=sum(data,'meta'),tPct=tM>0?Math.round(tP/tM*100):0;
   const ranked=[...data].sort((a,b)=>{
     const pa=a.meta>0?a.paga/a.meta:0,pb=b.meta>0?b.paga/b.meta:0;return pb-pa;
   });
+  const regiaoColors={AC:'var(--g)',RO:'var(--bl)',AM:'var(--p)'};
   const rows=ranked.map((d,i)=>{
     const pct=d.meta>0?Math.round(d.paga/d.meta*100):0;
     const pc=pct>=50?'#22c55e':pct>=25?'#FFD600':'#ef4444';
     const medal=i<3&&d.total>0?MEDALS[i]:`<span style="color:var(--tx3);font-size:10px">${i+1}º</span>`;
+    const regTag=d.regiao&&d.regiao!=='?'?`<span style="font-size:8px;color:${regiaoColors[d.regiao]||'#666'};font-weight:700;margin-left:5px;opacity:.8">${d.regiao}</span>`:'';
     return `<tr>
       <td style="padding-left:18px;font-size:14px;width:44px">${medal}</td>
-      <td><span style="font-weight:700;color:#eee;font-size:12.5px">${cap(d.polo)}</span></td>
+      <td><span style="font-weight:700;color:#eee;font-size:12.5px">${cap(d.polo)}</span>${regTag}</td>
       <td style="text-align:center">${d.total}</td>
       <td style="text-align:center">${d.ativos}</td>
       <td style="text-align:center"><span class="pl ${d.cancel>0?'pr2':'px'}">${d.cancel}</span></td>
@@ -1105,10 +1188,13 @@ function renderTable(data,all){
     </tr></thead>
     <tbody>${rows}
       <tr class="tr-tot">
-        <td style="padding-left:18px">—</td><td><strong>TOTAL GERAL</strong></td>
-        <td style="text-align:center">${sum(all,'total')}</td><td style="text-align:center">${sum(all,'ativos')}</td>
-        <td style="text-align:center">${sum(all,'cancel')}</td><td style="text-align:center">${tP}</td>
-        <td style="text-align:center">${sum(all,'naoPaga')}</td><td style="text-align:center">${tM}</td>
+        <td style="padding-left:18px">—</td><td><strong>TOTAL FILTRADO</strong></td>
+        <td style="text-align:center">${sum(data,'total')}</td>
+        <td style="text-align:center">${sum(data,'ativos')}</td>
+        <td style="text-align:center">${sum(data,'cancel')}</td>
+        <td style="text-align:center">${tP}</td>
+        <td style="text-align:center">${sum(data,'naoPaga')}</td>
+        <td style="text-align:center">${tM}</td>
         <td style="padding-right:16px"><div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(tPct,100)}%;background:#FFD600"></div></div><div class="pp" style="color:#FFD600">${tPct}%</div></div></td>
       </tr>
     </tbody>`;
