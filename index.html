@@ -175,7 +175,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .kpi-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
 .kpi-det{font-size:8px;color:var(--tx3);font-weight:600;letter-spacing:.3px;
   background:var(--b5);padding:3px 7px;border-radius:4px;border:1px solid var(--br);
-  transition:all .2s;white-space:nowrap}
+  transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4}
 .kpi:hover .kpi-det{border-color:rgba(255,214,0,.2);color:#FFD600}
 .kpi-l{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
 .kpi-v{font-size:28px;font-weight:900;line-height:1;letter-spacing:-.5px}
@@ -622,14 +622,26 @@ function showToast(ic,title,msg,type='info'){
 // ══════ FETCH ══════
 async function refreshData(e){if(e)e.stopPropagation();await fetchData();}
 async function fetchData(){
+  // Salvar seleções atuais para restaurar após reload
+  const prevPolo=document.getElementById('f-polo')?.value||'TODOS';
+  const prevReg=document.getElementById('f-regiao')?.value||'TODOS';
+  const prevPer=document.getElementById('f-period')?.value||'all';
   showLoading();
   try{
-    const r=await fetch(SHEET_URL+'&_='+Date.now());
+    // cache:'no-store' força ignorar cache do browser
+    // timestamp no URL força Google Sheets a não servir cache antigo
+    const url=SHEET_URL.replace('/pub?','/pub?cachebust='+Date.now()+'&');
+    const r=await fetch(url,{cache:'no-store',headers:{'Pragma':'no-cache','Cache-Control':'no-cache, no-store'}});
     if(!r.ok)throw new Error('HTTP '+r.status);
-    rawRows=parseCSV(await r.text());
-    lastLoad=new Date();finishLoad();
+    const txt=await r.text();
+    rawRows=parseCSV(txt);
+    lastLoad=new Date();
+    // Restaurar seleções
+    _prevPolo=prevPolo;_prevReg=prevReg;_prevPer=prevPer;
+    finishLoad();
   }catch(err){hideLoading();alert('Erro ao carregar:\n'+err.message);}
 }
+let _prevPolo='TODOS',_prevReg='TODOS',_prevPer='all';
 function parseCSV(txt){
   const ln=txt.split('\n').filter(l=>l.trim());
   if(ln.length<2)return[];
@@ -799,21 +811,31 @@ function getCursos(rows){
 function sum(a,k){return a.reduce((s,b)=>s+(b[k]||0),0)}
 function cap(s){return(s||'').split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(' ')}
 
-// ══════ META LABEL — respeita filtro ══════
+// ══════ META LABEL + VALOR — respeita filtro ══════
 function metaLabel(){
   const polo=document.getElementById('f-polo').value;
   const reg=document.getElementById('f-regiao').value;
   if(polo!=='TODOS')return 'Meta de '+cap(polo);
-  if(reg!=='TODOS'){const rn={AC:'Acre',RO:'Rondônia',AM:'Amazonas'};return 'Meta da região '+rn[reg];}
+  if(reg!=='TODOS'){const rn={AC:'Acre · AC',RO:'Rondônia · RO',AM:'Amazonas · AM'};return 'Meta — '+rn[reg];}
   return 'Meta total da rede';
 }
 
 // ══════ FINISH LOAD ══════
 function finishLoad(){
   const polos=[...new Set(rawRows.map(r=>getPoloKey(r)))].filter(Boolean).sort();
-  const sel=document.getElementById('f-polo');
-  sel.innerHTML='<option value="TODOS">Todos os polos</option>';
-  polos.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=cap(p)+(POLO_REG[p]?' ('+POLO_REG[p]+')':'');sel.appendChild(o)});
+  const selReg=document.getElementById('f-regiao');
+  const selPolo=document.getElementById('f-polo');
+  const selPer=document.getElementById('f-period');
+  // Restaurar filtros anteriores
+  if(_prevReg&&selReg)selReg.value=_prevReg;
+  if(_prevPer&&selPer){selPer.value=_prevPer;document.getElementById('custom-dates').style.display=_prevPer==='custom'?'flex':'none';}
+  // Popular polo respeitando região
+  const reg=selReg?selReg.value:'TODOS';
+  selPolo.innerHTML='<option value="TODOS">Todos os polos</option>';
+  polos.filter(p=>reg==='TODOS'||POLO_REG[p]===reg).forEach(p=>{
+    const o=document.createElement('option');o.value=p;o.textContent=cap(p)+(POLO_REG[p]?' ('+POLO_REG[p]+')':'');selPolo.appendChild(o);
+  });
+  if(_prevPolo&&[...selPolo.options].some(o=>o.value===_prevPolo))selPolo.value=_prevPolo;
   document.getElementById('hero-sec').style.display='block';
   document.getElementById('proj-bar').style.display='flex';
   document.getElementById('filters').style.display='flex';
@@ -898,12 +920,12 @@ function renderKPIs(data){
   const per=periodLabel();const ps=per==='Todo o período'?'':' · '+per;
   const mlbl=metaLabel();
 
-  // Função que cria um KPI — detalhes abre modal
+  // Função que cria um KPI — detalhes via data-attributes (evita quebra por aspas/espaços)
   const mkKPI=(k,i)=>`
     <div class="kpi ${k.c}" style="animation-delay:${i*.05}s">
       <div class="kpi-top">
         <div class="kpi-ic">${k.ic}</div>
-        <div class="kpi-det" onclick="openModal('${k.mid}','${k.ml}')" style="cursor:pointer">detalhes ▸</div>
+        <button class="kpi-det" data-mid="${k.mid}" data-ml="${k.ml.replace(/"/g,'&quot;')}">detalhes ▸</button>
       </div>
       <div class="kpi-l">${k.l}</div>
       <div class="kpi-v" style="${k.sm?'font-size:15px;font-weight:800;line-height:1.3':''}">${k.v}</div>
@@ -986,32 +1008,79 @@ function openModal(tipo,titulo){
   document.getElementById('modal').style.display='flex';
 }
 
-// ══════ EXPANDIR GRÁFICOS ══════
+// ══════ EVENT DELEGATION — botões detalhes dos KPIs ══════
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.kpi-det');
+  if(btn){
+    const mid=btn.getAttribute('data-mid');
+    const ml=btn.getAttribute('data-ml');
+    openModal(mid,ml);
+  }
+});
+
+// ══════ EXPANDIR GRÁFICOS — recria com dados ao vivo ══════
 function expandMetaBars(){
   document.getElementById('mbox').className='mbox mbox-big';
-  document.getElementById('mtitle').textContent='Progresso da meta por polo';
+  document.getElementById('mtitle').textContent='Progresso da meta · linha de chegada por polo';
   const src=document.getElementById('meta-bars');
-  document.getElementById('mbody').innerHTML=`<div style="padding:8px 0">${src.innerHTML}</div>`;
+  document.getElementById('mbody').innerHTML=`<div style="padding:8px 0;max-height:600px;overflow-y:auto">${src.innerHTML}</div>`;
   document.getElementById('modal').style.display='flex';
 }
+
 function expandChart(canvasId,titulo,chartKey){
   document.getElementById('mbox').className='mbox mbox-big';
   document.getElementById('mtitle').textContent=titulo;
+  // Criar canvas novo dentro do modal
   const wrap=document.createElement('div');
-  wrap.style.cssText='position:relative;height:500px;width:100%';
-  const nc=document.createElement('canvas');nc.id='modal-cv';
+  wrap.style.cssText='position:relative;height:520px;width:100%';
+  const nc=document.createElement('canvas');
+  nc.id='modal-cv';
   wrap.appendChild(nc);
   document.getElementById('mbody').innerHTML='';
   document.getElementById('mbody').appendChild(wrap);
-  const orig=charts[chartKey];
-  if(orig){
-    if(window._mc)window._mc.destroy();
-    try{
-      const cfg=JSON.parse(JSON.stringify(orig.config));
-      window._mc=new Chart(nc,cfg);
-    }catch(e){document.getElementById('mbody').innerHTML='<p style="padding:20px;color:var(--tx3)">Pré-visualização não disponível. Feche e veja no dashboard.</p>';}
-  }
+  // Recriar o gráfico com dados atuais no canvas novo
+  const data=processData(rawRows);
+  if(window._mc){window._mc.destroy();window._mc=null;}
+  if(chartKey==='st')     _buildExpandSt(nc,data);
+  else if(chartKey==='radar') _buildExpandRadar(nc,data);
+  else if(chartKey==='nao')   _buildExpandNao(nc,data);
+  else if(chartKey==='dist')  _buildExpandDist(nc,data);
   document.getElementById('modal').style.display='flex';
+}
+
+function _buildExpandSt(nc,data){
+  const pg=sum(data,'paga'),np=sum(data,'naoPaga'),ca=sum(data,'cancel');
+  const colors=['#FFD600','#ef4444',isDark?'#252830':'#d1d5db'];
+  window._mc=new Chart(nc,{type:'doughnut',
+    data:{labels:['Pagaram','Não pagaram','Cancelados'],datasets:[{data:[pg,np,ca],backgroundColor:colors,borderWidth:3,borderColor:isDark?'#111318':'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{color:isDark?'#aaa':'#555',font:{family:'Inter',size:12}}},tooltip:TO()}}
+  });
+}
+function _buildExpandRadar(nc,data){
+  const rel=data.filter(d=>d.meta>0);
+  window._mc=new Chart(nc,{type:'radar',
+    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:rel.map(d=>Math.round(d.paga/d.meta*100)),backgroundColor:'rgba(255,214,0,.07)',borderColor:'#FFD600',borderWidth:2,pointBackgroundColor:'#FFD600',pointRadius:5,pointHoverRadius:8}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TO(),callbacks:{label:ctx=>ctx.raw+'%'}}},
+      scales:{r:{ticks:{color:isDark?'#2e3040':'#9ca3af',backdropColor:'transparent',font:{size:11}},grid:{color:GC()},pointLabels:{color:isDark?'#888':'#555',font:{size:12,family:'Inter'}},beginAtZero:true,max:100}}}
+  });
+}
+function _buildExpandNao(nc,data){
+  const s=[...data].filter(d=>d.total>0).sort((a,b)=>b.naoPaga-a.naoPaga);
+  window._mc=new Chart(nc,{type:'bar',
+    data:{labels:s.map(d=>cap(d.polo)),datasets:[{label:'Não pagaram',data:s.map(d=>d.naoPaga),backgroundColor:s.map((_,i)=>PC[i%PC.length]+'99'),borderColor:s.map((_,i)=>PC[i%PC.length]),borderWidth:1,borderRadius:6,maxBarThickness:40}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:TO()},
+      scales:{x:{ticks:{color:TC(),font:{size:12}},grid:{color:GC()},beginAtZero:true},y:{ticks:{color:TC(),font:{size:12,family:'Inter'}},grid:{display:false}}}}
+  });
+}
+function _buildExpandDist(nc,data){
+  const r=data.filter(d=>d.total>0);
+  window._mc=new Chart(nc,{type:'pie',
+    data:{labels:r.map(d=>cap(d.polo)),datasets:[{data:r.map(d=>d.total),backgroundColor:PC.slice(0,r.length).map(c=>c+'aa'),borderColor:isDark?'#0c0d11':'#fff',borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'right',labels:{color:isDark?'#aaa':'#555',font:{family:'Inter',size:12},boxWidth:12,padding:10}},tooltip:TO()}}
+  });
 }
 function closeModal(){
   document.getElementById('modal').style.display='none';
