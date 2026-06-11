@@ -17,15 +17,15 @@
   --hbg:rgba(6,7,10,.94);--cgrid:rgba(255,255,255,.04);--ctick:#3e4250;
   --chart-border:#0c0d11;
 }
-/* ══ LIGHT — fundo amarelo, cards preto, texto branco ══ */
+/* ══ LIGHT — fundo amarelo, texto preto/cinza ══ */
 [data-theme="light"]{
-  --y:#FFD600;--yg:rgba(255,214,0,.2);--yd:rgba(255,214,0,.1);
-  --bg:#FFD600;--b2:#111;--b3:#1a1a1a;--b4:#222;--b5:#2a2a2a;--b6:#333;
-  --br:rgba(255,255,255,.08);--br2:rgba(255,255,255,.14);
-  --tx:#f0f0f0;--tx2:#aaa;--tx3:#666;
-  --g:#22c55e;--r:#ef4444;--o:#f97316;--bl:#60a5fa;--p:#c084fc;
-  --hbg:#e6c000;--cgrid:rgba(255,255,255,.06);--ctick:#555;
-  --chart-border:#1a1a1a;
+  --y:#1a1a1a;--yg:rgba(0,0,0,.1);--yd:rgba(0,0,0,.05);
+  --bg:#FFD600;--b2:#f0c800;--b3:#fff;--b4:#fafafa;--b5:#f0f0f0;--b6:#e0e0e0;
+  --br:rgba(0,0,0,.1);--br2:rgba(0,0,0,.18);
+  --tx:#111111;--tx2:#444444;--tx3:#888888;
+  --g:#15803d;--r:#dc2626;--o:#c2410c;--bl:#1d4ed8;--p:#7e22ce;
+  --hbg:rgba(255,214,0,.98);--cgrid:rgba(0,0,0,.07);--ctick:#888;
+  --chart-border:#FFD600;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -66,7 +66,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   backdrop-filter:blur(32px) saturate(180%);transition:background .3s}
 .logo-wrap{display:flex;align-items:center;gap:13px}
 .logo-img{height:32px;filter:brightness(0) invert(1);opacity:.9;transition:.3s}
-[data-theme="light"] .logo-img{filter:brightness(0) invert(1);opacity:.9}
+[data-theme="light"] .logo-img{filter:none;opacity:1}
 .logo-fb{width:36px;height:36px;background:#FFD600;border-radius:8px;
   display:none;align-items:center;justify-content:center;font-weight:900;font-size:17px;color:#000}
 .brand{font-size:13.5px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
@@ -74,7 +74,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .clock-c{text-align:center;user-select:none}
 #ck-t{font-size:20px;font-weight:900;color:#FFD600;letter-spacing:3px;
   text-shadow:0 0 30px rgba(255,214,0,.4);font-variant-numeric:tabular-nums}
-[data-theme="light"] #ck-t{color:#111111;text-shadow:none}
+[data-theme="light"] #ck-t{color:#111;text-shadow:none}
 #ck-d{font-size:9.5px;color:var(--tx3);margin-top:3px;letter-spacing:.4px}
 .hdr-r{display:flex;align-items:center;justify-content:flex-end;gap:10px}
 .live-wrap{display:flex;align-items:center;gap:6px}
@@ -111,7 +111,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .hs{padding:0 22px;border-right:1px solid var(--br)}
 .hs:first-child{padding-left:0}.hs:last-child{border-right:none}
 .hs-v{font-size:22px;font-weight:900;color:#FFD600;line-height:1;letter-spacing:-.5px}
-[data-theme="light"] .hs-v{color:#111111}
+[data-theme="light"] .hs-v{color:#111}
 .hs-l{font-size:9px;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
 
 /* PROJ */
@@ -467,8 +467,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
       <button class="card-exp" onclick="expandChart('ch-st','Situação dos alunos','st')">⛶ Expandir</button>
       <div class="ct"><div class="ctd"></div>Situação dos alunos</div>
       <div id="leg-st" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
-      <div style="position:relative;height:200px"><canvas id="ch-st"></canvas></div>
-      <div class="gc" style="margin-top:6px">
+      <div style="position:relative;height:160px"><canvas id="ch-st"></canvas></div>
+      <div class="gc" style="margin-top:8px">
         <div class="gv" id="taxa-pag">0%</div>
         <div class="gl">taxa de pagamento · ativos</div>
       </div>
@@ -630,15 +630,8 @@ async function fetchData(){
   try{
     // cache:'no-store' força ignorar cache do browser
     // timestamp no URL força Google Sheets a não servir cache antigo
-    // Google Sheets ignora parâmetros desconhecidos — usamos o trick de mudar o gid
-    // Mas o mais confiável é no-store + vary o URL
-    const sep=SHEET_URL.includes('?')?'&':'?';
-    const url=SHEET_URL+sep+'_ts='+Date.now()+'&_r='+Math.random().toString(36).slice(2);
-    const r=await fetch(url,{
-      method:'GET',
-      cache:'no-store',
-      headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache','Expires':'0'}
-    });
+    const url=SHEET_URL.replace('/pub?','/pub?cachebust='+Date.now()+'&');
+    const r=await fetch(url,{cache:'no-store',headers:{'Pragma':'no-cache','Cache-Control':'no-cache, no-store'}});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const txt=await r.text();
     rawRows=parseCSV(txt);
@@ -684,34 +677,16 @@ function getPoloKey(r){return getPoloInfo(r).k;}
 // Google Sheets CSV exporta "2026-06-03 00:00:00"
 // Criamos data LOCAL: new Date(ano, mes-1, dia)
 function parseDateStr(raw){
-  if(!raw||raw==='nan'||raw==='None'||raw==='null'||!raw.trim())return null;
-  const s=raw.trim();
-  // YYYY-MM-DD (com ou sem hora: "2026-06-03" ou "2026-06-03 00:00:00")
-  const m1=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(m1){const d=new Date(+m1[1],+m1[2]-1,+m1[3],12,0,0,0);if(!isNaN(d))return d;}
+  if(!raw||raw==='nan'||raw==='None'||!raw.trim())return null;
+  // YYYY-MM-DD ...
+  const m1=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m1)return new Date(+m1[1],+m1[2]-1,+m1[3],0,0,0,0);
   // DD/MM/YYYY
-  const m2=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if(m2){const d=new Date(+m2[3],+m2[2]-1,+m2[1],12,0,0,0);if(!isNaN(d))return d;}
-  // MM/DD/YYYY (fallback)
-  const m3=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if(m3){const d=new Date(+m3[3],+m3[1]-1,+m3[2],12,0,0,0);if(!isNaN(d))return d;}
+  const m2=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m2)return new Date(+m2[3],+m2[2]-1,+m2[1],0,0,0,0);
   return null;
 }
 function parseDatePag(row){return parseDateStr(row['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'');}
-// Debug: expor no console para diagnóstico
-window._debugDates=()=>{
-  const rows=rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
-  const{from,to}=getDateRange();
-  console.group('DEBUG pagamentos');
-  console.log('Período:',from?from.toLocaleDateString('pt-BR'):'—','até',to?to.toLocaleDateString('pt-BR'):'—');
-  rows.forEach(r=>{
-    const d=parseDatePag(r);
-    const raw=r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'];
-    const ok=d&&(!from||d>=from)&&(!to||d<=to);
-    console.log(raw,'→',d?d.toLocaleDateString('pt-BR'):'ERRO','| no período:',ok,'| polo:',r['NOME_DO_POLO']);
-  });
-  console.groupEnd();
-};
 
 // ══════ FILTRO PERÍODO ══════
 function onPeriodChange(){
@@ -794,13 +769,7 @@ function processData(rows){
   });
 
   return Object.entries(bp)
-    .filter(([p])=>{
-      // Filtrar por região
-      if(reg!=='TODOS'&&POLO_REG[p]!==reg)return false;
-      // Filtrar por polo específico
-      if(polo!=='TODOS'&&p!==polo)return false;
-      return true;
-    })
+    .filter(([p])=>reg==='TODOS'||(POLO_REG[p]===reg))
     .map(([p,d])=>({
       polo:p,total:d.total,ativos:d.ativos,cancel:d.cancel,
       paga:d.paga,naoPaga:Math.max(0,d.ativos-d.paga),
@@ -1040,16 +1009,14 @@ function openModal(tipo,titulo){
 }
 
 // ══════ EVENT DELEGATION — botões detalhes dos KPIs ══════
-// Usa delegação no document para capturar cliques mesmo em elementos gerados dinamicamente
-document.addEventListener('click',function kpiDetHandler(e){
-  // Não propagar para sparks (sparks já têm seu próprio listener antes)
+document.addEventListener('click',e=>{
   const btn=e.target.closest('.kpi-det');
-  if(!btn)return;
-  e.stopPropagation();
-  const mid=btn.getAttribute('data-mid');
-  const ml=btn.getAttribute('data-ml');
-  if(typeof openModal==='function') openModal(mid,ml);
-},true); // capture:true garante que roda antes dos outros listeners
+  if(btn){
+    const mid=btn.getAttribute('data-mid');
+    const ml=btn.getAttribute('data-ml');
+    openModal(mid,ml);
+  }
+});
 
 // ══════ EXPANDIR GRÁFICOS — recria com dados ao vivo ══════
 function expandMetaBars(){
