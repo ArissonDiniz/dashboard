@@ -630,15 +630,11 @@ async function fetchData(){
   try{
     // cache:'no-store' força ignorar cache do browser
     // timestamp no URL força Google Sheets a não servir cache antigo
-    // Google Sheets ignora parâmetros desconhecidos — usamos o trick de mudar o gid
-    // Mas o mais confiável é no-store + vary o URL
-    const sep=SHEET_URL.includes('?')?'&':'?';
-    const url=SHEET_URL+sep+'_ts='+Date.now()+'&_r='+Math.random().toString(36).slice(2);
-    const r=await fetch(url,{
-      method:'GET',
-      cache:'no-store',
-      headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache','Expires':'0'}
-    });
+    // Google Sheets: NÃO usar headers customizados (disparam CORS preflight e falham)
+    // Usar cache:'no-cache' (envia If-None-Match mas ainda funciona com CORS simples)
+    // + timestamp no URL para evitar cache do browser/CDN
+    const url=SHEET_URL+'&_='+Date.now();
+    const r=await fetch(url,{cache:'no-cache'});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const txt=await r.text();
     rawRows=parseCSV(txt);
