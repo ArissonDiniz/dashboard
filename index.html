@@ -22,7 +22,7 @@
   --y:#FFD600;--yg:rgba(255,214,0,.2);--yd:rgba(255,214,0,.1);
   --bg:#FFD600;--b2:#111;--b3:#1a1a1a;--b4:#222;--b5:#2a2a2a;--b6:#333;
   --br:rgba(255,255,255,.08);--br2:rgba(255,255,255,.14);
-  --tx:#f0f0f0;--tx2:#aaa;--tx3:#666;
+  --tx:#f0f0f0;--tx2:#bbb;--tx3:#888;
   --g:#22c55e;--r:#ef4444;--o:#f97316;--bl:#60a5fa;--p:#c084fc;
   --hbg:#e6c000;--cgrid:rgba(255,255,255,.06);--ctick:#555;
   --chart-border:#1a1a1a;
@@ -66,7 +66,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   backdrop-filter:blur(32px) saturate(180%);transition:background .3s}
 .logo-wrap{display:flex;align-items:center;gap:13px}
 .logo-img{height:32px;filter:brightness(0) invert(1);opacity:.9;transition:.3s}
-[data-theme="light"] .logo-img{filter:brightness(0) invert(1);opacity:.9}
+[data-theme="light"] .logo-img{filter:brightness(0);opacity:.85}
 .logo-fb{width:36px;height:36px;background:#FFD600;border-radius:8px;
   display:none;align-items:center;justify-content:center;font-weight:900;font-size:17px;color:#000}
 .brand{font-size:13.5px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
@@ -74,7 +74,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .clock-c{text-align:center;user-select:none}
 #ck-t{font-size:20px;font-weight:900;color:#FFD600;letter-spacing:3px;
   text-shadow:0 0 30px rgba(255,214,0,.4);font-variant-numeric:tabular-nums}
-[data-theme="light"] #ck-t{color:#111111;text-shadow:none}
+[data-theme="light"] #ck-t{color:#111;text-shadow:none}
 #ck-d{font-size:9.5px;color:var(--tx3);margin-top:3px;letter-spacing:.4px}
 .hdr-r{display:flex;align-items:center;justify-content:flex-end;gap:10px}
 .live-wrap{display:flex;align-items:center;gap:6px}
@@ -111,7 +111,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .hs{padding:0 22px;border-right:1px solid var(--br)}
 .hs:first-child{padding-left:0}.hs:last-child{border-right:none}
 .hs-v{font-size:22px;font-weight:900;color:#FFD600;line-height:1;letter-spacing:-.5px}
-[data-theme="light"] .hs-v{color:#111111}
+[data-theme="light"] .hs-v{color:#111}
+[data-theme="light"] .brand{color:#111}
+[data-theme="light"] .brand-sub{color:#555}
+[data-theme="light"] .live-tx{color:#555}
+[data-theme="light"] #ck-d{color:#555}
+[data-theme="light"] .fl{color:#555}
+[data-theme="light"] .badge{background:#111;color:#FFD600}
+[data-theme="light"] .theme-btn{background:#111;border-color:rgba(255,255,255,.2);color:#f0f0f0}
+[data-theme="light"] .theme-btn:hover{border-color:#FFD600;color:#FFD600}
+[data-theme="light"] select,[data-theme="light"] input[type=date]{background:#222;border-color:rgba(255,255,255,.2);color:#f0f0f0}
+[data-theme="light"] .pj-v{color:#FFD600}
+[data-theme="light"] .hs-v{color:#111}
 .hs-l{font-size:9px;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
 
 /* PROJ */
@@ -1036,16 +1047,14 @@ function openModal(tipo,titulo){
 }
 
 // ══════ EVENT DELEGATION — botões detalhes dos KPIs ══════
-// Usa delegação no document para capturar cliques mesmo em elementos gerados dinamicamente
-document.addEventListener('click',function kpiDetHandler(e){
-  // Não propagar para sparks (sparks já têm seu próprio listener antes)
+// NÃO usar capture:true nem stopPropagation — causa conflito com outros listeners
+document.addEventListener('click',function(e){
   const btn=e.target.closest('.kpi-det');
   if(!btn)return;
-  e.stopPropagation();
-  const mid=btn.getAttribute('data-mid');
-  const ml=btn.getAttribute('data-ml');
-  if(typeof openModal==='function') openModal(mid,ml);
-},true); // capture:true garante que roda antes dos outros listeners
+  const mid=btn.dataset.mid;
+  const ml=btn.dataset.ml;
+  openModal(mid,ml);
+});
 
 // ══════ EXPANDIR GRÁFICOS — recria com dados ao vivo ══════
 function expandMetaBars(){
@@ -1087,11 +1096,25 @@ function _buildExpandSt(nc,data){
 }
 function _buildExpandRadar(nc,data){
   const rel=data.filter(d=>d.meta>0);
+  const vals=rel.map(d=>Math.round(d.paga/d.meta*100));
+  // Max dinâmico: maior valor + 20% de folga, mínimo 100
+  const maxVal=Math.max(100,...vals);
+  const maxAxis=Math.ceil(maxVal*1.25/20)*20; // arredonda para múltiplo de 20
   window._mc=new Chart(nc,{type:'radar',
-    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:rel.map(d=>Math.round(d.paga/d.meta*100)),backgroundColor:'rgba(255,214,0,.07)',borderColor:'#FFD600',borderWidth:2,pointBackgroundColor:'#FFD600',pointRadius:5,pointHoverRadius:8}]},
+    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:vals,
+      backgroundColor:'rgba(255,214,0,.08)',borderColor:'#FFD600',borderWidth:2.5,
+      pointBackgroundColor:'#FFD600',pointRadius:5,pointHoverRadius:8,pointBorderColor:'#000'}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...TO(),callbacks:{label:ctx=>ctx.raw+'%'}}},
-      scales:{r:{ticks:{color:isDark?'#2e3040':'#9ca3af',backdropColor:'transparent',font:{size:11}},grid:{color:GC()},pointLabels:{color:isDark?'#888':'#555',font:{size:12,family:'Inter'}},beginAtZero:true,max:100}}}
+      scales:{r:{
+        ticks:{color:isDark?'#3e4250':'#9ca3af',backdropColor:'transparent',font:{size:11},
+          callback:v=>v+'%'},
+        grid:{color:GC()},
+        pointLabels:{color:isDark?'#aaa':'#ccc',font:{size:13,family:'Inter',weight:'600'},
+          padding:16},
+        beginAtZero:true,max:maxAxis,
+        suggestedMax:maxAxis
+      }}}
   });
 }
 function _buildExpandNao(nc,data){
@@ -1183,16 +1206,24 @@ function renderStatusChart(data){
 // ══════ RADAR ══════
 function renderRadarChart(data){
   const rel=data.filter(d=>d.meta>0);
+  const vals=rel.map(d=>Math.round(d.paga/d.meta*100));
+  const maxVal=Math.max(100,...vals);
+  const maxAxis=Math.ceil(maxVal*1.25/20)*20;
   if(charts.radar)charts.radar.destroy();
   charts.radar=new Chart(document.getElementById('ch-radar'),{type:'radar',
-    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',
-      data:rel.map(d=>Math.round(d.paga/d.meta*100)),
+    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:vals,
       backgroundColor:'rgba(255,214,0,.07)',borderColor:'#FFD600',borderWidth:2,
-      pointBackgroundColor:'#FFD600',pointRadius:3,pointHoverRadius:6,pointBorderColor:isDark?'#000':'#fff'}]},
+      pointBackgroundColor:'#FFD600',pointRadius:3,pointHoverRadius:6,
+      pointBorderColor:isDark?'#000':'#111'}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...TO(),callbacks:{label:ctx=>ctx.raw+'%'}}},
-      scales:{r:{ticks:{color:isDark?'#2e3040':'#9ca3af',backdropColor:'transparent',font:{size:8}},
-        grid:{color:GC()},pointLabels:{color:TC(),font:{size:8.5,family:'Inter'}},beginAtZero:true,max:100}}}
+      scales:{r:{
+        ticks:{color:isDark?'#2e3040':'#9ca3af',backdropColor:'transparent',font:{size:8},
+          callback:v=>v+'%'},
+        grid:{color:GC()},
+        pointLabels:{color:isDark?'#666':'#aaa',font:{size:8.5,family:'Inter'},padding:8},
+        beginAtZero:true,max:maxAxis
+      }}}
   });
 }
 
