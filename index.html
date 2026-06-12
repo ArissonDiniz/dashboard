@@ -111,7 +111,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .hs{padding:0 22px;border-right:1px solid var(--br)}
 .hs:first-child{padding-left:0}.hs:last-child{border-right:none}
 .hs-v{font-size:22px;font-weight:900;color:#FFD600;line-height:1;letter-spacing:-.5px}
-[data-theme="light"] .hs-v{color:#111}
+[data-theme="light"] .hs-v{color:#FFD600}
 [data-theme="light"] .brand{color:#111}
 [data-theme="light"] .brand-sub{color:#555}
 [data-theme="light"] .live-tx{color:#555}
@@ -120,6 +120,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 [data-theme="light"] .badge{background:#111;color:#FFD600}
 [data-theme="light"] .theme-btn{background:#111;border-color:rgba(255,255,255,.2);color:#f0f0f0}
 [data-theme="light"] .theme-btn:hover{border-color:#FFD600;color:#FFD600}
+/* Hero no light tem fundo escuro — textos devem ser claros */
+[data-theme="light"] .hero-title{color:#f0f0f0}
+[data-theme="light"] .hero-sub{color:#888}
+[data-theme="light"] .hs-v{color:#FFD600!important}
+[data-theme="light"] .hs-l{color:#888}
+/* Filtros no light — labels visíveis sobre fundo amarelo */
+[data-theme="light"] .filter-wrap{background:#111;border-color:rgba(255,255,255,.1)}
+[data-theme="light"] .fl{color:#aaa!important}
+[data-theme="light"] .divv{background:rgba(255,255,255,.15)}
+/* Projeção no light */
+[data-theme="light"] .proj{background:#111;border-color:rgba(255,255,255,.08)}
+[data-theme="light"] .pj:hover{background:#1a1a1a}
+[data-theme="light"] .pj-l{color:#666}
+[data-theme="light"] .pj-v{color:#FFD600!important}
 [data-theme="light"] select,[data-theme="light"] input[type=date]{background:#222;border-color:rgba(255,255,255,.2);color:#f0f0f0}
 [data-theme="light"] .pj-v{color:#FFD600}
 [data-theme="light"] .hs-v{color:#111}
@@ -963,7 +977,7 @@ function renderKPIs(data){
     <div class="kpi ${k.c}" style="animation-delay:${i*.05}s">
       <div class="kpi-top">
         <div class="kpi-ic">${k.ic}</div>
-        <button class="kpi-det" data-mid="${k.mid}" data-ml="${k.ml.replace(/"/g,'&quot;')}">detalhes ▸</button>
+        <button class="kpi-det" onclick="event.stopPropagation();openModal(this.dataset.mid,this.dataset.ml)" data-mid="${k.mid}" data-ml="${k.ml}">detalhes ▸</button>
       </div>
       <div class="kpi-l">${k.l}</div>
       <div class="kpi-v" style="${k.sm?'font-size:15px;font-weight:800;line-height:1.3':''}">${k.v}</div>
@@ -1046,15 +1060,7 @@ function openModal(tipo,titulo){
   document.getElementById('modal').style.display='flex';
 }
 
-// ══════ EVENT DELEGATION — botões detalhes dos KPIs ══════
-// NÃO usar capture:true nem stopPropagation — causa conflito com outros listeners
-document.addEventListener('click',function(e){
-  const btn=e.target.closest('.kpi-det');
-  if(!btn)return;
-  const mid=btn.dataset.mid;
-  const ml=btn.dataset.ml;
-  openModal(mid,ml);
-});
+// botão detalhes dos KPIs usa onclick direto no elemento
 
 // ══════ EXPANDIR GRÁFICOS — recria com dados ao vivo ══════
 function expandMetaBars(){
