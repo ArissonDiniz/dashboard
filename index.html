@@ -102,7 +102,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   background:radial-gradient(circle,var(--yg),transparent 70%);pointer-events:none}
 .hero::after{content:'UNIASSELVI';position:absolute;bottom:-32px;right:16px;
   font-size:108px;font-weight:900;letter-spacing:-4px;
-  color:rgba(0,0,0,.03);pointer-events:none;user-select:none;line-height:1}
+  color:rgba(255,214,0,.06);pointer-events:none;user-select:none;line-height:1}
+[data-theme="light"] .hero::after{color:rgba(255,255,255,.12)}
 .hero-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
 .hero-title{font-size:18px;font-weight:800;color:var(--tx);letter-spacing:-.4px}
 .hero-sub{font-size:11px;color:var(--tx3);margin-top:3px}
@@ -134,7 +135,39 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 [data-theme="light"] .pj:hover{background:#1a1a1a}
 [data-theme="light"] .pj-l{color:#666}
 [data-theme="light"] .pj-v{color:#FFD600!important}
+/* gauge taxa de pagamento */
+[data-theme="light"] .gv{color:#FFD600!important;text-shadow:none}
+[data-theme="light"] .gl{color:#888}
+/* legend situação dos alunos */
+[data-theme="light"] #leg-st span{color:#ccc!important}
+[data-theme="light"] #leg-st strong{color:#f0f0f0!important}
 [data-theme="light"] select,[data-theme="light"] input[type=date]{background:#222;border-color:rgba(255,255,255,.2);color:#f0f0f0}
+[data-theme="light"] .ct{color:#777}
+[data-theme="light"] .ctd{background:#FFD600;box-shadow:0 0 6px #FFD600}
+[data-theme="light"] .section-title,[data-theme="light"] .st{color:#bbb}
+[data-theme="light"] .kpi-l{color:#777}
+[data-theme="light"] .kpi-s{color:#666}
+[data-theme="light"] .kpi-det{background:#2a2a2a;border-color:rgba(255,255,255,.1);color:#888}
+[data-theme="light"] .kpi:hover .kpi-det{color:#FFD600;border-color:rgba(255,214,0,.4)}
+[data-theme="light"] .sl{background:linear-gradient(90deg,rgba(255,255,255,.15),transparent)}
+[data-theme="light"] .ftr{color:#777;border-color:rgba(255,255,255,.1)}
+[data-theme="light"] .ftr span{color:#FFD600}
+[data-theme="light"] .mb-polo{color:#f0f0f0}
+[data-theme="light"] .mb-vals{color:#888}
+[data-theme="light"] .mb-sub{color:#666}
+[data-theme="light"] .mb-track{background:#2a2a2a}
+[data-theme="light"] .rname{color:#f0f0f0}
+[data-theme="light"] .rpolo{color:#666}
+[data-theme="light"] .ci-name{color:#f0f0f0}
+[data-theme="light"] .ci-rank{color:#666}
+[data-theme="light"] .mtitle{color:#f0f0f0}
+[data-theme="light"] .mname{color:#f0f0f0}
+[data-theme="light"] .msub{color:#666}
+[data-theme="light"] .pt th{color:#666;background:#111}
+[data-theme="light"] .pt td{color:#bbb}
+[data-theme="light"] .pt tr.tr-tot td{color:#f0f0f0}
+[data-theme="light"] .hero-title{color:#f0f0f0}
+[data-theme="light"] .hero-sub{color:#888}
 [data-theme="light"] .pj-v{color:#FFD600}
 [data-theme="light"] .hs-v{color:#111}
 .hs-l{font-size:9px;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
@@ -974,10 +1007,10 @@ function renderKPIs(data){
 
   // Função que cria um KPI — detalhes via data-attributes (evita quebra por aspas/espaços)
   const mkKPI=(k,i)=>`
-    <div class="kpi ${k.c}" style="animation-delay:${i*.05}s">
+    <div class="kpi ${k.c}" style="animation-delay:${i*.05}s" data-mid="${k.mid}" data-ml="${k.ml.replace(/"/g,'')}">
       <div class="kpi-top">
         <div class="kpi-ic">${k.ic}</div>
-        <button class="kpi-det" onclick="event.stopPropagation();openModal(this.dataset.mid,this.dataset.ml)" data-mid="${k.mid}" data-ml="${k.ml}">detalhes ▸</button>
+        <span class="kpi-det">detalhes ▸</span>
       </div>
       <div class="kpi-l">${k.l}</div>
       <div class="kpi-v" style="${k.sm?'font-size:15px;font-weight:800;line-height:1.3':''}">${k.v}</div>
@@ -1358,6 +1391,15 @@ function hideLoading(){document.getElementById('loading').style.display='none'}
 function showContent(){hideLoading();document.getElementById('content').style.display='block'}
 
 // ══════ BOOT ══════
+// Listener para cliques nos KPIs — usa event delegation no document
+document.addEventListener('click', function(e){
+  var kpi = e.target.closest('.kpi[data-mid]');
+  if(kpi){
+    var mid = kpi.getAttribute('data-mid');
+    var ml  = kpi.getAttribute('data-ml');
+    openModal(mid, ml);
+  }
+});
 window.addEventListener('load',fetchData);
 </script>
 </body>
