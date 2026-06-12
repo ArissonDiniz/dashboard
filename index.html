@@ -680,29 +680,17 @@ function showToast(ic,title,msg,type='info'){
 // ══════ FETCH ══════
 async function refreshData(e){if(e)e.stopPropagation();await fetchData();}
 async function fetchData(){
-  // Salvar seleções atuais para restaurar após reload
-  const prevPolo=document.getElementById('f-polo')?.value||'TODOS';
-  const prevReg=document.getElementById('f-regiao')?.value||'TODOS';
-  const prevPer=document.getElementById('f-period')?.value||'all';
   showLoading();
   try{
-    // cache:'no-store' força ignorar cache do browser
-    // timestamp no URL força Google Sheets a não servir cache antigo
-    // Google Sheets: NÃO usar headers customizados (disparam CORS preflight e falham)
-    // Usar cache:'no-cache' (envia If-None-Match mas ainda funciona com CORS simples)
-    // + timestamp no URL para evitar cache do browser/CDN
     const url=SHEET_URL+'&_='+Date.now();
     const r=await fetch(url,{cache:'no-cache'});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const txt=await r.text();
     rawRows=parseCSV(txt);
     lastLoad=new Date();
-    // Restaurar seleções
-    _prevPolo=prevPolo;_prevReg=prevReg;_prevPer=prevPer;
     finishLoad();
   }catch(err){hideLoading();alert('Erro ao carregar:\n'+err.message);}
 }
-let _prevPolo='TODOS',_prevReg='TODOS',_prevPer='all';
 function parseCSV(txt){
   const ln=txt.split('\n').filter(l=>l.trim());
   if(ln.length<2)return[];
@@ -907,20 +895,22 @@ function metaLabel(){
 
 // ══════ FINISH LOAD ══════
 function finishLoad(){
-  const polos=[...new Set(rawRows.map(r=>getPoloKey(r)))].filter(Boolean).sort();
-  const selReg=document.getElementById('f-regiao');
+  // Guardar o polo selecionado antes de recriar o select
   const selPolo=document.getElementById('f-polo');
-  const selPer=document.getElementById('f-period');
-  // Restaurar filtros anteriores
-  if(_prevReg&&selReg)selReg.value=_prevReg;
-  if(_prevPer&&selPer){selPer.value=_prevPer;document.getElementById('custom-dates').style.display=_prevPer==='custom'?'flex':'none';}
-  // Popular polo respeitando região
-  const reg=selReg?selReg.value:'TODOS';
+  const prevPolo=selPolo.value||'TODOS';
+  const reg=document.getElementById('f-regiao').value||'TODOS';
+
+  // Popular polos sem alterar região/período selecionados
+  const polos=[...new Set(rawRows.map(r=>getPoloKey(r)))].filter(Boolean).sort();
   selPolo.innerHTML='<option value="TODOS">Todos os polos</option>';
   polos.filter(p=>reg==='TODOS'||POLO_REG[p]===reg).forEach(p=>{
-    const o=document.createElement('option');o.value=p;o.textContent=cap(p)+(POLO_REG[p]?' ('+POLO_REG[p]+')':'');selPolo.appendChild(o);
+    const o=document.createElement('option');o.value=p;
+    o.textContent=cap(p)+(POLO_REG[p]?' ('+POLO_REG[p]+')':'');
+    selPolo.appendChild(o);
   });
-  if(_prevPolo&&[...selPolo.options].some(o=>o.value===_prevPolo))selPolo.value=_prevPolo;
+  // Restaurar polo se ainda existir
+  if([...selPolo.options].some(o=>o.value===prevPolo))selPolo.value=prevPolo;
+
   document.getElementById('hero-sec').style.display='block';
   document.getElementById('proj-bar').style.display='flex';
   document.getElementById('filters').style.display='flex';
