@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Dashboard Calouros · Uniasselvi</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* ══ DARK ══ */
@@ -503,6 +505,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <button class="btn btn-sm" onclick="renderAll()">Filtrar</button>
   </div>
   <button class="btn btn-gh" style="margin-left:auto" onclick="refreshData(event)">↻ Atualizar</button>
+  <button class="btn btn-gh" onclick="_showDebug()" title="Debug do filtro de período" style="font-size:10px;padding:6px 10px">🔍 Debug</button>
 </div>
 
 <!-- LOADING -->
@@ -1078,8 +1081,23 @@ function openModal(tipo,titulo){
     });
   }
 
+  // Tipos que têm lista de alunos exportável
+  var exportTipos = {'total':'total','ativos':'ativos','paga':'paga','naoPaga':'naoPaga','cancel':'cancel'};
+  var exportBtn = '';
+  if(exportTipos[tipo]){
+    exportBtn = '<div style="padding:0 0 16px">'+
+      '<button onclick="exportAlunos(\''+tipo+'\')" style="'+
+        'width:100%;padding:10px 16px;background:#FFD600;color:#000;border:none;'+
+        'border-radius:9px;font-size:13px;font-family:Inter,sans-serif;font-weight:700;'+
+        'cursor:none;display:flex;align-items:center;justify-content:center;gap:8px;'+
+        'transition:background .2s;box-shadow:0 2px 12px rgba(255,214,0,.25)">'+
+        '⬇ Baixar planilha Excel (.xlsx)</button>'+
+      '<div style="font-size:10px;color:var(--tx3);text-align:center;margin-top:6px">Abre direto no Excel com nome, CPF, matrícula, contato e polo</div>'+
+      '</div>';
+  }
+
   if(!rows.length)rows=['<div style="padding:24px;text-align:center;color:var(--tx3);font-size:13px">Sem dados para exibir no período/filtro selecionado.</div>'];
-  document.getElementById('mbody').innerHTML=rows.join('');
+  document.getElementById('mbody').innerHTML = exportBtn + rows.join('');
   document.getElementById('modal').style.display='flex';
 }
 
@@ -1168,6 +1186,114 @@ function closeModal(){
   if(window._mc){window._mc.destroy();window._mc=null;}
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// ══ EXPORTAR LISTA DE ALUNOS ══
+function exportAlunos(tipo){
+  var reg  = document.getElementById('f-regiao').value;
+  var polo = document.getElementById('f-polo').value;
+
+  var tipoLabels={total:'Todos os Alunos',ativos:'Matrículas Ativas',paga:'1ª Mensalidade Paga',naoPaga:'Não Pagaram (Ativos)',cancel:'Cancelados',risco:'Alunos em Risco'};
+  var tipoLabel = tipoLabels[tipo]||'Alunos';
+  var regLabel  = reg==='TODOS'?'Todas as Regiões':reg==='AC'?'Acre':reg==='RO'?'Rondônia':'Amazonas';
+  var poloLabel = polo==='TODOS'?'Todos os Polos':cap(polo);
+
+  // ── Filtrar alunos ──
+  var rows = rawRows.filter(function(r){
+    var inf = getPoloInfo(r);
+    if(reg!=='TODOS' && inf.r!==reg) return false;
+    if(polo!=='TODOS' && inf.k!==polo) return false;
+    var raw = (r['DATA_CANCELAMENTO']||'').trim();
+    var cancelado = raw!=='' && raw!=='nan' && raw!=='None' && raw!=='NaT';
+    var pagou     = pagouNoPeriodo(r);
+    var ativo     = !cancelado;
+    if(tipo==='paga')    return pagou;
+    if(tipo==='naoPaga') return ativo && !pagou;
+    if(tipo==='cancel')  return cancelado;
+    if(tipo==='ativos')  return ativo;
+    if(tipo==='risco')   return ativo && !pagou;
+    return true; // total e demais
+  });
+
+  if(!rows.length){alert('Nenhum aluno encontrado com o filtro atual.');return;}
+
+  // ── Montar dados ──
+  var now = new Date();
+  var dataGer = now.toLocaleDateString('pt-BR')+' às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
+  var headers=['Nº','Nome Completo','CPF','Cód. Matrícula','Curso','Polo','Telefone','Celular','E-mail','Situação','Pagou 1ª Mens.','Data Pagamento','Colaborador'];
+
+  var dataRows = rows.map(function(r,i){
+    var rawC = (r['DATA_CANCELAMENTO']||'').trim();
+    var cancelado = rawC!=='' && rawC!=='nan' && rawC!=='None';
+    var pagou = (r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
+    // Data pagamento formatada
+    var dataPag='';
+    if(pagou){
+      var m=((r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'])||'').match(/(\d{4})-(\d{2})-(\d{2})/);
+      if(m) dataPag=m[3]+'/'+m[2]+'/'+m[1];
+    }
+    // CPF formatado
+    var cpf=String(r['CPF']||'').replace(/\D/g,'');
+    if(cpf.length===11) cpf=cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+    else if(cpf.length===10) cpf=('0'+cpf).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+    return[
+      i+1,
+      r['NOME']||'',
+      cpf,
+      r['CODIGO_ALUNO']||'',
+      r['NOME_DO_CURSO']||'',
+      r['NOME_DO_POLO']||'',
+      r['TELEFONE']||'',
+      r['CELULAR']||'',
+      r['EMAIL']||'',
+      cancelado?'Cancelado':'Ativo',
+      pagou?'Sim':'Não',
+      dataPag,
+      r['ESPECIALIZACAO_MATRICULOU']||''
+    ];
+  });
+
+  // ── Criar workbook com SheetJS ──
+  var wb = XLSX.utils.book_new();
+
+  // Bloco de título + dados
+  var sheetData=[
+    ['RELATÓRIO DE ALUNOS — '+tipoLabel.toUpperCase()],
+    ['Polo: '+poloLabel+'   |   Região: '+regLabel+'   |   Período: '+periodLabel()],
+    ['Gerado em: '+dataGer+'   |   Total de alunos: '+rows.length],
+    [],
+    headers
+  ].concat(dataRows);
+
+  var ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+  // Largura das colunas
+  ws['!cols']=[
+    {wch:4},{wch:36},{wch:16},{wch:13},{wch:28},
+    {wch:32},{wch:16},{wch:16},{wch:34},
+    {wch:11},{wch:13},{wch:14},{wch:28}
+  ];
+
+  // Mesclar título (linha 1 = row 0)
+  ws['!merges']=[
+    {s:{r:0,c:0},e:{r:0,c:12}},
+    {s:{r:1,c:0},e:{r:1,c:12}},
+    {s:{r:2,c:0},e:{r:2,c:12}}
+  ];
+
+  // Nome da aba (máx 31 chars, sem caracteres especiais)
+  var abaName=(polo==='TODOS'?'Todos os Polos':cap(polo))
+    .replace(/[:\\\/?*\[\]]/g,'').substring(0,28);
+
+  XLSX.utils.book_append_sheet(wb,ws,abaName||'Relatório');
+
+  // Nome do arquivo
+  var poloF=polo==='TODOS'?'todos':polo.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,20);
+  var perF =periodLabel().replace(/[^a-zA-Z0-9]/g,'_').substring(0,15);
+  XLSX.writeFile(wb,'alunos_'+tipo+'_'+poloF+'_'+perF+'.xlsx');
+
+  showToast('📥','Planilha exportada!',rows.length+' aluno'+(rows.length!==1?'s':'')+' · .xlsx gerado','pay');
+}
 
 // ══════ CHART OPTS ══════
 function TO(){
@@ -1381,7 +1507,7 @@ function hideLoading(){document.getElementById('loading').style.display='none'}
 function showContent(){hideLoading();document.getElementById('content').style.display='block'}
 
 // ══════ BOOT ══════
-// Listener para cliques nos KPIs — usa event delegation no document
+// Listener para cliques nos KPIs
 document.addEventListener('click', function(e){
   var kpi = e.target.closest('.kpi[data-mid]');
   if(kpi){
@@ -1390,6 +1516,30 @@ document.addEventListener('click', function(e){
     openModal(mid, ml);
   }
 });
+
+// ══ DEBUG PERÍODO — mostra painel com diagnóstico ══
+window._showDebug = function(){
+  var rows = rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
+  var range = getDateRange();
+  var lines = ['<b>Registros com pagamento: '+rows.length+'</b><br>'];
+  lines.push('Período selecionado: '+periodLabel()+'<br>');
+  lines.push('From: '+(range.from?range.from.toLocaleString('pt-BR'):'null')+'<br>');
+  lines.push('To: '+(range.to?range.to.toLocaleString('pt-BR'):'null')+'<br><br>');
+  rows.forEach(function(r){
+    var raw = r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'';
+    var d = parseDatePag(r);
+    var ok = pagouNoPeriodo(r);
+    lines.push('Raw: ['+raw+']<br>');
+    lines.push('Parsed: '+(d?d.toLocaleString('pt-BR'):'FALHOU')+'<br>');
+    lines.push('No período: '+(ok?'✅ SIM':'❌ NÃO')+'<br>');
+    lines.push('Polo: '+r['NOME_DO_POLO']+'<br><br>');
+  });
+  document.getElementById('mtitle').textContent='Debug — Filtro de Período';
+  document.getElementById('mbox').className='mbox';
+  document.getElementById('mbody').innerHTML='<div style="font-size:12px;font-family:monospace;line-height:1.8;color:var(--tx)">'+lines.join('')+'</div>';
+  document.getElementById('modal').style.display='flex';
+};
+
 window.addEventListener('load',fetchData);
 </script>
 </body>
