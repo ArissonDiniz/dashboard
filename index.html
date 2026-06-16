@@ -1232,13 +1232,21 @@ function exportAlunos(tipo){
       var m=((r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'])||'').match(/(\d{4})-(\d{2})-(\d{2})/);
       if(m) dataPag=m[3]+'/'+m[2]+'/'+m[1];
     }
-    // CPF — Google Sheets exporta como número, pode vir em notação científica (7.06E+10)
-    // Solução: converter via parseFloat+round para obter o número inteiro real
-    var cpfVal = r['CPF']||'';
-    var cpfNum = Math.round(parseFloat(String(cpfVal)));
-    var cpf = isNaN(cpfNum) ? String(cpfVal).replace(/\D/g,'') : String(cpfNum);
-    cpf = cpf.replace(/\.0$/,'').padStart(11,'0');
-    if(cpf.length===11) cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+    // CPF — Google Sheets exporta em notação científica (ex: 7.05981902950000E+10)
+    // NÃO usar parseFloat (perde precisão). Usar o expoente para extrair dígitos corretos.
+    var cpfRaw = String(r['CPF']||'').trim();
+    var cpf = '';
+    if(cpfRaw.toUpperCase().indexOf('E') >= 0){
+      var parts = cpfRaw.toUpperCase().split('E');
+      var mantissa = parts[0].replace('.',''); // "705981902950000"
+      var exp = parseInt(parts[1]);            // 10
+      var totalDigits = exp + 1;               // 11 dígitos do CPF
+      cpf = mantissa.substring(0, totalDigits);
+    } else {
+      cpf = cpfRaw.split('.')[0].replace(/\D/g,'');
+    }
+    cpf = cpf.padStart(11,'0');
+    if(cpf.length === 11) cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
     return[
       i+1,
       r['NOME']||'',
