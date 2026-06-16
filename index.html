@@ -1232,13 +1232,13 @@ function exportAlunos(tipo){
       var m=((r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'])||'').match(/(\d{4})-(\d{2})-(\d{2})/);
       if(m) dataPag=m[3]+'/'+m[2]+'/'+m[1];
     }
-    // CPF formatado — vem como número inteiro, pode ter zeros à esquerda perdidos
-    var cpfRaw = String(r['CPF']||'').replace(/\D/g,'').trim();
-    // Remover possível .0 do Excel (ex: "70598190295.0")
-    cpfRaw = cpfRaw.replace(/\.0$/, '');
-    // Sempre completar para 11 dígitos com zeros à esquerda
-    var cpf = cpfRaw.padStart(11,'0');
-    if(cpf.length===11) cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    // CPF — Google Sheets exporta como número, pode vir em notação científica (7.06E+10)
+    // Solução: converter via parseFloat+round para obter o número inteiro real
+    var cpfVal = r['CPF']||'';
+    var cpfNum = Math.round(parseFloat(String(cpfVal)));
+    var cpf = isNaN(cpfNum) ? String(cpfVal).replace(/\D/g,'') : String(cpfNum);
+    cpf = cpf.replace(/\.0$/,'').padStart(11,'0');
+    if(cpf.length===11) cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
     return[
       i+1,
       r['NOME']||'',
