@@ -1220,7 +1220,7 @@ function exportAlunos(tipo){
   var now = new Date();
   var dataGer = now.toLocaleDateString('pt-BR')+' às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 
-  var headers=['Nº','Nome Completo','CPF','Cód. Matrícula','Curso','Polo','Telefone','Celular','E-mail','Situação','Pagou 1ª Mens.','Data Pagamento','Colaborador'];
+  var headers=['Nº','Nome Completo','Cód. Matrícula','Curso','Polo','Telefone','Celular','E-mail','Situação','Pagou 1ª Mens.','Data Pagamento','Colaborador'];
 
   var dataRows = rows.map(function(r,i){
     var rawC = (r['DATA_CANCELAMENTO']||'').trim();
@@ -1250,7 +1250,6 @@ function exportAlunos(tipo){
     return[
       i+1,
       r['NOME']||'',
-      cpf,
       r['CODIGO_ALUNO']||'',
       r['NOME_DO_CURSO']||'',
       r['NOME_DO_POLO']||'',
@@ -1280,16 +1279,16 @@ function exportAlunos(tipo){
 
   // Largura das colunas
   ws['!cols']=[
-    {wch:4},{wch:36},{wch:16},{wch:13},{wch:28},
+    {wch:4},{wch:36},{wch:13},{wch:28},
     {wch:32},{wch:16},{wch:16},{wch:34},
     {wch:11},{wch:13},{wch:14},{wch:28}
   ];
 
   // Mesclar título (linha 1 = row 0)
   ws['!merges']=[
-    {s:{r:0,c:0},e:{r:0,c:12}},
-    {s:{r:1,c:0},e:{r:1,c:12}},
-    {s:{r:2,c:0},e:{r:2,c:12}}
+    {s:{r:0,c:0},e:{r:0,c:11}},
+    {s:{r:1,c:0},e:{r:1,c:11}},
+    {s:{r:2,c:0},e:{r:2,c:11}}
   ];
 
   // Nome da aba (máx 31 chars, sem caracteres especiais)
