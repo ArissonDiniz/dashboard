@@ -460,11 +460,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
   <!-- ANÁLISE AVANÇADA -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Análise avançada</div><div class="sl"></div></div>
-  <div class="card" style="margin-bottom:13px">
-    <button class="card-exp" onclick="expandChart('ch-radar','% da meta · Radar por polo','radar')">⛶ Expandir</button>
-    <div class="ct"><div class="ctd"></div>% da meta · radar por polo</div>
-    <div style="position:relative;height:380px;max-width:600px;margin:0 auto"><canvas id="ch-radar"></canvas></div>
-  </div>
   <div class="cr2b">
     <div class="card">
       <button class="card-exp" onclick="expandChart('ch-nao','Ativos sem pagamento','nao')">⛶ Expandir</button>
@@ -907,7 +902,7 @@ function renderAll(){
   renderKPIs(data);
   renderMetaBars(data);
   renderStatusChart(data);
-  renderRadarChart(data);renderNaoChart(data);renderDistChart(data);
+  renderNaoChart(data);renderDistChart(data);
   renderRankColab(rawRows);renderCursos(rawRows);
   renderTable(data);
 }
@@ -1092,7 +1087,6 @@ function expandChart(canvasId,titulo,chartKey){
   const data=processData(rawRows);
   if(window._mc){window._mc.destroy();window._mc=null;}
   if(chartKey==='st')     _buildExpandSt(nc,data);
-  else if(chartKey==='radar') _buildExpandRadar(nc,data);
   else if(chartKey==='nao')   _buildExpandNao(nc,data);
   else if(chartKey==='dist')  _buildExpandDist(nc,data);
   document.getElementById('modal').style.display='flex';
@@ -1104,29 +1098,6 @@ function _buildExpandSt(nc,data){
   window._mc=new Chart(nc,{type:'doughnut',
     data:{labels:['Pagaram','Não pagaram','Cancelados'],datasets:[{data:[pg,np,ca],backgroundColor:colors,borderWidth:3,borderColor:isDark?'#111318':'#fff'}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{color:isDark?'#aaa':'#555',font:{family:'Inter',size:12}}},tooltip:TO()}}
-  });
-}
-function _buildExpandRadar(nc,data){
-  const rel=data.filter(d=>d.meta>0);
-  const vals=rel.map(d=>Math.round(d.paga/d.meta*100));
-  // Max dinâmico: maior valor + 20% de folga, mínimo 100
-  const maxVal=Math.max(100,...vals);
-  const maxAxis=Math.ceil(maxVal*1.25/20)*20; // arredonda para múltiplo de 20
-  window._mc=new Chart(nc,{type:'radar',
-    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:vals,
-      backgroundColor:'rgba(255,214,0,.08)',borderColor:'#FFD600',borderWidth:2.5,
-      pointBackgroundColor:'#FFD600',pointRadius:5,pointHoverRadius:8,pointBorderColor:'#000'}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{...TO(),callbacks:{label:ctx=>ctx.raw+'%'}}},
-      scales:{r:{
-        ticks:{color:isDark?'#3e4250':'#9ca3af',backdropColor:'transparent',font:{size:11},
-          callback:v=>v+'%'},
-        grid:{color:GC()},
-        pointLabels:{color:isDark?'#aaa':'#ccc',font:{size:13,family:'Inter',weight:'600'},
-          padding:16},
-        beginAtZero:true,max:maxAxis,
-        suggestedMax:maxAxis
-      }}}
   });
 }
 function _buildExpandNao(nc,data){
@@ -1338,30 +1309,6 @@ function renderStatusChart(data){
   charts.st=new Chart(document.getElementById('ch-st'),{type:'doughnut',
     data:{labels:lbls,datasets:[{data:vals,backgroundColor:colors,borderWidth:3,borderColor:isDark?'#111318':'#fff'}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:TO()}}
-  });
-}
-
-// ══════ RADAR ══════
-function renderRadarChart(data){
-  const rel=data.filter(d=>d.meta>0);
-  const vals=rel.map(d=>Math.round(d.paga/d.meta*100));
-  const maxVal=Math.max(100,...vals);
-  const maxAxis=Math.ceil(maxVal*1.25/20)*20;
-  if(charts.radar)charts.radar.destroy();
-  charts.radar=new Chart(document.getElementById('ch-radar'),{type:'radar',
-    data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:vals,
-      backgroundColor:'rgba(255,214,0,.1)',borderColor:'#FFD600',borderWidth:2.5,
-      pointBackgroundColor:'#FFD600',pointRadius:5,pointHoverRadius:9,
-      pointBorderColor:isDark?'#000':'#111',pointBorderWidth:1.5}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{...TO(),callbacks:{label:ctx=>ctx.raw+'%'}}},
-      scales:{r:{
-        ticks:{color:isDark?'#8a8f9e':'#4a5060',backdropColor:'transparent',font:{size:10},
-          callback:v=>v+'%'},
-        grid:{color:GC()},
-        pointLabels:{color:isDark?'#c3c7d1':'#1f2330',font:{size:12,family:'Inter',weight:'600'},padding:12},
-        beginAtZero:true,max:maxAxis
-      }}}
   });
 }
 
