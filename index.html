@@ -65,7 +65,7 @@ a,button,select,.kpi,.ritem,.mrow,.ci,.card-exp,.theme-btn{cursor:url('data:imag
 .brand{font-size:13.5px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
 .brand-sub{font-size:9.5px;color:var(--tx3);margin-top:2px}
 .clock-c{text-align:center;user-select:none}
-#ck-t{font-size:20px;font-weight:900;color:#FFD600;letter-spacing:3px;
+#ck-t{font-size:20px;font-weight:900;color:var(--y);letter-spacing:3px;
   text-shadow:0 0 30px rgba(255,214,0,.4);font-variant-numeric:tabular-nums}
 [data-theme="light"] #ck-t{text-shadow:none}
 #ck-d{font-size:9.5px;color:var(--tx3);margin-top:3px;letter-spacing:.4px}
@@ -103,7 +103,7 @@ a,button,select,.kpi,.ritem,.mrow,.ci,.card-exp,.theme-btn{cursor:url('data:imag
 .hero-stats{display:flex;gap:0;flex-wrap:wrap}
 .hs{padding:0 22px;border-right:1px solid var(--br)}
 .hs:first-child{padding-left:0}.hs:last-child{border-right:none}
-.hs-v{font-size:22px;font-weight:900;color:#FFD600;line-height:1;letter-spacing:-.5px}
+.hs-v{font-size:22px;font-weight:900;color:var(--y);line-height:1;letter-spacing:-.5px}
 .hs-l{font-size:9px;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
 
 /* PROJ */
@@ -116,7 +116,7 @@ a,button,select,.kpi,.ritem,.mrow,.ci,.card-exp,.theme-btn{cursor:url('data:imag
 .pj:hover{background:var(--b3)}
 .pj-ic{font-size:19px;flex-shrink:0}
 .pj-l{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:3px}
-.pj-v{font-size:12.5px;font-weight:700;color:#FFD600}
+.pj-v{font-size:12.5px;font-weight:700;color:var(--y)}
 
 /* FILTROS */
 .filter-wrap{background:var(--b2);border:1px solid var(--br);border-radius:14px;
@@ -167,14 +167,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .kpi-det{font-size:8px;color:var(--tx3);font-weight:600;letter-spacing:.3px;
   background:var(--b5);padding:3px 7px;border-radius:4px;border:1px solid var(--br);
   transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4}
-.kpi:hover .kpi-det{border-color:rgba(255,214,0,.2);color:#FFD600}
+.kpi:hover .kpi-det{border-color:rgba(255,214,0,.2);color:var(--y)}
 .kpi-l{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
 .kpi-v{font-size:28px;font-weight:900;line-height:1;letter-spacing:-.5px}
 .kpi-s{font-size:10px;color:var(--tx3);margin-top:4px;line-height:1.45}
 .kpi-bw{height:2px;background:rgba(128,128,128,.15);border-radius:1px;margin-top:11px;overflow:hidden}
 .kpi-bf{height:2px;border-radius:1px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 
-.ky .kpi-ic{background:rgba(255,214,0,.1)}.ky .kpi-v{color:#FFD600}.ky .kpi-bf{background:#FFD600}
+.ky .kpi-ic{background:rgba(255,214,0,.1)}.ky .kpi-v{color:var(--y)}.ky .kpi-bf{background:#FFD600}
 .kg2c .kpi-ic{background:rgba(34,197,94,.1)}.kg2c .kpi-v{color:var(--g)}.kg2c .kpi-bf{background:var(--g)}
 .kr .kpi-ic{background:rgba(239,68,68,.1)}.kr .kpi-v{color:var(--r)}.kr .kpi-bf{background:var(--r)}
 .kb .kpi-ic{background:rgba(59,130,246,.1)}.kb .kpi-v{color:var(--bl)}.kb .kpi-bf{background:var(--bl)}
@@ -226,7 +226,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   background:var(--b5);border:1px solid var(--br);color:var(--tx3);
   padding:4px 9px;border-radius:6px;font-size:9px;font-weight:700;
   font-family:'Inter',sans-serif;letter-spacing:.3px;transition:all .2s;white-space:nowrap}
-.card-exp:hover{border-color:#FFD600;color:#FFD600;background:var(--yd)}
+.card-exp:hover{border-color:var(--y);color:var(--y);background:var(--yd)}
 .ct{font-size:9.5px;font-weight:700;color:var(--tx3);text-transform:uppercase;
   letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:7px;padding-right:90px}
 .ctd{width:4px;height:4px;border-radius:50%;background:#FFD600;box-shadow:0 0 6px #FFD600}
@@ -285,7 +285,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   background:transparent;color:var(--tx3);font-size:11px;font-weight:600;
   font-family:'Inter',sans-serif;transition:all .2s;margin-top:4px;
   display:flex;align-items:center;justify-content:center;gap:6px}
-.rmore-btn:hover{border-color:#FFD600;color:#FFD600;background:var(--yd)}
+.rmore-btn:hover{border-color:var(--y);color:var(--y);background:var(--yd)}
 .rmore-hidden{display:none;flex-direction:column;gap:7px}
 .rmore-hidden.open{display:flex}
 
@@ -304,8 +304,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 /* GAUGE */
 .gc{display:flex;flex-direction:column;align-items:center;padding:4px 0}
-.gv{font-size:38px;font-weight:900;color:#FFD600;line-height:1;letter-spacing:-1px;text-shadow:0 0 28px rgba(255,214,0,.35)}
-[data-theme="light"] .gv{color:var(--y)}
+.gv{font-size:38px;font-weight:900;color:var(--y);line-height:1;letter-spacing:-1px;text-shadow:0 0 28px rgba(255,214,0,.35)}
 .gl{font-size:9px;color:var(--tx3);margin-top:4px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
 
 /* TOAST */
@@ -335,7 +334,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 .ftr{text-align:center;padding:20px 0 0;font-size:10px;color:var(--tx3);
   border-top:1px solid var(--br);margin-top:10px;letter-spacing:.5px}
-.ftr span{color:#FFD600;font-weight:700}
+.ftr span{color:var(--y);font-weight:700}
 
 @keyframes fsi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
@@ -384,7 +383,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <div><div class="hero-title">📊 Painel de Calouros</div>
     <div class="hero-sub" id="hero-sub">Monitoramento em tempo real</div></div>
     <div class="hero-actions">
-      <a href="/" class="btn btn-gh" style="text-decoration:none">← Voltar ao menu</a>
+      <a href="https://arissondiniz.github.io/DASHSREDEAC/" class="btn btn-gh" style="text-decoration:none">← Voltar ao menu</a>
       <button class="btn btn-gh" onclick="refreshData(event)">↻ Atualizar dados</button>
     </div>
   </div>
@@ -429,8 +428,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <input type="date" id="f-to">
     <button class="btn btn-sm" onclick="renderAll()">Filtrar</button>
   </div>
-  <button class="btn btn-gh" style="margin-left:auto" onclick="refreshData(event)">↻ Atualizar</button>
-  <button class="btn btn-gh" onclick="_showDebug()" title="Debug do filtro de período" style="font-size:10px;padding:6px 10px">🔍 Debug</button>
 </div>
 
 <!-- LOADING -->
@@ -463,21 +460,21 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
   <!-- ANÁLISE AVANÇADA -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Análise avançada</div><div class="sl"></div></div>
-  <div class="cr3">
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-radar','% da meta · Radar por polo','radar')">⛶ Expandir</button>
-      <div class="ct"><div class="ctd"></div>% da meta · radar</div>
-      <div style="position:relative;height:205px"><canvas id="ch-radar"></canvas></div>
-    </div>
+  <div class="card" style="margin-bottom:13px">
+    <button class="card-exp" onclick="expandChart('ch-radar','% da meta · Radar por polo','radar')">⛶ Expandir</button>
+    <div class="ct"><div class="ctd"></div>% da meta · radar por polo</div>
+    <div style="position:relative;height:380px;max-width:600px;margin:0 auto"><canvas id="ch-radar"></canvas></div>
+  </div>
+  <div class="cr2b">
     <div class="card">
       <button class="card-exp" onclick="expandChart('ch-nao','Ativos sem pagamento','nao')">⛶ Expandir</button>
       <div class="ct"><div class="ctd"></div>Ativos sem pagamento</div>
-      <div style="position:relative;height:205px"><canvas id="ch-nao"></canvas></div>
+      <div style="position:relative;height:230px"><canvas id="ch-nao"></canvas></div>
     </div>
     <div class="card">
       <button class="card-exp" onclick="expandChart('ch-dist','Distribuição de alunos','dist')">⛶ Expandir</button>
       <div class="ct"><div class="ctd"></div>Distribuição de alunos</div>
-      <div style="position:relative;height:205px"><canvas id="ch-dist"></canvas></div>
+      <div style="position:relative;height:230px"><canvas id="ch-dist"></canvas></div>
     </div>
   </div>
 
@@ -535,6 +532,8 @@ const MEDALS=['🥇','🥈','🥉'];
 const SISTEMA=['sistema leo','leo web','leo app'];
 
 let rawRows=[],charts={},lastLoad=null,rankExpanded=false,isDark=true;
+// Amarelo vivo tem baixo contraste em fundo claro — nesses casos usamos um dourado mais escuro
+function warnColor(){return isDark?'#FFD600':'#B8860B';}
 let _toastCount=0;
 
 // ══════ SPARKS ══════
@@ -767,21 +766,39 @@ function periodLabel(){
 function processData(rows){
   const bp={};
   // Inicializa todos os polos conhecidos
-  Object.keys(METAS).forEach(p=>{bp[p]={total:0,paga:0,cancel:0,ativos:0,reg:POLO_REG[p]||'?'}});
+  Object.keys(METAS).forEach(p=>{bp[p]={total:0,paga:0,cancel:0,ativos:0,naoPaga:0,reg:POLO_REG[p]||'?'}});
   const reg=document.getElementById('f-regiao').value;
   const polo=document.getElementById('f-polo').value;
 
+  // ── Cohort A: alunos que ENTRARAM (matricularam-se) dentro do período selecionado ──
+  // Define total / ativos / cancelados / não pagaram (independente de quando o pagamento ocorreu)
   rows.forEach(r=>{
     if(!noPeriodoEntrada(r))return;
     const inf=getPoloInfo(r);
     const pk=inf.k,pr=inf.r;
     if(reg!=='TODOS'&&pr!==reg)return;
     if(polo!=='TODOS'&&pk!==polo)return;
-    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0,reg:pr};
+    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0,naoPaga:0,reg:pr};
     const ca=(r['DATA_CANCELAMENTO']||'').trim()!=='';
+    const pagouAlgumDia=(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
     bp[pk].total++;
-    if(ca)bp[pk].cancel++;else bp[pk].ativos++;
-    if((r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S')bp[pk].paga++;
+    if(ca)bp[pk].cancel++;
+    else{
+      bp[pk].ativos++;
+      if(!pagouAlgumDia)bp[pk].naoPaga++;
+    }
+  });
+
+  // ── Cohort B: PAGAMENTOS ocorridos dentro do período selecionado ──
+  // Aqui NÃO filtramos pela data de matrícula: se o pagamento aconteceu no período (ex.: hoje),
+  // conta como "1ª mensalidade paga" mesmo que o aluno tenha se matriculado antes.
+  rows.forEach(r=>{
+    const inf=getPoloInfo(r);
+    const pk=inf.k,pr=inf.r;
+    if(reg!=='TODOS'&&pr!==reg)return;
+    if(polo!=='TODOS'&&pk!==polo)return;
+    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0,naoPaga:0,reg:pr};
+    if(pagouNoPeriodo(r))bp[pk].paga++;
   });
 
   return Object.entries(bp)
@@ -794,7 +811,7 @@ function processData(rows){
     })
     .map(([p,d])=>({
       polo:p,total:d.total,ativos:d.ativos,cancel:d.cancel,
-      paga:d.paga,naoPaga:Math.max(0,d.ativos-d.paga),
+      paga:d.paga,naoPaga:d.naoPaga,
       meta:METAS[p]||0,reg:d.reg
     }));
 }
@@ -804,15 +821,15 @@ function getColabs(rows){
   const reg=document.getElementById('f-regiao').value;
   const polo=document.getElementById('f-polo').value;
   rows.forEach(r=>{
-    if(!noPeriodoEntrada(r))return;
     const inf=getPoloInfo(r);
     if(reg!=='TODOS'&&inf.r!==reg)return;
     if(polo!=='TODOS'&&inf.k!==polo)return;
     const nome=(r['ESPECIALIZACAO_MATRICULOU']||'').trim();
     if(!nome||SISTEMA.some(s=>nome.toLowerCase().includes(s)))return;
     if(!mp[nome])mp[nome]={nome,total:0,paga:0,polo:cap(inf.k)};
-    mp[nome].total++;
-    if((r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S')mp[nome].paga++;
+    // "total" (matrículas) é contado pela data de matrícula; "paga" pela data de pagamento
+    if(noPeriodoEntrada(r))mp[nome].total++;
+    if(pagouNoPeriodo(r))mp[nome].paga++;
   });
   return Object.values(mp).sort((a,b)=>b.paga-a.paga||b.total-a.total);
 }
@@ -993,7 +1010,7 @@ function openModal(tipo,titulo){
     </div><div class="mval" style="color:${color}">${val}</div></div>`;
 
   let rows=[];
-  const cc={total:'#3b82f6',ativos:'#22c55e',paga:'#FFD600',naoPaga:'#ef4444',cancel:'#ef4444'};
+  const cc={total:'#3b82f6',ativos:'#22c55e',paga:warnColor(),naoPaga:'#ef4444',cancel:'#ef4444'};
 
   if(['total','ativos','paga','naoPaga','cancel'].includes(tipo)){
     const maxV=Math.max(...data.map(d=>d[tipo]||0),1);
@@ -1004,7 +1021,7 @@ function openModal(tipo,titulo){
   }else if(tipo==='meta'||tipo==='conv'){
     rows=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).map(d=>{
       const pct=Math.round(d.paga/d.meta*100);
-      const c=pct>=50?'#22c55e':pct>=25?'#FFD600':'#ef4444';
+      const c=pct>=50?'#22c55e':pct>=25?warnColor():'#ef4444';
       return rowH(cap(d.polo),tipo==='conv'?pct+'%':d.paga+'/'+d.meta,c,Math.min(pct,100),pct+'% da meta');
     });
   }else if(tipo==='faltam'){
@@ -1016,12 +1033,12 @@ function openModal(tipo,titulo){
     rows=data.sort((a,b)=>b.meta-a.meta).map(d=>rowH(cap(d.polo),d.meta||'sem meta','var(--tx)',0));
   }else if(tipo==='polosPag'){
     rows=data.filter(d=>d.paga>0).sort((a,b)=>b.paga-a.paga).map(d=>{
-      return rowH(cap(d.polo),d.paga+' pagamento'+(d.paga!==1?'s':''),'#FFD600',Math.round(d.paga/Math.max(...data.map(x=>x.paga),1)*100));
+      return rowH(cap(d.polo),d.paga+' pagamento'+(d.paga!==1?'s':''),warnColor(),Math.round(d.paga/Math.max(...data.map(x=>x.paga),1)*100));
     });
   }else if(tipo==='destaque'){
     rows=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).slice(0,5).map((d,i)=>{
       const pct=Math.round(d.paga/d.meta*100);
-      return rowH((MEDALS[i]||'')+(i>=3?` ${i+1}º`:'')+ ' '+cap(d.polo),pct+'% da meta','#FFD600',pct);
+      return rowH((MEDALS[i]||'')+(i>=3?` ${i+1}º`:'')+ ' '+cap(d.polo),pct+'% da meta',warnColor(),pct);
     });
   }else if(tipo==='risco'){
     rows=data.filter(d=>d.naoPaga>0).sort((a,b)=>b.naoPaga-a.naoPaga).map(d=>{
@@ -1146,20 +1163,22 @@ function exportAlunos(tipo){
   var poloLabel = polo==='TODOS'?'Todos os Polos':cap(polo);
 
   // ── Filtrar alunos ──
+  // "paga" é filtrado pela DATA DE PAGAMENTO (independente de quando matriculou).
+  // Os demais tipos são filtrados pela DATA DE MATRÍCULA (cohort que entrou no período).
   var rows = rawRows.filter(function(r){
-    if(!noPeriodoEntrada(r)) return false;
     var inf = getPoloInfo(r);
     if(reg!=='TODOS' && inf.r!==reg) return false;
     if(polo!=='TODOS' && inf.k!==polo) return false;
     var raw = (r['DATA_CANCELAMENTO']||'').trim();
     var cancelado = raw!=='' && raw!=='nan' && raw!=='None' && raw!=='NaT';
-    var pagou     = (r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
+    var pagouFlag = (r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
     var ativo     = !cancelado;
-    if(tipo==='paga')    return pagou;
-    if(tipo==='naoPaga') return ativo && !pagou;
+    if(tipo==='paga')    return pagouNoPeriodo(r);
+    if(!noPeriodoEntrada(r)) return false;
+    if(tipo==='naoPaga') return ativo && !pagouFlag;
     if(tipo==='cancel')  return cancelado;
     if(tipo==='ativos')  return ativo;
-    if(tipo==='risco')   return ativo && !pagou;
+    if(tipo==='risco')   return ativo && !pagouFlag;
     return true; // total e demais
   });
 
@@ -1331,16 +1350,16 @@ function renderRadarChart(data){
   if(charts.radar)charts.radar.destroy();
   charts.radar=new Chart(document.getElementById('ch-radar'),{type:'radar',
     data:{labels:rel.map(d=>cap(d.polo)),datasets:[{label:'% meta',data:vals,
-      backgroundColor:'rgba(255,214,0,.07)',borderColor:'#FFD600',borderWidth:2,
-      pointBackgroundColor:'#FFD600',pointRadius:3,pointHoverRadius:6,
-      pointBorderColor:isDark?'#000':'#111'}]},
+      backgroundColor:'rgba(255,214,0,.1)',borderColor:'#FFD600',borderWidth:2.5,
+      pointBackgroundColor:'#FFD600',pointRadius:5,pointHoverRadius:9,
+      pointBorderColor:isDark?'#000':'#111',pointBorderWidth:1.5}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...TO(),callbacks:{label:ctx=>ctx.raw+'%'}}},
       scales:{r:{
-        ticks:{color:isDark?'#2e3040':'#9ca3af',backdropColor:'transparent',font:{size:8},
+        ticks:{color:isDark?'#8a8f9e':'#4a5060',backdropColor:'transparent',font:{size:10},
           callback:v=>v+'%'},
         grid:{color:GC()},
-        pointLabels:{color:isDark?'#666':'#aaa',font:{size:8.5,family:'Inter'},padding:8},
+        pointLabels:{color:isDark?'#c3c7d1':'#1f2330',font:{size:12,family:'Inter',weight:'600'},padding:12},
         beginAtZero:true,max:maxAxis
       }}}
   });
@@ -1380,7 +1399,7 @@ function renderRankColab(rows){
   const TOP=5;
   function mkItem(c,i){
     const medal=i<3?MEDALS[i]:'';
-    const color=i===0?'#FFD600':i===1?'#c0c0c0':i===2?'#cd7f32':PC[i%PC.length];
+    const color=i===0?warnColor():i===1?'#c0c0c0':i===2?'#cd7f32':PC[i%PC.length];
     return `<div class="ritem">
       ${medal?`<div class="rmed">${medal}</div>`:`<div class="rnum">${i+1}º</div>`}
       <div class="rinfo">
@@ -1419,7 +1438,7 @@ function renderCursos(rows){
   if(!cursos.length){document.getElementById('cursos-list').innerHTML='<div style="color:var(--tx3);font-size:12px">Sem dados.</div>';return;}
   const top=cursos.slice(0,5);
   const bot=cursos.length>5?cursos.slice(-3).filter(c=>c.total<(top[top.length-1]?.total||999)):[];
-  const tC=['#FFD600','#22c55e','#3b82f6','#a855f7','#06b6d4'];
+  const tC=[warnColor(),'#22c55e','#3b82f6','#a855f7','#06b6d4'];
   const mkci=(c,i,col)=>`<div class="ci"><div class="ci-rank">${i+1}º</div>
     <div class="ci-name" title="${c.nome}">${c.nome}</div>
     <div class="ci-bg"><div class="ci-f" style="width:${Math.round(c.total/maxT*100)}%;background:${col}"></div></div>
@@ -1436,7 +1455,7 @@ function renderTable(data){
   const rc={AC:'var(--g)',RO:'var(--bl)',AM:'var(--p)'};
   const rows=ranked.map((d,i)=>{
     const pct=d.meta>0?Math.round(d.paga/d.meta*100):0;
-    const pc=pct>=50?'#22c55e':pct>=25?'#FFD600':'#ef4444';
+    const pc=pct>=50?'#22c55e':pct>=25?warnColor():'#ef4444';
     const medal=i<3&&d.total>0?MEDALS[i]:`<span style="color:var(--tx3);font-size:10px">${i+1}º</span>`;
     const rt=d.reg&&d.reg!=='?'?`<span style="font-size:8px;color:${rc[d.reg]||'#888'};font-weight:700;margin-left:5px;opacity:.8">${d.reg}</span>`:'';
     return `<tr><td style="padding-left:18px;font-size:14px;width:44px">${medal}</td>
@@ -1461,7 +1480,7 @@ function renderTable(data){
         <td style="text-align:center">${sum(data,'total')}</td><td style="text-align:center">${sum(data,'ativos')}</td>
         <td style="text-align:center">${sum(data,'cancel')}</td><td style="text-align:center">${tP}</td>
         <td style="text-align:center">${sum(data,'naoPaga')}</td><td style="text-align:center">${tM}</td>
-        <td style="padding-right:16px"><div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(tPct,100)}%;background:#FFD600"></div></div><div class="pp" style="color:#FFD600">${tPct}%</div></div></td>
+        <td style="padding-right:16px"><div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(tPct,100)}%;background:var(--y)"></div></div><div class="pp" style="color:var(--y)">${tPct}%</div></div></td>
       </tr></tbody>`;
 }
 
@@ -1480,29 +1499,6 @@ document.addEventListener('click', function(e){
     openModal(mid, ml);
   }
 });
-
-// ══ DEBUG PERÍODO — mostra painel com diagnóstico ══
-window._showDebug = function(){
-  var rows = rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
-  var range = getDateRange();
-  var lines = ['<b>Registros com pagamento: '+rows.length+'</b><br>'];
-  lines.push('Período selecionado: '+periodLabel()+'<br>');
-  lines.push('From: '+(range.from?range.from.toLocaleString('pt-BR'):'null')+'<br>');
-  lines.push('To: '+(range.to?range.to.toLocaleString('pt-BR'):'null')+'<br><br>');
-  rows.forEach(function(r){
-    var raw = r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'';
-    var d = parseDatePag(r);
-    var ok = pagouNoPeriodo(r);
-    lines.push('Raw: ['+raw+']<br>');
-    lines.push('Parsed: '+(d?d.toLocaleString('pt-BR'):'FALHOU')+'<br>');
-    lines.push('No período: '+(ok?'✅ SIM':'❌ NÃO')+'<br>');
-    lines.push('Polo: '+r['NOME_DO_POLO']+'<br><br>');
-  });
-  document.getElementById('mtitle').textContent='Debug — Filtro de Período';
-  document.getElementById('mbox').className='mbox';
-  document.getElementById('mbody').innerHTML='<div style="font-size:12px;font-family:monospace;line-height:1.8;color:var(--tx)">'+lines.join('')+'</div>';
-  document.getElementById('modal').style.display='flex';
-};
 
 window.addEventListener('load',fetchData);
 </script>
