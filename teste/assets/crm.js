@@ -4,7 +4,7 @@ function crmToday(){return new Intl.DateTimeFormat('sv-SE',{timeZone:dashboardSe
 function crmState(r){return crmStates[r._key]||Core.empty();}
 function paymentLabel(r){return r._missing?'Ausente do relatório':(Core.paid(r)?'Pago':'Não pago')+(Core.cancelled(r)?' · cancelado':' · ativo');}
 function contactTag(s){return '<span class="crm-tag crm-s'+Core.statuses.indexOf(s.status)+'">'+esc(s.status)+'</span>';}
-function messageCRM(text){$c('message').textContent=text;}
+function messageCRM(text){$c('message').textContent=text;const note=$c('editor-message');if(note)note.textContent=text;}
 function openCRM(tipo,all=false){
   if(dataBusy)return;
   if(!dashboardSession){alert('Carregue os dados pelo aplicativo publicado primeiro.');return;}
@@ -22,7 +22,7 @@ function drawCRM(resetEditor=true){
   if(!crm.open)return;
   const tipo=$c('payment').value, query=$c('search').value.trim().toLocaleLowerCase('pt-BR'),polo=$c('polo').value,status=$c('status').value,priority=$c('priority').value;
   const days=Math.max(1,Math.min(3650,Number($c('days').value)||7)),today=crmToday();
-  const all=$c('period').value==='all'||['today','late','welcome','idle'].includes(priority);
+  const all=$c('period').value==='all'||['today','late','welcome','idle','promise'].includes(priority);
   const base=(tipo==='missing'?missingRows:rawRows).filter(r=>scope(r)&&Core.metric(r,tipo,all?{from:null,to:null}:getDateRange(),filterMode()));
   crm.visible=base.filter(r=>{
     const s=crmState(r);
@@ -31,19 +31,21 @@ function drawCRM(resetEditor=true){
     if(!matchesLabels(r,today))return false;
     if(status&&s.status!==status)return false;
     if(priority==='welcome'&&s.welcome==='Concluído')return false;
+    if(priority==='promise'&&!promiseLate(r,today))return false;
     if(priority==='new'&&s.status!=='Não contatado')return false;
     if(['today','late'].includes(priority)&&Core.due(s,today)!==priority)return false;
     if(priority==='idle'&&(r._missing||Core.paid(r)||Core.cancelled(r)||!Core.idle(s,today,days)))return false;
     return true;
   }).sort((a,b)=>($c('order').value==='priority'?Core.priority(crmState(a),crmState(b),today):0)||(a.NOME||'').localeCompare(b.NOME||'','pt-BR'));
   const pages=Math.max(1,Math.ceil(crm.visible.length/50));crm.page=Math.max(0,Math.min(pages-1,crm.page));
-  $c('context').textContent='Filtros principais: '+document.getElementById('f-polo').selectedOptions[0].textContent+' · '+(all?'Toda a campanha (independente do filtro de datas)':periodLabel())+'. '+document.getElementById('metric-context').textContent+' Ausentes: última identificação conhecida, sem filtro de período. Vencimento estimado pelo mês da matrícula: dia 10 do mês seguinte; junho: 10/08. Aproveitamento reproduz o indicador do relatório e não comprova avaliação realizada. Consulta às '+lastLoad.toLocaleTimeString('pt-BR')+'.';
-  $c('count').textContent=crm.visible.length+' alunos exibidos de '+base.length+' no recorte do indicador. Não contatados: '+base.filter(r=>crmState(r).status==='Não contatado').length+' · Retorno hoje: '+base.filter(r=>Core.due(crmState(r),today)==='today').length+' · Atrasados: '+base.filter(r=>Core.due(crmState(r),today)==='late').length+'.';
+  $c('context').textContent=(all?'Toda a campanha':periodLabel())+' · '+document.getElementById('f-polo').selectedOptions[0].textContent;
+  $c('count').textContent=crm.visible.length+' alunos encontrados';
+  if(typeof syncCRMView==='function')syncCRMView();
   $c('page').textContent='Página '+(crm.page+1)+' de '+pages;
   $c('rows').innerHTML=crm.visible.slice(crm.page*50,crm.page*50+50).map((r,i)=>{
     const s=crmState(r),due=Core.due(s,today),label=due==='late'?' · ATRASADO':due==='today'?' · HOJE':'';
-    return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+esc(paymentLabel(r))+studentLabels(r)+'</td><td>'+contactTag(s)+'<br>Boas-vindas: '+esc(s.welcome)+'</td><td>'+esc(s.lastContact||'—')+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc((s.nextContact||'—')+label)+'</td><td>'+esc(s.author||'—')+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender / histórico</button></td></tr>';
-  }).join('')||'<tr><td colspan="8">Nenhum aluno encontrado com estes filtros.</td></tr>';
+    return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+esc(paymentLabel(r))+compactLabels(r)+contactTag(s)+'</td><td>'+esc(displayDate(s.lastContact))+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc(displayDate(s.nextContact)+label)+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender</button></td></tr>';
+  }).join('')||'<tr><td colspan="6">Nenhum aluno encontrado com estes filtros.</td></tr>';
   if(resetEditor&&!crm.edit)$c('editor').hidden=true;
 }
 async function editCRM(index){
@@ -58,11 +60,11 @@ async function editCRM(index){
 function drawEditor(r,history){
   const s=crmState(r);crm.editVersion=s.version;
   $c('editor').hidden=false;
-  $c('editor').innerHTML='<h3>'+esc(r.NOME)+'</h3>'+studentLabels(r)+'<p class="crm-info">Matrícula: '+esc(r.CODIGO_ALUNO)+' · Inscrição: '+esc(r._key)+'<br>Entrada: '+esc(r.DATA_MATRICULA)+' · Pagamento: '+esc(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA||'—')+' · Cancelamento: '+esc(r.DATA_CANCELAMENTO||'—')+' · '+esc(paymentLabel(r))+'<br>Telefone: '+esc(r.CELULAR||r.TELEFONE||'—')+' · E-mail: '+esc(r.EMAIL||'—')+'<br>Registro será atribuído a '+esc(dashboardSession.email)+'</p>'+
-    '<form id="crm-form">'+followupFields(s)+'<div class="crm-bar"><label>Status<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div><label>Observações<textarea id="crm-notes" maxlength="6000">'+esc(s.notes)+'</textarea></label><div class="crm-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar atendimento</button></div></form><div id="crm-conflict"></div><details><summary>Histórico de contatos e alterações ('+history.length+')</summary>'+history.map(e=>'<div class="crm-history"><strong>Versão '+e.state.version+' · '+esc(e.state.updatedAt)+' · '+esc(e.state.author)+'</strong><br>'+esc(e.state.status)+' · Boas-vindas: '+esc(e.state.welcome)+' · Resultado: '+esc(e.state.outcome)+' · Promessa: '+esc(e.state.promised||'—')+' · Último: '+esc(e.state.lastContact||'—')+' · Retorno: '+esc(e.state.nextContact||'—')+'<br>'+esc(e.state.notes)+'</div>').join('')+'</details>';
+  $c('editor').innerHTML='<button class="btn btn-gh drawer-close" onclick="cancelEditCRM()">Fechar ficha</button><h3 tabindex="-1">'+esc(r.NOME)+'</h3>'+studentLabels(r)+'<p class="crm-info">Matrícula: '+esc(r.CODIGO_ALUNO)+' · Inscrição: '+esc(r._key)+'<br>Entrada: '+esc(r.DATA_MATRICULA)+' · Pagamento: '+esc(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA||'—')+' · Cancelamento: '+esc(r.DATA_CANCELAMENTO||'—')+' · '+esc(paymentLabel(r))+'<br>Telefone: '+esc(r.CELULAR||r.TELEFONE||'—')+' · E-mail: '+esc(r.EMAIL||'—')+'<br>Registro será atribuído a '+esc(dashboardSession.email)+'</p>'+
+    '<div id="crm-editor-message" role="status" aria-live="polite"></div><form id="crm-form">'+followupFields(s)+'<div class="crm-bar"><label>Status<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div><label>Observações<textarea id="crm-notes" maxlength="6000">'+esc(s.notes)+'</textarea></label><div class="crm-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar atendimento</button></div></form><div id="crm-conflict"></div><details><summary>Histórico de contatos e alterações ('+history.length+')</summary>'+history.map(e=>'<div class="crm-history"><strong>Versão '+e.state.version+' · '+esc(e.state.updatedAt)+' · '+esc(e.state.author)+'</strong><br>'+esc(e.state.status)+' · Boas-vindas: '+esc(e.state.welcome)+' · Resultado: '+esc(e.state.outcome)+' · Promessa: '+esc(e.state.promised||'—')+' · Último: '+esc(e.state.lastContact||'—')+' · Retorno: '+esc(e.state.nextContact||'—')+'<br>'+esc(e.state.notes)+'</div>').join('')+'</details>';
   $c('form').addEventListener('input',()=>{crm.dirty=true;});
   $c('form').addEventListener('submit',e=>{e.preventDefault();saveCRM();});
-  $c('editor').scrollIntoView({behavior:'smooth',block:'start'});
+  $c('editor').scrollTop=0;$c('editor').querySelector('h3').focus();
 }
 function cancelEditCRM(){if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('editor').hidden=true;messageCRM('');}
 async function saveCRM(){
@@ -79,9 +81,9 @@ async function saveCRM(){
       messageCRM('Conflito detectado. Nenhuma alteração sua foi gravada.');
     }else{
       crmStates[crm.edit._key]=result.state;crm.editVersion=result.state.version;crm.dirty=false;crm.requestBody=null;
-      $c('conflict').innerHTML='';drawCRM(false);messageCRM('✓ Atendimento salvo e compartilhado. Versão '+result.state.version+'.');
+      $c('conflict').innerHTML='';drawCRM(false);if(typeof renderWorkspace==='function')renderWorkspace(processData(rawRows));messageCRM(' Atendimento salvo e compartilhado. Versão '+result.state.version+'.');
       const key=crm.edit._key,token=++crm.historyToken;
-      try{const history=await rpc('getHistory',key);if(token===crm.historyToken&&!crm.dirty&&crm.edit?._key===key)drawEditor(crm.edit,history);}catch(e){messageCRM('✓ Salvo. Histórico indisponível agora: '+e.message);}
+      try{const history=await rpc('getHistory',key);if(token===crm.historyToken&&!crm.dirty&&crm.edit?._key===key)drawEditor(crm.edit,history);}catch(e){messageCRM(' Salvo. Histórico indisponível agora: '+e.message);}
     }
   }catch(e){messageCRM('Não foi possível confirmar o salvamento: '+e.message+' Seu rascunho foi mantido. Tente salvar novamente.');}
   finally{crm.saving=false;if($c('form'))$c('form').querySelectorAll('input,select,textarea,button').forEach(e=>e.disabled=false);}

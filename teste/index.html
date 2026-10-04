@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <title>Dashboard Calouros · Uniasselvi</title>
 <script src="assets/vendor/chart.umd.js"></script>
 <script src="assets/vendor/xlsx.full.min.js"></script>
@@ -361,6 +361,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .crm-conflict{border:1px solid var(--o);padding:14px;border-radius:8px;white-space:pre-wrap;font-size:12px}
 @media(max-width:650px){#crm-dialog{padding:12px}.crm-bar>*{max-width:100%}}
 </style>
+<link rel="stylesheet" href="assets/ux.css?v=20261004">
 </head>
 <body><section id="auth-screen"><div class="auth-card"><h1>Uniasselvi · Rede AC</h1><p>Acompanhamento de calouros</p>
 <form id="login-form" onsubmit="login(event)"><label>E-mail corporativo<input id="login-email" type="email" autocomplete="username" required></label><label>Senha do dashboard<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit" class="btn">Entrar</button><p>Esqueceu a senha? Solicite uma senha provisória ao administrador.</p></form>
@@ -377,7 +378,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   </div>
   <div class="clock-c"><div id="ck-t">00:00:00</div><div id="ck-d">—</div></div>
   <div class="hdr-r">
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn"> Dark</button>
     <div class="live-wrap"><div class="live"></div><div class="live-tx">RELATÓRIO</div></div>
     <div class="badge">UNIASSELVI</div>
   </div>
@@ -387,16 +388,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <div class="mover" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="mbox" id="mbox">
     <div class="mhd"><div class="mtitle" id="mtitle">Detalhes</div>
-      <button class="mclose" onclick="closeModal()">✕</button></div>
+      <button class="mclose" onclick="closeModal()"></button></div>
     <div id="mbody"></div>
   </div>
 </div>
 
-<div class="wrap"><div class="account-bar"><span id="session-label"></span><button class="btn btn-gh btn-sm" onclick="openCRM('total',true)">Acompanhamentos</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
+<div class="wrap"><div class="account-bar"><span id="session-label"></span><button class="btn btn-gh btn-sm" onclick="openCRM('total',true)">Acompanhar alunos</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
 <!-- HERO -->
 <div class="hero" id="hero-sec" style="display:none">
   <div class="hero-top">
-    <div><div class="hero-title">📊 Painel de Calouros</div>
+    <div><div class="hero-title"> Painel de Calouros</div>
     <div class="hero-sub" id="hero-sub">Monitoramento em tempo real</div></div>
     <div class="hero-actions">
       <a href="https://arissondiniz.github.io/DASHSREDEAC/" class="btn btn-gh" style="text-decoration:none">← Voltar ao menu</a>
@@ -408,15 +409,15 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 <!-- PROJEÇÃO -->
 <div class="proj" id="proj-bar" style="display:none">
-  <div class="pj"><div class="pj-ic">📅</div><div><div class="pj-l">Projeção de fechamento</div><div class="pj-v" id="pj-d">—</div></div></div>
-  <div class="pj"><div class="pj-ic">📈</div><div><div class="pj-l">Ritmo estimado</div><div class="pj-v" id="pj-r">—</div></div></div>
-  <div class="pj"><div class="pj-ic">🏁</div><div><div class="pj-l">Faltam para meta</div><div class="pj-v" id="pj-f">—</div></div></div>
-  <div class="pj"><div class="pj-ic">🗓️</div><div><div class="pj-l">Período analisado</div><div class="pj-v" id="pj-per">—</div></div></div>
+  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Projeção de fechamento</div><div class="pj-v" id="pj-d">—</div></div></div>
+  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Ritmo estimado</div><div class="pj-v" id="pj-r">—</div></div></div>
+  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Faltam para meta</div><div class="pj-v" id="pj-f">—</div></div></div>
+  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Período analisado</div><div class="pj-v" id="pj-per">—</div></div></div>
 </div>
 
 <!-- FILTROS -->
 <div class="filter-wrap" id="filters" style="display:none">
-  <label>Campanha <select id="f-campaign" onchange="fetchData()"></select></label><label>Datas por <select id="f-mode" onchange="renderAll()"><option value="events">Movimentação</option><option value="cohort">Matrículas do período</option></select></label><span class="fl">🗺️ Região</span>
+  <label>Campanha <select id="f-campaign" onchange="fetchData()"></select></label><label>Datas por <select id="f-mode" onchange="renderAll()"><option value="events">Movimentação</option><option value="cohort">Matrículas do período</option></select></label><span class="fl"> Região</span>
   <select id="f-regiao" onchange="onRegiaoChange()">
     <option value="TODOS">Todas as regiões</option>
     <option value="AC">Acre · AC</option>
@@ -424,12 +425,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <option value="AM">Amazonas · AM</option>
   </select>
   <div class="divv"></div>
-  <span class="fl">🎯 Polo</span>
+  <span class="fl"> Polo</span>
   <select id="f-polo" onchange="renderAll()">
     <option value="TODOS">Todos os polos</option>
   </select>
   <div class="divv"></div>
-  <span class="fl">📅 Período</span>
+  <span class="fl"> Período</span>
   <select id="f-period" onchange="onPeriodChange()">
     <option value="all">Todo o período</option>
     <option value="today">Hoje</option>
@@ -459,12 +460,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   <div class="sh"><div class="st"><div class="st-dot"></div>Visão por polo · corrida para a meta</div><div class="sl"></div></div>
   <div class="cr2">
     <div class="card" id="card-meta">
-      <button class="card-exp" onclick="expandMetaBars()">⛶ Expandir</button>
+      <button class="card-exp" onclick="expandMetaBars()"> Expandir</button>
       <div class="ct"><div class="ctd"></div>Progresso da meta · linha de chegada por polo</div>
       <div class="meta-bars" id="meta-bars"></div>
     </div>
     <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-st','Situação dos alunos','st')">⛶ Expandir</button>
+      <button class="card-exp" onclick="expandChart('ch-st','Situação dos alunos','st')"> Expandir</button>
       <div class="ct"><div class="ctd"></div>Situação dos alunos</div>
       <div id="leg-st" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
       <div style="position:relative;height:200px"><canvas id="ch-st"></canvas></div>
@@ -475,34 +476,21 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     </div>
   </div>
 
-  <!-- ANÁLISE AVANÇADA -->
-  <div class="sh"><div class="st"><div class="st-dot"></div>Análise avançada</div><div class="sl"></div></div>
-  <div class="cr2b">
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-nao','Ativos sem pagamento','nao')">⛶ Expandir</button>
-      <div class="ct"><div class="ctd"></div>Ativos sem pagamento</div>
-      <div style="position:relative;height:230px"><canvas id="ch-nao"></canvas></div>
-    </div>
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-dist','Distribuição de alunos','dist')">⛶ Expandir</button>
-      <div class="ct"><div class="ctd"></div>Distribuição de alunos</div>
-      <div style="position:relative;height:230px"><canvas id="ch-dist"></canvas></div>
-    </div>
-  </div>
-
+  <section class="card work-queue"><div class="ct">Pendências de atendimento</div><p class="context">Toda a campanha · polos selecionados · registros de acompanhamento</p><div id="work-queue" class="queue-grid"></div></section>
   <!-- RANKINGS -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Rankings</div><div class="sl"></div></div>
   <div class="cr2b">
-    <div class="card">
-      <div class="ct"><div class="ctd"></div>🏆 Colaboradores · mais pagamentos confirmados</div>
-      <div class="rank-list" id="rank-top"></div>
-      <div class="rmore-hidden" id="rank-rest"></div>
-      <button class="rmore-btn" id="rank-more-btn" onclick="toggleRankMore()" style="display:none">
+    <div class="card" id="rank-card">
+      <div class="ct"><div class="ctd"></div> Colaboradores · mais pagamentos confirmados</div>
+<div class="rank-toolbar">      <button class="rmore-btn" id="rank-more-btn" onclick="toggleRankMore()" style="display:none">
         <span id="rmi">▼</span><span id="rmtx">Ver mais</span>
-      </button>
+      </button><button class="btn btn-gh btn-sm" onclick="rankJump(false)">Início</button><button class="btn btn-gh btn-sm" onclick="rankJump(true)">Final</button></div><div class="rank-scroll" id="rank-scroll">
+      <div class="rank-list" id="rank-top"></div>
+      <div class="rmore-hidden" id="rank-rest"></div></div>
+
     </div>
     <div class="card">
-      <div class="ct"><div class="ctd"></div>📚 Cursos mais e menos vendidos</div>
+      <div class="ct"><div class="ctd"></div> Cursos mais e menos vendidos</div>
       <div id="cursos-list"></div>
     </div>
   </div>
@@ -520,20 +508,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 </main><dialog id="crm-dialog" aria-labelledby="crm-title">
 <div style="display:flex;justify-content:space-between;gap:12px"><h2 id="crm-title">Acompanhamento de alunos</h2><button class="btn btn-gh" onclick="closeCRM()">Fechar</button></div>
 <p class="crm-info" id="crm-context"></p>
-<div class="crm-bar">
-<label>Nome ou matrícula<input id="crm-search" type="search" oninput="filterCRM()" placeholder="Digite para buscar"></label>
-<label>Polo<select id="crm-polo" onchange="filterCRM()"></select></label>
-<label>Situação do relatório<select id="crm-payment" onchange="filterCRM()"><option value="naoPaga">Não pagaram (ativos)</option><option value="paga">1ª mensalidade paga</option><option value="ativos">Matrículas ativas</option><option value="cancel">Cancelados</option><option value="total">Todos no relatório</option><option value="missing">Ausentes do relatório</option></select></label>
-<label>Acompanhamento<select id="crm-status" onchange="filterCRM()"><option value="">Todos</option><option>Não contatado</option><option>Contatado</option><option>Aguardando retorno</option><option>Retornar depois</option></select></label>
-<label>Período da lista<select id="crm-period" onchange="filterCRM()"><option value="selected">Mesmo período do indicador</option><option value="all">Toda a campanha</option></select></label><label>Indicação de nota<select id="crm-academic" onchange="filterCRM()"><option value="">Todas</option><option value="yes">Com indicação de nota</option><option value="no">Sem indicação de nota no relatório</option></select></label><label>Aproveitamento<select id="crm-credit" onchange="filterCRM()"><option value="">Todos</option><option value="yes">Com aproveitamento (S)</option><option value="no">Sem aproveitamento (N)</option><option value="unknown">Não informado</option></select></label><label>Vencimento previsto<select id="crm-due" onchange="filterCRM()"><option value="">Todos</option><option value="future">A vencer</option><option value="today">Vence hoje</option><option value="overdue">Vencido</option><option value="unknown">Data indisponível</option></select></label><label>Prioridade<select id="crm-priority" onchange="filterCRM()"><option value="">Todas</option><option value="new">Não contatados</option><option value="welcome">Boas-vindas pendentes</option><option value="today">Retorno hoje</option><option value="late">Retorno atrasado</option><option value="idle">Sem pagar e sem contato há X dias</option></select></label>
-<label>Dias sem contato<input id="crm-days" type="number" value="7" min="1" max="3650" onchange="filterCRM()" style="width:95px"></label>
-<label>Ordenação<select id="crm-order" onchange="filterCRM()"><option value="priority">Prioridade de retorno</option><option value="name">Nome</option></select></label>
-<button class="btn btn-gh btn-sm" onclick="fetchData()">Atualizar dados</button>
-<button class="btn btn-gh btn-sm" onclick="exportCRM()">Exportar Excel</button><button class="btn btn-gh btn-sm" onclick="exportCRM('csv')">Exportar CSV</button>
-</div>
-<p id="crm-count" class="crm-info"></p><div id="crm-message" role="status" aria-live="polite"></div>
-<div id="crm-editor" hidden></div>
-<div class="tw"><table class="pt"><thead><tr><th>Aluno / matrícula</th><th>Curso / polo</th><th>Situação</th><th>Acompanhamento</th><th>Último contato</th><th>Próximo contato</th><th>Responsável</th><th>Ação</th></tr></thead><tbody id="crm-rows"></tbody></table></div>
+<nav class="crm-tabs" aria-label="Grupos de alunos"><button class="btn btn-gh" data-view="total" onclick="crmView('total')">Todos</button><button class="btn btn-gh" data-view="welcome" onclick="crmView('welcome')">Boas-vindas</button><button class="btn btn-gh" data-view="naoPaga" onclick="crmView('naoPaga')">Sem pagamento</button><button class="btn btn-gh" data-view="paga" onclick="crmView('paga')">Pagos</button><button class="btn btn-gh" data-view="cancel" onclick="crmView('cancel')">Cancelados</button></nav><div id="crm-quick" class="crm-tabs" hidden><button class="btn btn-gh btn-sm" data-quick="academic" data-value="yes" onclick="quickFilter('academic','yes')">Com indicação de nota</button><button class="btn btn-gh btn-sm" data-quick="credit" data-value="yes" onclick="quickFilter('credit','yes')">Com aproveitamento</button><button class="btn btn-gh btn-sm" data-quick="due" data-value="overdue" onclick="quickFilter('due','overdue')">Vencimento previsto passado</button><button class="btn btn-gh btn-sm" data-quick="due" data-value="future" onclick="quickFilter('due','future')">A vencer</button></div><div class="crm-bar crm-basic"><label>Nome ou matrícula<input id="crm-search" type="search" oninput="filterCRM()" placeholder="Digite para buscar"></label><label>Polo<select id="crm-polo" onchange="filterCRM()"></select></label><label>Acompanhamento<select id="crm-status" onchange="filterCRM()"><option value="">Todos</option><option>Não contatado</option><option>Contatado</option><option>Aguardando retorno</option><option>Retornar depois</option></select></label><button class="btn btn-gh" onclick="resetCRMFilters()">Limpar filtros</button></div><details id="crm-more"><summary>Mais filtros <span id="crm-filter-count"></span></summary><div class="crm-bar"><label>Situação do relatório<select id="crm-payment" onchange="filterCRM()"><option value="naoPaga">Não pagaram (ativos)</option><option value="paga">1ª mensalidade paga</option><option value="ativos">Matrículas ativas</option><option value="cancel">Cancelados</option><option value="total">Todos no relatório</option><option value="missing">Ausentes do relatório</option></select></label><label>Período da lista<select id="crm-period" onchange="filterCRM()"><option value="selected">Mesmo período do indicador</option><option value="all">Toda a campanha</option></select></label><label>Indicação de nota<select id="crm-academic" onchange="filterCRM()"><option value="">Todas</option><option value="yes">Com indicação de nota</option><option value="no">Sem indicação de nota no relatório</option></select></label><label>Aproveitamento<select id="crm-credit" onchange="filterCRM()"><option value="">Todos</option><option value="yes">Com aproveitamento (S)</option><option value="no">Sem aproveitamento (N)</option><option value="unknown">Não informado</option></select></label><label>Vencimento previsto<select id="crm-due" onchange="filterCRM()"><option value="">Todos</option><option value="future">A vencer</option><option value="today">Vence hoje</option><option value="overdue">Vencido</option><option value="unknown">Data indisponível</option></select></label><label>Prioridade<select id="crm-priority" onchange="filterCRM()"><option value="">Todas</option><option value="new">Não contatados</option><option value="welcome">Boas-vindas pendentes</option><option value="today">Retorno hoje</option><option value="late">Retorno atrasado</option><option value="promise">Promessa vencida sem pagamento</option><option value="idle">Sem pagar e sem contato há X dias</option></select></label><label>Dias sem contato<input id="crm-days" type="number" value="7" min="1" max="3650" onchange="filterCRM()" style="width:95px"></label><label>Ordenação<select id="crm-order" onchange="filterCRM()"><option value="priority">Prioridade de retorno</option><option value="name">Nome</option></select></label></div><p class="crm-info">Vencimento previsto pelo mês da matrícula: dia 10 do mês seguinte; junho: 10/08. Confira o boleto antes de tratar como atraso. Aproveitamento reproduz o indicador do relatório e não comprova avaliação realizada.</p></details><div class="crm-actions"><button class="btn btn-gh btn-sm" onclick="fetchData()">Atualizar dados</button><details><summary>Exportar lista</summary><button class="btn btn-gh btn-sm" onclick="exportCRM()">Excel</button><button class="btn btn-gh btn-sm" onclick="exportCRM('csv')">CSV</button></details></div><p id="crm-count" class="crm-info"></p><div id="crm-message" role="status" aria-live="polite"></div>
+<div id="crm-editor" role="region" aria-label="Ficha do aluno" hidden></div>
+<div class="tw"><table class="pt"><thead><tr><th>Aluno / matrícula</th><th>Curso / polo</th><th>Situação</th><th>Último contato</th><th>Próximo retorno</th><th>Ação</th></tr></thead><tbody id="crm-rows"></tbody></table></div>
 <div class="crm-bar"><button class="btn btn-gh btn-sm" onclick="crmPage(-1)">Anterior</button><span id="crm-page" class="crm-info"></span><button class="btn btn-gh btn-sm" onclick="crmPage(1)">Próxima</button></div>
 </dialog>
 <dialog id="admin-dialog" aria-labelledby="admin-title"><div class="account-bar"><h2 id="admin-title">Administração</h2><button class="btn btn-gh" onclick="closeAdmin()">Fechar</button></div><p id="admin-message" role="status"></p><div id="admin-secret" hidden></div><div id="admin-body"></div></dialog><script src="config.js"></script>
@@ -543,4 +520,5 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <script src="assets/metrics.js"></script>
 <script src="assets/crm.js"></script>
 <script src="assets/admin.js"></script>
+<script src="assets/ux.js?v=20261004"></script>
 </body></html>

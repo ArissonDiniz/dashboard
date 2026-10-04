@@ -7,7 +7,7 @@ const METAS={};
 const POLO_CFG={};
 const POLO_REG={};
 const PC=['#FFD600','#22c55e','#3b82f6','#f97316','#a855f7','#06b6d4','#ec4899','#84cc16','#f59e0b'];
-const MEDALS=['🥇','🥈','🥉'];
+const MEDALS=['','',''];
 const SISTEMA=['sistema leo','leo web','leo app'];
 
 let rawRows=[],charts={},lastLoad=null,rankExpanded=false,isDark=true;
@@ -50,9 +50,9 @@ document.addEventListener('click',e=>{
 function toggleTheme(){
   isDark=!isDark;
   document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
-  document.getElementById('theme-btn').textContent=isDark?'🌙 Dark':'☀️ Light';
+  document.getElementById('theme-btn').textContent=isDark?' Dark':' Light';
   if(rawRows.length)renderAll();
-  showToast(isDark?'🌙':'☀️',isDark?'Modo escuro ativado':'Modo claro ativado','','info');
+  showToast(isDark?'':'',isDark?'Modo escuro ativado':'Modo claro ativado','','info');
 }
 
 // ══════ TOAST ══════
@@ -223,14 +223,14 @@ function finishLoad(){
     if(!dashboardSession)return;
     const data=processData(rawRows);
     const pg=sum(data,'paga');
-    if(pg>0){showToast('💰','Pagamentos registrados',pg+' pagamento'+(pg!==1?'s':'')+' confirmado'+(pg!==1?'s':'')+' no período atual.','pay');}
+    if(pg>0){showToast('','Pagamentos registrados',pg+' pagamento'+(pg!==1?'s':'')+' confirmado'+(pg!==1?'s':'')+' no período atual.','pay');}
     // Verificar se o último pagamento foi há mais de 3 dias
     const pagRows=rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
     if(pagRows.length){
       const dates=pagRows.map(r=>parseDatePag(r)).filter(Boolean).sort((a,b)=>b-a);
       if(dates.length){
         const diff=Math.round((new Date()-dates[0])/(86400000));
-        if(diff>=3)setTimeout(()=>dashboardSession&&showToast('📅','Atenção','Último pagamento há '+diff+' dia'+(diff!==1?'s':'')+'. Acione os colaboradores!','warning'),1500);
+        if(diff>=3)setTimeout(()=>dashboardSession&&showToast('','Atenção','Último pagamento há '+diff+' dia'+(diff!==1?'s':'')+'. Acione os colaboradores!','warning'),1500);
       }
     }
   },1000);
@@ -344,7 +344,7 @@ function renderMetaBars(data){
       <div class="mb-sub">
         ${d.meta>0&&faltam>0
           ?`Faltam <strong style="color:${color}">${faltam}</strong> pagamento${faltam!==1?'s':''} para a meta`
-          :d.meta>0?'<strong style="color:#22c55e">✓ Meta atingida!</strong>'
+          :d.meta>0?'<strong style="color:#22c55e"> Meta atingida!</strong>'
           :'<span style="color:var(--tx3)">Sem meta definida</span>'}
       </div>
     </div>`;
@@ -388,7 +388,7 @@ function renderRankColab(rows){
   const maxP=Math.max(...colabs.map(c=>c.paga),1);
   const TOP=5;
   function mkItem(c,i){
-    const medal=i<3?MEDALS[i]:'';
+    const medal='';
     const color=i===0?warnColor():i===1?'#c0c0c0':i===2?'#cd7f32':PC[i%PC.length];
     return `<div class="ritem">
       ${medal?`<div class="rmed">${medal}</div>`:`<div class="rnum">${i+1}º</div>`}
@@ -433,8 +433,8 @@ function renderCursos(rows){
     <div class="ci-name" title="${esc(c.nome)}">${esc(c.nome)}</div>
     <div class="ci-bg"><div class="ci-f" style="width:${Math.round(c.total/maxT*100)}%;background:${col}"></div></div>
     <div class="ci-n" style="color:${col}">${c.total}</div></div>`;
-  let html=`<div class="curso-sec"><div class="curso-sec-label">🔝 Mais vendidos</div>${top.map((c,i)=>mkci(c,i,tC[i]||'#555')).join('')}</div>`;
-  if(bot.length)html+=`<div class="curso-sec"><div class="curso-sec-label">🔻 Menos vendidos</div>${bot.map((c,i)=>mkci(c,cursos.length-bot.length+i,'#ef4444')).join('')}</div>`;
+  let html=`<div class="curso-sec"><div class="curso-sec-label"> Mais vendidos</div>${top.map((c,i)=>mkci(c,i,tC[i]||'#555')).join('')}</div>`;
+  if(bot.length)html+=`<div class="curso-sec"><div class="curso-sec-label"> Menos vendidos</div>${bot.map((c,i)=>mkci(c,cursos.length-bot.length+i,'#ef4444')).join('')}</div>`;
   document.getElementById('cursos-list').innerHTML=html;
 }
 
