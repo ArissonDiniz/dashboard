@@ -347,7 +347,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   body,*{cursor:auto!important}
 }
 </style>
-<link rel="stylesheet" href="assets/access.css">
+
 <style>
 #crm-dialog{position:fixed;inset:2vh 2vw;width:96vw;max-width:none;height:96vh;max-height:none;margin:0;padding:22px;background:var(--bg);color:var(--tx);border:1px solid var(--br2);border-radius:16px;z-index:1000;overflow:auto}
 #crm-dialog::backdrop{background:#000b} .crm-bar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:16px 0}
@@ -361,7 +361,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .crm-conflict{border:1px solid var(--o);padding:14px;border-radius:8px;white-space:pre-wrap;font-size:12px}
 @media(max-width:650px){#crm-dialog{padding:12px}.crm-bar>*{max-width:100%}}
 </style>
-<link rel="stylesheet" href="assets/ux.css?v=20261004">
+
+
+
+
+
+<link rel="stylesheet" href="assets/release-471d0d6981e2.css">
 </head>
 <body><section id="auth-screen"><div class="auth-card"><h1>Uniasselvi · Rede AC</h1><p>Acompanhamento de calouros</p>
 <form id="login-form" onsubmit="login(event)"><label>E-mail corporativo<input id="login-email" type="email" autocomplete="username" required></label><label>Senha do dashboard<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit" class="btn">Entrar</button><p>Esqueceu a senha? Solicite uma senha provisória ao administrador.</p></form>
@@ -388,7 +393,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <div class="mover" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="mbox" id="mbox">
     <div class="mhd"><div class="mtitle" id="mtitle">Detalhes</div>
-      <button class="mclose" onclick="closeModal()"></button></div>
+      <button class="mclose" onclick="closeModal()" aria-label="Fechar detalhes" title="Fechar"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M6 18L18 6"/></svg></button></div>
     <div id="mbody"></div>
   </div>
 </div>
@@ -513,12 +518,17 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <div class="tw"><table class="pt"><thead><tr><th>Aluno / matrícula</th><th>Curso / polo</th><th>Situação</th><th>Último contato</th><th>Próximo retorno</th><th>Ação</th></tr></thead><tbody id="crm-rows"></tbody></table></div>
 <div class="crm-bar"><button class="btn btn-gh btn-sm" onclick="crmPage(-1)">Anterior</button><span id="crm-page" class="crm-info"></span><button class="btn btn-gh btn-sm" onclick="crmPage(1)">Próxima</button></div>
 </dialog>
-<dialog id="admin-dialog" aria-labelledby="admin-title"><div class="account-bar"><h2 id="admin-title">Administração</h2><button class="btn btn-gh" onclick="closeAdmin()">Fechar</button></div><p id="admin-message" role="status"></p><div id="admin-secret" hidden></div><div id="admin-body"></div></dialog><script src="config.js"></script>
-<script src="assets/rules.js"></script>
-<script src="assets/dashboard.js"></script>
-<script src="assets/backend.js"></script>
-<script src="assets/metrics.js"></script>
-<script src="assets/crm.js"></script>
-<script src="assets/admin.js"></script>
-<script src="assets/ux.js?v=20261004"></script>
+<dialog id="admin-dialog" aria-labelledby="admin-title"><div class="account-bar"><h2 id="admin-title">Administração</h2><button class="btn btn-gh" onclick="closeAdmin()">Fechar</button></div><p id="admin-message" role="status"></p><div id="admin-secret" hidden></div><div id="admin-body"></div></dialog>
+
+
+
+
+
+
+
+
+
+
+
+<script src="assets/release-fd2c1ca7b1c9.js"></script>
 </body></html>
