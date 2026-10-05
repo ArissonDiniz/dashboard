@@ -40,7 +40,24 @@ function renderKPIs(data,acc){
  const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">detalhes ▸</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first);render('kg2',second.filter(x=>['faltam','conv'].includes(x.mid)));
 }
 function statusParts(){const list=rawRows.filter(r=>scope(r)&&noPeriodoEntrada(r));return [list.filter(r=>!Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>!Core.cancelled(r)&&!Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&!Core.paid(r)).length];}
-function getColabs(rows){const mp=new Map();rows.filter(scope).forEach(r=>{const name=r.ESPECIALIZACAO_MATRICULOU;if(!name||SISTEMA.some(s=>name.toLowerCase().includes(s)))return;const code=r.ESPECIALIZACAO_MATRICULOU_CODIGO||name,key=code+'|'+r.CODIGO_DO_POLO;const c=mp.get(key)||{nome:name,polo:cap(getPoloKey(r)),total:0,paga:0};if(noPeriodoEntrada(r))c.total++;if(pagouNoPeriodo(r))c.paga++;mp.set(key,c);});return [...mp.values()].filter(c=>c.total||c.paga).sort((a,b)=>b.paga-a.paga||b.total-a.total);}
+function getColabs(rows){
+ const mp=new Map(),po=document.getElementById('f-polo').value,reg=document.getElementById('f-regiao').value;
+ if(sellerProduction!==null){
+  for(const r of sellerProduction){
+   const c=mp.get(r.key)||{nome:r.nome,polo:'Produção em toda a rede',total:0,paga:0};
+   const entry={DATA_MATRICULA:r.enrolled_on,DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA:r.paid_on,PRIMEIRA_MENSALIDADE_COBRADA_PAGA:r.paid?'S':'N'};
+   if(noPeriodoEntrada(entry))c.total+=Number(r.quantity);
+   if(pagouNoPeriodo(entry))c.paga+=Number(r.quantity);
+   mp.set(r.key,c);
+  }
+ }else{
+  rows.filter(scope).forEach(r=>{const name=r.ESPECIALIZACAO_MATRICULOU;if(!name||SISTEMA.some(s=>name.toLowerCase().includes(s)))return;
+   const key=r.ESPECIALIZACAO_MATRICULOU_CODIGO?'code:'+r.ESPECIALIZACAO_MATRICULOU_CODIGO:'name:'+name.trim().toLowerCase().replace(/\s+/g,' ');
+   const c=mp.get(key)||{nome:name,polo:'Produção nos polos autorizados',total:0,paga:0};if(noPeriodoEntrada(r))c.total++;if(pagouNoPeriodo(r))c.paga++;mp.set(key,c);
+  });
+ }
+ return [...mp.values()].filter(c=>c.total||c.paga).sort((a,b)=>b.paga-a.paga||b.total-a.total||a.nome.localeCompare(b.nome));
+}
 function TC(){return isDark?'#b5bbc8':'#4b5563';}
 function onPeriodChange(){document.getElementById('custom-dates').style.display=document.getElementById('f-period').value==='custom'?'flex':'none';renderAll();}
 const oldOpenModal=openModal;

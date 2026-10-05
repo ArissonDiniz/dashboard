@@ -394,7 +394,7 @@ function renderRankColab(rows){
       ${medal?`<div class="rmed">${medal}</div>`:`<div class="rnum">${i+1}º</div>`}
       <div class="rinfo">
         <div class="rname">${esc(c.nome)}</div>
-        <div class="rpolo">${c.polo||'—'}</div>
+        <div class="rpolo">${esc(c.polo||'—')}</div>
         <div class="rbg"><div class="rbf" style="width:${Math.round(c.paga/maxP*100)}%;background:${color}"></div></div>
       </div>
       <div style="text-align:right">
