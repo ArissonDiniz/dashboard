@@ -366,7 +366,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 
 
-<link rel="stylesheet" href="assets/release-471d0d6981e2.css">
+
+
+
+<link rel="stylesheet" href="assets/release-dd26042df7c2.css">
 </head>
 <body><section id="auth-screen"><div class="auth-card"><h1>Uniasselvi · Rede AC</h1><p>Acompanhamento de calouros</p>
 <form id="login-form" onsubmit="login(event)"><label>E-mail corporativo<input id="login-email" type="email" autocomplete="username" required></label><label>Senha do dashboard<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit" class="btn">Entrar</button><p>Esqueceu a senha? Solicite uma senha provisória ao administrador.</p></form>
@@ -398,7 +401,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   </div>
 </div>
 
-<div class="wrap"><div class="account-bar"><span id="session-label"></span><button class="btn btn-gh btn-sm" onclick="openCRM('total',true)">Acompanhar alunos</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
+<div class="wrap"><div class="account-bar"><span id="session-label"></span><button class="btn btn-y btn-sm" onclick="openCRM('total',true)">Acompanhar alunos</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
 <!-- HERO -->
 <div class="hero" id="hero-sec" style="display:none">
   <div class="hero-top">
@@ -413,16 +416,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 </div>
 
 <!-- PROJEÇÃO -->
-<div class="proj" id="proj-bar" style="display:none">
-  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Projeção de fechamento</div><div class="pj-v" id="pj-d">—</div></div></div>
-  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Ritmo estimado</div><div class="pj-v" id="pj-r">—</div></div></div>
-  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Faltam para meta</div><div class="pj-v" id="pj-f">—</div></div></div>
-  <div class="pj"><div class="pj-ic"></div><div><div class="pj-l">Período analisado</div><div class="pj-v" id="pj-per">—</div></div></div>
-</div>
+
 
 <!-- FILTROS -->
 <div class="filter-wrap" id="filters" style="display:none">
-  <label>Campanha <select id="f-campaign" onchange="fetchData()"></select></label><label>Datas por <select id="f-mode" onchange="renderAll()"><option value="events">Movimentação</option><option value="cohort">Matrículas do período</option></select></label><span class="fl"> Região</span>
+  <label>Campanha <select id="f-campaign" onchange="fetchData()"></select></label><span class="fl"> Região</span>
   <select id="f-regiao" onchange="onRegiaoChange()">
     <option value="TODOS">Todas as regiões</option>
     <option value="AC">Acre · AC</option>
@@ -452,33 +450,24 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   </div>
 </div>
 
-<p class="context" id="filter-error" role="alert"></p><p class="context" id="metric-context"></p><p class="context" id="meta-context"></p><p id="load-error" hidden></p><button id="load-retry" hidden onclick="fetchData()">Tentar novamente</button>
+<p class="context" id="filter-error" role="alert"></p><details class="period-help"><summary>Como funciona o período?</summary><label>Analisar <select id="f-mode" onchange="renderAll()"><option value="events">Movimentações no período</option><option value="cohort">Alunos matriculados no período</option></select></label><p class="context" id="metric-context"></p><p class="context" id="meta-context"></p></details><p id="load-error" hidden></p><button id="load-retry" hidden onclick="fetchData()">Tentar novamente</button>
 <!-- LOADING -->
 <div id="loading" style="display:none"><div class="spin"></div><div class="ld-tx">Consultando dados autorizados...</div></div>
 
 <!-- CONTENT -->
 <div id="content" style="display:none">
-  <div class="kg" id="kg1"></div>
-  <div class="kg" id="kg2" style="margin-bottom:18px"></div>
+  <div class="indicator-grid"><div class="kg" id="kg1"></div>
+  <div class="kg" id="kg2"></div></div>
 
   <!-- CORRIDA PARA META -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Visão por polo · corrida para a meta</div><div class="sl"></div></div>
-  <div class="cr2">
+  <div class="goal-only">
     <div class="card" id="card-meta">
       <button class="card-exp" onclick="expandMetaBars()"> Expandir</button>
       <div class="ct"><div class="ctd"></div>Progresso da meta · linha de chegada por polo</div>
-      <div class="meta-bars" id="meta-bars"></div>
+      <p class="context" id="campaign-deadline"></p><div class="meta-bars" id="meta-bars"></div>
     </div>
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-st','Situação dos alunos','st')"> Expandir</button>
-      <div class="ct"><div class="ctd"></div>Situação dos alunos</div>
-      <div id="leg-st" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
-      <div style="position:relative;height:200px"><canvas id="ch-st"></canvas></div>
-      <div class="gc" style="margin-top:6px">
-        <div class="gv" id="taxa-pag">0%</div>
-        <div class="gl">conversão dos ativos das entradas</div>
-      </div>
-    </div>
+
   </div>
 
   <section class="card work-queue"><div class="ct">Pendências de atendimento</div><p class="context">Toda a campanha · polos selecionados · registros de acompanhamento</p><div id="work-queue" class="queue-grid"></div></section>
@@ -530,5 +519,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 
 
-<script src="assets/release-fd2c1ca7b1c9.js"></script>
+
+
+
+<script src="assets/release-a3ff42713e70.js"></script>
 </body></html>

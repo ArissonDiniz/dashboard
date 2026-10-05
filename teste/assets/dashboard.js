@@ -215,7 +215,7 @@ function finishLoad(){
   if([...selPolo.options].some(o=>o.value===prevPolo))selPolo.value=prevPolo;
 
   document.getElementById('hero-sec').style.display='block';
-  document.getElementById('proj-bar').style.display='flex';
+
   document.getElementById('filters').style.display='flex';
   showContent();renderAll();
   // Toasts iniciais

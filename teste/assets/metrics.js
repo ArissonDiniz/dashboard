@@ -18,47 +18,27 @@ function processData(rows,all=false){
 }
 function renderAll(){
  try{getDateRange();document.getElementById('filter-error').textContent='';
- const data=processData(rawRows),acc=cumulative();renderHero(acc);renderProj(acc);renderKPIs(data,acc);renderMetaBars(acc);renderStatusChart(data);renderRankColab(rawRows);renderCursos(rawRows);renderTable(data);if(typeof renderWorkspace==='function')renderWorkspace(data);
+ const data=processData(rawRows),acc=cumulative();renderHero(acc);renderKPIs(data,acc);renderMetaBars(acc);renderRankColab(rawRows);renderCursos(rawRows);renderTable(data);if(typeof renderWorkspace==='function')renderWorkspace(data);
  document.getElementById('metric-context').textContent=filterMode()==='events'?'Movimentação: matrícula pela data de entrada; pagamentos pela data do pagamento; cancelamentos pela data do cancelamento. Ativos, não pagantes e cursos referem-se às entradas do período.':'Matrículas do período: todos os indicadores operacionais analisam as mesmas entradas e sua situação atual.';
- document.getElementById('meta-context').textContent='Metas e projeção: acumulado da campanha, respeitando região e polo. O filtro de datas aplica-se à movimentação abaixo.';
+ document.getElementById('meta-context').textContent='A meta usa o acumulado da campanha. Região e polo também filtram a meta.';
+ document.getElementById('campaign-deadline').textContent='Matrículas até '+displayDate(snapshot.campaign.ends_on)+' · pagamentos até '+displayDate(snapshot.campaign.payment_ends_on||snapshot.campaign.ends_on);
  }catch(e){document.getElementById('filter-error').textContent=e.message;}
 }
 function renderHero(data){
  const pg=sum(data,'paga'),meta=sum(data,'meta'),po=document.getElementById('f-polo').value;
- document.getElementById('hero-sub').textContent=(snapshot?.campaign.name||'Campanha')+' · '+(po==='TODOS'?'Polos autorizados':cap(po))+' · Acumulado do relatório atual';
- document.getElementById('hero-st').innerHTML=[{v:sum(data,'total'),l:'Calouros acumulados'},{v:sum(data,'ativos'),l:'Ativos atuais'},{v:pg,l:'Pagamentos válidos para meta'},{v:meta,l:'Meta da campanha'},{v:meta?Math.round(pg/meta*100)+'%':'—',l:'Atingimento'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado · Acre'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
-}
-function renderProj(data){
- const c=snapshot.campaign,today=localToday(),cutoff=c.payment_ends_on||c.ends_on;
- const observed=snapshot.last_synced_at?Core.today(c.timezone,new Date(snapshot.last_synced_at)):today;
- const end=[today,observed,cutoff||today].sort()[0];
- const days=Math.max(1,Math.round((Date.parse(end)-Date.parse(c.starts_on))/86400000)+1);
- const paid=rawRows.filter(r=>scope(r)&&goalEligible(r)&&Core.dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA)<=end).length;
- const remaining=Math.max(0,sum(data,'meta')-sum(data,'paga')),daily=paid/days;
- const left=cutoff?Math.max(0,Math.round((Date.parse(cutoff)-Date.parse(today))/86400000)):0;
- document.getElementById('pj-r').textContent=daily.toLocaleString('pt-BR',{maximumFractionDigits:2})+' pag./dia · '+days+' dias observados';
- document.getElementById('pj-f').textContent=remaining+' pagamentos · '+(left?Math.ceil(remaining/left)+'/dia necessários':'prazo encerrado');
- document.getElementById('pj-per').textContent='Matrículas até '+(c.ends_on||'—')+' · pagamentos até '+(cutoff||'—')+' · base até '+end;
- const forecast=daily>0?Core.plus(end,Math.ceil(remaining/daily)):null;
- document.getElementById('pj-d').textContent=remaining===0?'Meta atingida':today>cutoff?'Prazo encerrado':forecast?forecast.split('-').reverse().join('/')+(forecast>cutoff?' · após o prazo':''):'Sem ritmo para estimar';
+ document.getElementById('hero-sub').textContent=(snapshot?.campaign.name||'Campanha')+' · '+(po==='TODOS'?'Polos autorizados':cap(po));
+ document.getElementById('hero-st').innerHTML=[{v:pg+' / '+meta,l:'Pagamentos na meta'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado · Acre'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
 }
 function renderKPIs(data,acc){
  const tot=sum(data,'total'),pg=sum(data,'paga'),at=sum(data,'ativos'),np=sum(data,'naoPaga'),ca=sum(data,'cancel'),cp=sum(data,'cohortPaid'),mt=sum(acc,'meta'),ap=sum(acc,'paga');
  const activePaid=sum(data,'activePaid');const ratio=at?Math.round(activePaid/at*100):0,progress=mt?Math.round(ap/mt*100):0;const cohort=filterMode()==='cohort';
  const best=acc.filter(d=>d.meta>0).sort((a,b)=>b.paga/b.meta-a.paga/a.meta)[0];
  const k=(l,v,s,ic,c,mid,b=null)=>({l,v,s,ic,c,mid,b});
- const first=[k('Matrículas geradas',tot,'entradas selecionadas','','kb','total'),k('Matrículas ativas',at,'situação atual das entradas','','kg2c','ativos'),k('1ª mensalidade paga',pg,'1ª cobrada = S · inclui cancelados','','ky','paga'),k('Ativos sem pagamento',np,'entre as entradas selecionadas','','kr','naoPaga'),k('Progresso da meta',progress+'%',ap+' de '+mt+' · acumulado','','ko','meta',progress),k(cohort?'Cancelados das entradas':'Cancelamentos no período',ca,cohort?'situação atual das entradas':'pela data do cancelamento','','kr','cancel')];
+ const first=[k('Matrículas geradas',tot,'no período','','kb','total'),k('Matrículas ativas',at,'dos matriculados no período','','kg2c','ativos'),k('1ª mensalidade paga',pg,'inclui cancelados pagos','','ky','paga'),k('Ativos sem pagamento',np,'dos matriculados no período','','kr','naoPaga'),k('Progresso da meta',progress+'%',ap+' de '+mt+' · acumulado','','ko','meta',progress),k(cohort?'Cancelados das entradas':'Cancelamentos no período',ca,cohort?'dos matriculados no período':'pela data do cancelamento','','kr','cancel')];
  const second=[k('Faltam para meta',Math.max(0,mt-ap),'pagamentos · acumulado','⏳','ko','faltam'),k('Conversão dos ativos',ratio+'%',activePaid+' ativos pagos ÷ '+at+' ativos','','kg2c','conv',ratio),k('Meta da campanha',mt,'polos selecionados · acumulado','','kw','metaT'),k('Polos com pagamentos',data.filter(d=>d.paga>0).length,'de '+data.length+' polos autorizados','','kp','polosPag'),k('Polo destaque',best?cap(best.polo):'—','por atingimento acumulado','','ky','destaque')];
- const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">detalhes ▸</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first);render('kg2',data.length===1?second.filter(x=>!['polosPag','destaque'].includes(x.mid)):second);
+ const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">detalhes ▸</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first);render('kg2',second.filter(x=>['faltam','conv'].includes(x.mid)));
 }
 function statusParts(){const list=rawRows.filter(r=>scope(r)&&noPeriodoEntrada(r));return [list.filter(r=>!Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>!Core.cancelled(r)&&!Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&!Core.paid(r)).length];}
-function renderStatusChart(data){
- const parts=statusParts(),labels=['Ativos pagos','Ativos não pagos','Cancelados pagos','Cancelados não pagos'],colors=['#16a34a','#dc2626','#2563eb','#8b5cf6'];
- document.getElementById('taxa-pag').textContent=(sum(data,'ativos')?Math.round(sum(data,'activePaid')/sum(data,'ativos')*100):0)+'%';
- document.getElementById('leg-st').innerHTML=labels.map((l,i)=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2)"><span>${l}</span><strong>${parts[i]}</strong></div>`).join('');
- if(charts.st)charts.st.destroy();charts.st=new Chart(document.getElementById('ch-st'),{type:'doughnut',data:{labels,datasets:[{data:parts,backgroundColor:colors,borderWidth:2,borderColor:isDark?'#111318':'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:TO()}}});
-}
-function _buildExpandSt(canvas){const src=charts.st;window._mc=new Chart(canvas,{type:'doughnut',data:JSON.parse(JSON.stringify(src.data)),options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:TC()}},tooltip:TO()}}});}
 function getColabs(rows){const mp=new Map();rows.filter(scope).forEach(r=>{const name=r.ESPECIALIZACAO_MATRICULOU;if(!name||SISTEMA.some(s=>name.toLowerCase().includes(s)))return;const code=r.ESPECIALIZACAO_MATRICULOU_CODIGO||name,key=code+'|'+r.CODIGO_DO_POLO;const c=mp.get(key)||{nome:name,polo:cap(getPoloKey(r)),total:0,paga:0};if(noPeriodoEntrada(r))c.total++;if(pagouNoPeriodo(r))c.paga++;mp.set(key,c);});return [...mp.values()].filter(c=>c.total||c.paga).sort((a,b)=>b.paga-a.paga||b.total-a.total);}
 function TC(){return isDark?'#b5bbc8':'#4b5563';}
 function onPeriodChange(){document.getElementById('custom-dates').style.display=document.getElementById('f-period').value==='custom'?'flex':'none';renderAll();}
@@ -78,10 +58,10 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 function renderTable(data){
  const acc=cumulative(),lookup=new Map(acc.map(d=>[d.polo,d]));
  const pct=d=>d.meta?Math.round(d.paga/d.meta*100):0;
- const progress=d=>{const n=pct(d),c=n>=50?'var(--g)':n>=25?'var(--y)':'var(--r)';return d.meta?'<div class="pw"><div class="pb"><div class="pf" style="width:'+Math.min(n,100)+'%;background:'+c+'"></div></div><div class="pp" style="color:'+c+'">'+n+'%</div></div><small class="rank-goal-note">'+d.paga+' de '+d.meta+' pagos na campanha</small>':'Sem meta';};
+ const progress=d=>{const n=pct(d),c=n>=50?'var(--g)':n>=25?'var(--warn)':'var(--r)';return d.meta?'<div class="pw"><div class="pb"><div class="pf" style="width:'+Math.min(n,100)+'%;background:'+c+'"></div></div><div class="pp" style="color:'+c+'">'+n+'%</div></div>':'Sem meta';};
  const badge=(v,c)=>'<span class="pl '+(v?c:'px')+'">'+v+'</span>';
  const ranked=[...data].sort((a,b)=>{const x=lookup.get(a.polo)||a,y=lookup.get(b.polo)||b;return (y.meta?y.paga/y.meta:0)-(x.meta?x.paga/x.meta:0)||b.paga-a.paga;});
- const rows=ranked.map((d,i)=>{const goal=lookup.get(d.polo)||d;return '<tr><td><span class="rank-position rank-place-'+Math.min(i+1,4)+'">'+(i+1)+'º</span></td><td><strong>'+esc(cap(d.polo))+'</strong><small class="rank-region">'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.ativos+'</td><td>'+badge(d.cancel,'pr2')+'</td><td>'+badge(d.paga,'pg')+'</td><td>'+badge(d.naoPaga,'pr2')+'</td><td>'+goal.meta+'</td><td>'+progress(goal)+'</td></tr>';}).join('');
+ const rows=ranked.map((d,i)=>{const goal=lookup.get(d.polo)||d;const tone=pct(goal)>=50?'var(--g)':pct(goal)>=25?'var(--warn)':'var(--r)';return '<tr style="--performance:'+tone+'"><td><span class="rank-position rank-place-'+Math.min(i+1,4)+'">'+(i+1)+'º</span></td><td><strong>'+esc(cap(d.polo))+'</strong><small class="rank-region">'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.ativos+'</td><td>'+badge(d.cancel,'pr2')+'</td><td>'+badge(d.paga,'pg')+'</td><td>'+badge(d.naoPaga,'pr2')+'</td><td>'+goal.meta+'</td><td>'+progress(goal)+'</td></tr>';}).join('');
  const total={paga:sum(acc,'paga'),meta:sum(acc,'meta')};
  document.getElementById('polo-table').innerHTML='<thead><tr>'+['#','Polo','Matrículas','Ativos','Cancelamentos','1ª paga','Sem pagamento','Meta','Progresso da campanha'].map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td>—</td><td><strong>Total filtrado</strong></td>'+['total','ativos','cancel','paga','naoPaga'].map(k=>'<td>'+sum(data,k)+'</td>').join('')+'<td>'+total.meta+'</td><td>'+progress(total)+'</td></tr></tbody>';
 }

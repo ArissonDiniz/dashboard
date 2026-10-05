@@ -60,7 +60,7 @@ async function editCRM(index){
 function drawEditor(r,history){
   const s=crmState(r);crm.editVersion=s.version;
   $c('editor').hidden=false;
-  $c('editor').innerHTML='<button class="btn btn-gh drawer-close" onclick="cancelEditCRM()">Fechar ficha</button><h3 tabindex="-1">'+esc(r.NOME)+'</h3>'+studentLabels(r)+'<p class="crm-info">Matrícula: '+esc(r.CODIGO_ALUNO)+' · Inscrição: '+esc(r._key)+'<br>Entrada: '+esc(r.DATA_MATRICULA)+' · Pagamento: '+esc(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA||'—')+' · Cancelamento: '+esc(r.DATA_CANCELAMENTO||'—')+' · '+esc(paymentLabel(r))+'<br>Telefone: '+esc(r.CELULAR||r.TELEFONE||'—')+' · E-mail: '+esc(r.EMAIL||'—')+'<br>Registro será atribuído a '+esc(dashboardSession.email)+'</p>'+
+  $c('editor').innerHTML='<button class="btn btn-gh drawer-close" onclick="cancelEditCRM()">Fechar ficha</button><h3 tabindex="-1">'+esc(r.NOME)+'</h3>'+studentLabels(r)+'<p class="crm-info">Matrícula: '+esc(r.CODIGO_ALUNO)+' · Inscrição: '+esc(r._key)+'<br>Entrada: '+esc(r.DATA_MATRICULA)+' · Pagamento: '+esc(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA||'—')+' · Cancelamento: '+esc(r.DATA_CANCELAMENTO||'—')+' · '+esc(paymentLabel(r))+'<br>Telefone: '+esc(r.CELULAR||r.TELEFONE||'—')+' · E-mail: '+esc(r.EMAIL||'—')+'<br>Registro será atribuído a '+esc(dashboardSession.email)+'</p>'+whatsappContact(r)+
     '<div id="crm-editor-message" role="status" aria-live="polite"></div><form id="crm-form">'+followupFields(s)+'<div class="crm-bar"><label>Status<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div><label>Observações<textarea id="crm-notes" maxlength="6000">'+esc(s.notes)+'</textarea></label><div class="crm-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar atendimento</button></div></form><div id="crm-conflict"></div><details><summary>Histórico de contatos e alterações ('+history.length+')</summary>'+history.map(e=>'<div class="crm-history"><strong>Versão '+e.state.version+' · '+esc(e.state.updatedAt)+' · '+esc(e.state.author)+'</strong><br>'+esc(e.state.status)+' · Boas-vindas: '+esc(e.state.welcome)+' · Resultado: '+esc(e.state.outcome)+' · Promessa: '+esc(e.state.promised||'—')+' · Último: '+esc(e.state.lastContact||'—')+' · Retorno: '+esc(e.state.nextContact||'—')+'<br>'+esc(e.state.notes)+'</div>').join('')+'</details>';
   $c('form').addEventListener('input',()=>{crm.dirty=true;});
   $c('form').addEventListener('submit',e=>{e.preventDefault();saveCRM();});
@@ -117,4 +117,18 @@ function studentLabels(r){const tags=[];const tag=(s,c='')=>'<span class="crm-ta
  if(state==='future')tags.push(tag('A vencer · previsto '+date,'tag-future'));
  if(state==='unknown')tags.push(tag('Vencimento previsto indisponível'));
  return tags.length?'<div class="student-labels">'+tags.join(' ')+'</div>':'';
+}
+
+// Somente números brasileiros completos; nunca inventar DDD ou nono dígito.
+function whatsappNumber(value){
+ const raw=String(value||'').trim();if(!raw||!/^[+\d\s().-]+$/.test(raw))return null;
+ let n=raw.replace(/\D/g,'');if(n.startsWith('0055'))n=n.slice(2);
+ if((n.length===12||n.length===13)&&n.startsWith('55'))n=n.slice(2);
+ const ddds=new Set('11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99'.split(' '));
+ if(!ddds.has(n.slice(0,2))||!(/^[1-9]\d[2-9]\d{7}$/.test(n)||/^[1-9]\d9\d{8}$/.test(n)))return null;
+ return '55'+n;
+}
+function whatsappContact(r){
+ const n=whatsappNumber(r.CELULAR)||whatsappNumber(r.TELEFONE);
+ return n?'<a class="btn whatsapp-contact" href="https://wa.me/'+n+'" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Abrir WhatsApp · +'+n+'</a>':'<p class="crm-info">WhatsApp indisponível: confira o telefone com DDD no relatório.</p>';
 }
