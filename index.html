@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Dashboard Calouros · Uniasselvi</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>Dashboard Calouros · Uniasselvi</title>
+<script src="assets/vendor/chart.umd.js"></script>
+<script src="assets/vendor/xlsx.full.min.js"></script>
+<script src="assets/vendor/supabase.js"></script>
 <style>
 /* ══ DARK ══ */
 [data-theme="dark"]{
@@ -347,8 +347,36 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   body,*{cursor:auto!important}
 }
 </style>
+
+<style>
+#crm-dialog{position:fixed;inset:2vh 2vw;width:96vw;max-width:none;height:96vh;max-height:none;margin:0;padding:22px;background:var(--bg);color:var(--tx);border:1px solid var(--br2);border-radius:16px;z-index:1000;overflow:auto}
+#crm-dialog::backdrop{background:#000b} .crm-bar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:16px 0}
+#crm-dialog label{display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--tx2)}
+#crm-dialog input,#crm-dialog textarea{background:var(--b4);color:var(--tx);border:1px solid var(--br2);border-radius:8px;padding:10px;font:inherit}
+#crm-dialog textarea{min-height:100px;width:100%;resize:vertical} .crm-info{color:var(--tx2);font-size:12px;line-height:1.8}
+.crm-tag{display:inline-block;padding:5px 8px;border:1px solid currentColor;border-radius:7px;font-size:11px;white-space:nowrap}
+.crm-s0{color:var(--tx2)} .crm-s1{color:var(--g)} .crm-s2{color:var(--bl)} .crm-s3{color:var(--o)}
+#crm-editor{margin:16px 0;padding:20px;background:var(--b3);border:1px solid var(--br2);border-radius:12px}
+#crm-message{min-height:24px;white-space:pre-wrap;font-size:13px;margin:8px 0} .crm-history{padding:12px 0;border-bottom:1px solid var(--br2);white-space:pre-wrap;font-size:12px;line-height:1.7}
+.crm-conflict{border:1px solid var(--o);padding:14px;border-radius:8px;white-space:pre-wrap;font-size:12px}
+@media(max-width:650px){#crm-dialog{padding:12px}.crm-bar>*{max-width:100%}}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="assets/release-bd1f463f91a3.css">
 </head>
-<body>
+<body><section id="auth-screen"><div class="auth-card"><h1>Uniasselvi · Rede AC</h1><p>Acompanhamento de calouros</p>
+<form id="login-form" onsubmit="login(event)"><label>E-mail corporativo<input id="login-email" type="email" autocomplete="username" required></label><label>Senha do dashboard<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit" class="btn">Entrar</button><p>Esqueceu a senha? Solicite uma senha provisória ao administrador.</p></form>
+<form id="password-form" hidden onsubmit="changePassword(event)"><label>Senha atual ou provisória<input id="current-password" type="password" autocomplete="current-password" required></label><label>Nova senha (mínimo 12 caracteres)<input id="new-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required></label><label>Repita a nova senha<input id="confirm-password" type="password" minlength="12" autocomplete="new-password" required></label><button id="password-submit" class="btn">Salvar nova senha</button><button type="button" class="btn btn-gh" onclick="logout()">Sair</button></form><p id="auth-message" role="status" aria-live="polite"></p></div></section><main id="app-shell" hidden inert>
 <div id="toast-c"></div>
 <div class="wm">BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ</div>
 
@@ -361,8 +389,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   </div>
   <div class="clock-c"><div id="ck-t">00:00:00</div><div id="ck-d">—</div></div>
   <div class="hdr-r">
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
-    <div class="live-wrap"><div class="live"></div><div class="live-tx">AO VIVO</div></div>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn"> Dark</button>
+    <div class="live-wrap"><div class="live"></div><div class="live-tx">RELATÓRIO</div></div>
     <div class="badge">UNIASSELVI</div>
   </div>
 </div>
@@ -371,16 +399,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <div class="mover" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="mbox" id="mbox">
     <div class="mhd"><div class="mtitle" id="mtitle">Detalhes</div>
-      <button class="mclose" onclick="closeModal()">✕</button></div>
+      <button class="mclose" onclick="closeModal()" aria-label="Fechar detalhes" title="Fechar"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M6 18L18 6"/></svg></button></div>
     <div id="mbody"></div>
   </div>
 </div>
 
-<div class="wrap">
+<div class="wrap"><div class="account-bar"><span id="session-label"></span><button class="btn btn-y btn-sm" onclick="openCRM('total',true)">Acompanhar alunos</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
 <!-- HERO -->
 <div class="hero" id="hero-sec" style="display:none">
   <div class="hero-top">
-    <div><div class="hero-title">📊 Painel de Calouros</div>
+    <div><div class="hero-title"> Painel de Calouros</div>
     <div class="hero-sub" id="hero-sub">Monitoramento em tempo real</div></div>
     <div class="hero-actions">
       <a href="https://arissondiniz.github.io/DASHSREDEAC/" class="btn btn-gh" style="text-decoration:none">← Voltar ao menu</a>
@@ -391,16 +419,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 </div>
 
 <!-- PROJEÇÃO -->
-<div class="proj" id="proj-bar" style="display:none">
-  <div class="pj"><div class="pj-ic">📅</div><div><div class="pj-l">Projeção de fechamento</div><div class="pj-v" id="pj-d">—</div></div></div>
-  <div class="pj"><div class="pj-ic">📈</div><div><div class="pj-l">Ritmo estimado</div><div class="pj-v" id="pj-r">—</div></div></div>
-  <div class="pj"><div class="pj-ic">🏁</div><div><div class="pj-l">Faltam para meta</div><div class="pj-v" id="pj-f">—</div></div></div>
-  <div class="pj"><div class="pj-ic">🗓️</div><div><div class="pj-l">Período analisado</div><div class="pj-v" id="pj-per">—</div></div></div>
-</div>
+
 
 <!-- FILTROS -->
 <div class="filter-wrap" id="filters" style="display:none">
-  <span class="fl">🗺️ Região</span>
+  <label>Campanha <select id="f-campaign" onchange="fetchData()"></select></label><span class="fl"> Região</span>
   <select id="f-regiao" onchange="onRegiaoChange()">
     <option value="TODOS">Todas as regiões</option>
     <option value="AC">Acre · AC</option>
@@ -408,12 +431,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <option value="AM">Amazonas · AM</option>
   </select>
   <div class="divv"></div>
-  <span class="fl">🎯 Polo</span>
+  <span class="fl"> Polo</span>
   <select id="f-polo" onchange="renderAll()">
     <option value="TODOS">Todos os polos</option>
   </select>
   <div class="divv"></div>
-  <span class="fl">📅 Período (data de matrícula)</span>
+  <span class="fl"> Período</span>
   <select id="f-period" onchange="onPeriodChange()">
     <option value="all">Todo o período</option>
     <option value="today">Hoje</option>
@@ -423,69 +446,48 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <option value="custom">Personalizado</option>
   </select>
   <div id="custom-dates" style="display:none;align-items:center;gap:7px">
-    <input type="date" id="f-from">
+    <input type="date" id="f-from" onchange="renderAll()">
     <span class="date-sep">até</span>
-    <input type="date" id="f-to">
+    <input type="date" id="f-to" onchange="renderAll()">
     <button class="btn btn-sm" onclick="renderAll()">Filtrar</button>
   </div>
 </div>
 
+<p class="context" id="filter-error" role="alert"></p><details class="period-help"><summary>Como funciona o período?</summary><label>Analisar <select id="f-mode" onchange="renderAll()"><option value="events">Movimentações no período</option><option value="cohort">Alunos matriculados no período</option></select></label><p class="context" id="metric-context"></p><p class="context" id="meta-context"></p></details><p id="load-error" hidden></p><button id="load-retry" hidden onclick="fetchData()">Tentar novamente</button>
 <!-- LOADING -->
-<div id="loading" style="display:none"><div class="spin"></div><div class="ld-tx">Conectando ao Google Sheets...</div></div>
+<div id="loading" style="display:none"><div class="spin"></div><div class="ld-tx">Consultando dados autorizados...</div></div>
 
 <!-- CONTENT -->
 <div id="content" style="display:none">
-  <div class="kg" id="kg1"></div>
-  <div class="kg" id="kg2" style="margin-bottom:18px"></div>
+  <div class="indicator-grid"><div class="kg" id="kg1"></div>
+  <div class="kg" id="kg2"></div></div>
 
   <!-- CORRIDA PARA META -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Visão por polo · corrida para a meta</div><div class="sl"></div></div>
-  <div class="cr2">
+  <div class="goal-only">
     <div class="card" id="card-meta">
-      <button class="card-exp" onclick="expandMetaBars()">⛶ Expandir</button>
+      <button class="card-exp" onclick="expandMetaBars()"> Expandir</button>
       <div class="ct"><div class="ctd"></div>Progresso da meta · linha de chegada por polo</div>
-      <div class="meta-bars" id="meta-bars"></div>
+      <p class="context" id="campaign-deadline"></p><div class="meta-bars" id="meta-bars"></div>
     </div>
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-st','Situação dos alunos','st')">⛶ Expandir</button>
-      <div class="ct"><div class="ctd"></div>Situação dos alunos</div>
-      <div id="leg-st" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
-      <div style="position:relative;height:200px"><canvas id="ch-st"></canvas></div>
-      <div class="gc" style="margin-top:6px">
-        <div class="gv" id="taxa-pag">0%</div>
-        <div class="gl">taxa de pagamento · ativos</div>
-      </div>
-    </div>
+
   </div>
 
-  <!-- ANÁLISE AVANÇADA -->
-  <div class="sh"><div class="st"><div class="st-dot"></div>Análise avançada</div><div class="sl"></div></div>
-  <div class="cr2b">
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-nao','Ativos sem pagamento','nao')">⛶ Expandir</button>
-      <div class="ct"><div class="ctd"></div>Ativos sem pagamento</div>
-      <div style="position:relative;height:230px"><canvas id="ch-nao"></canvas></div>
-    </div>
-    <div class="card">
-      <button class="card-exp" onclick="expandChart('ch-dist','Distribuição de alunos','dist')">⛶ Expandir</button>
-      <div class="ct"><div class="ctd"></div>Distribuição de alunos</div>
-      <div style="position:relative;height:230px"><canvas id="ch-dist"></canvas></div>
-    </div>
-  </div>
-
+  <section class="card work-queue"><div class="ct">Pendências de atendimento</div><p class="context">Toda a campanha · polos selecionados · registros de acompanhamento</p><div id="work-queue" class="queue-grid"></div></section>
   <!-- RANKINGS -->
   <div class="sh"><div class="st"><div class="st-dot"></div>Rankings</div><div class="sl"></div></div>
   <div class="cr2b">
-    <div class="card">
-      <div class="ct"><div class="ctd"></div>🏆 Colaboradores · mais pagamentos confirmados</div>
-      <div class="rank-list" id="rank-top"></div>
-      <div class="rmore-hidden" id="rank-rest"></div>
-      <button class="rmore-btn" id="rank-more-btn" onclick="toggleRankMore()" style="display:none">
+    <div class="card" id="rank-card">
+      <div class="ct"><div class="ctd"></div> Colaboradores · mais pagamentos confirmados</div>
+<div class="rank-toolbar">      <button class="rmore-btn" id="rank-more-btn" onclick="toggleRankMore()" style="display:none">
         <span id="rmi">▼</span><span id="rmtx">Ver mais</span>
-      </button>
+      </button><button class="btn btn-gh btn-sm" onclick="rankJump(false)">Início</button><button class="btn btn-gh btn-sm" onclick="rankJump(true)">Final</button></div><div class="rank-scroll" id="rank-scroll">
+      <div class="rank-list" id="rank-top"></div>
+      <div class="rmore-hidden" id="rank-rest"></div></div>
+
     </div>
     <div class="card">
-      <div class="ct"><div class="ctd"></div>📚 Cursos mais e menos vendidos</div>
+      <div class="ct"><div class="ctd"></div> Cursos mais e menos vendidos</div>
       <div id="cursos-list"></div>
     </div>
   </div>
@@ -500,954 +502,31 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <div class="ftr">Dashboard desenvolvido para <span>Rede AC Centro de Ensino · Uniasselvi</span> &nbsp;·&nbsp; by: <span>Arisson Diniz</span></div>
 </div>
 
-<script>
-// ══════════════ CONFIG ══════════════
-const SHEET_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vS9eRXC-i3f2O9xl0dL-9riGYP8kAY9bPA5ltFShwH34vAzCrMhmmb9G_Wwacn8k2dgA8a1lfP-NhwP/pub?gid=0&single=true&output=csv';
+</main><dialog id="crm-dialog" aria-labelledby="crm-title">
+<div style="display:flex;justify-content:space-between;gap:12px"><h2 id="crm-title">Acompanhamento de alunos</h2><button class="btn btn-gh" onclick="closeCRM()">Fechar</button></div>
+<p class="crm-info" id="crm-context"></p>
+<nav class="crm-tabs" aria-label="Grupos de alunos"><button class="btn btn-gh" data-view="total" onclick="crmView('total')">Todos</button><button class="btn btn-gh" data-view="welcome" onclick="crmView('welcome')">Boas-vindas</button><button class="btn btn-gh" data-view="naoPaga" onclick="crmView('naoPaga')">Sem pagamento</button><button class="btn btn-gh" data-view="paga" onclick="crmView('paga')">Pagos</button><button class="btn btn-gh" data-view="cancel" onclick="crmView('cancel')">Cancelados</button></nav><div id="crm-quick" class="crm-tabs" hidden><button class="btn btn-gh btn-sm" data-quick="academic" data-value="yes" onclick="quickFilter('academic','yes')">Com indicação de nota</button><button class="btn btn-gh btn-sm" data-quick="credit" data-value="yes" onclick="quickFilter('credit','yes')">Com aproveitamento</button><button class="btn btn-gh btn-sm" data-quick="due" data-value="overdue" onclick="quickFilter('due','overdue')">Vencimento previsto passado</button><button class="btn btn-gh btn-sm" data-quick="due" data-value="future" onclick="quickFilter('due','future')">A vencer</button></div><div class="crm-bar crm-basic"><label>Nome ou matrícula<input id="crm-search" type="search" oninput="filterCRM()" placeholder="Digite para buscar"></label><label>Polo<select id="crm-polo" onchange="filterCRM()"></select></label><label>Acompanhamento<select id="crm-status" onchange="filterCRM()"><option value="">Todos</option><option>Não contatado</option><option>Contatado</option><option>Aguardando retorno</option><option>Retornar depois</option></select></label><button class="btn btn-gh" onclick="resetCRMFilters()">Limpar filtros</button></div><details id="crm-more"><summary>Mais filtros <span id="crm-filter-count"></span></summary><div class="crm-bar"><label>Situação do relatório<select id="crm-payment" onchange="filterCRM()"><option value="naoPaga">Não pagaram (ativos)</option><option value="paga">1ª mensalidade paga</option><option value="ativos">Matrículas ativas</option><option value="cancel">Cancelados</option><option value="total">Todos no relatório</option><option value="missing">Ausentes do relatório</option></select></label><label>Período da lista<select id="crm-period" onchange="filterCRM()"><option value="selected">Mesmo período do indicador</option><option value="all">Toda a campanha</option></select></label><label>Indicação de nota<select id="crm-academic" onchange="filterCRM()"><option value="">Todas</option><option value="yes">Com indicação de nota</option><option value="no">Sem indicação de nota no relatório</option></select></label><label>Aproveitamento<select id="crm-credit" onchange="filterCRM()"><option value="">Todos</option><option value="yes">Com aproveitamento (S)</option><option value="no">Sem aproveitamento (N)</option><option value="unknown">Não informado</option></select></label><label>Vencimento previsto<select id="crm-due" onchange="filterCRM()"><option value="">Todos</option><option value="future">A vencer</option><option value="today">Vence hoje</option><option value="overdue">Vencido</option><option value="unknown">Data indisponível</option></select></label><label>Prioridade<select id="crm-priority" onchange="filterCRM()"><option value="">Todas</option><option value="new">Não contatados</option><option value="welcome">Boas-vindas pendentes</option><option value="today">Retorno hoje</option><option value="late">Retorno atrasado</option><option value="promise">Promessa vencida sem pagamento</option><option value="idle">Sem pagar e sem contato há X dias</option></select></label><label>Dias sem contato<input id="crm-days" type="number" value="7" min="1" max="3650" onchange="filterCRM()" style="width:95px"></label><label>Ordenação<select id="crm-order" onchange="filterCRM()"><option value="priority">Prioridade de retorno</option><option value="name">Nome</option></select></label></div><p class="crm-info">Vencimento previsto pelo mês da matrícula: dia 10 do mês seguinte; junho: 10/08. Confira o boleto antes de tratar como atraso. Aproveitamento reproduz o indicador do relatório e não comprova avaliação realizada.</p></details><div class="crm-actions"><button class="btn btn-gh btn-sm" onclick="fetchData()">Atualizar dados</button><details><summary>Exportar lista</summary><button class="btn btn-gh btn-sm" onclick="exportCRM()">Excel</button><button class="btn btn-gh btn-sm" onclick="exportCRM('csv')">CSV</button></details></div><p id="crm-count" class="crm-info"></p><div id="crm-message" role="status" aria-live="polite"></div>
+<div id="crm-editor" role="region" aria-label="Ficha do aluno" hidden></div>
+<div class="tw"><table class="pt"><thead><tr><th>Aluno / matrícula</th><th>Curso / polo</th><th>Situação</th><th>Último contato</th><th>Próximo retorno</th><th>Ação</th></tr></thead><tbody id="crm-rows"></tbody></table></div>
+<div class="crm-bar"><button class="btn btn-gh btn-sm" onclick="crmPage(-1)">Anterior</button><span id="crm-page" class="crm-info"></span><button class="btn btn-gh btn-sm" onclick="crmPage(1)">Próxima</button></div>
+</dialog>
+<dialog id="admin-dialog" aria-labelledby="admin-title"><div class="account-bar"><h2 id="admin-title">Administração</h2><button class="btn btn-gh" onclick="closeAdmin()">Fechar</button></div><p id="admin-message" role="status"></p><div id="admin-secret" hidden></div><div id="admin-body"></div></dialog>
 
-// Metas por polo
-const METAS={
-  'JARDIM NAZLE':58,'TANGARÁ':86,'CRUZEIRO DO SUL':42,'SENA MADUREIRA':138,
-  'PORTO VELHO':92,'EXTREMA':48,'SÃO MIGUEL':28,'HUMAITÁ':25,'ARIQUEMES':0
-};
-const POLO_CFG={
-  'Rio Branco/AC - Jardim Nazle':{k:'JARDIM NAZLE',r:'AC'},
-  'Rio Branco/AC - Tangará':{k:'TANGARÁ',r:'AC'},
-  'Cruzeiro Do Sul/AC':{k:'CRUZEIRO DO SUL',r:'AC'},
-  'Sena Madureira/AC':{k:'SENA MADUREIRA',r:'AC'},
-  'Porto Velho/RO':{k:'PORTO VELHO',r:'RO'},
-  'Porto Velho/RO - Distrito de Extrema':{k:'EXTREMA',r:'RO'},
-  'Porto Velho/RO - Distrito De Extrema':{k:'EXTREMA',r:'RO'},
-  'São Miguel do Guaporé/RO':{k:'SÃO MIGUEL',r:'RO'},
-  'Ariquemes/RO':{k:'ARIQUEMES',r:'RO'},
-  'Humaitá/AM':{k:'HUMAITÁ',r:'AM'},
-};
-const POLO_REG={'JARDIM NAZLE':'AC','TANGARÁ':'AC','CRUZEIRO DO SUL':'AC','SENA MADUREIRA':'AC','PORTO VELHO':'RO','EXTREMA':'RO','SÃO MIGUEL':'RO','ARIQUEMES':'RO','HUMAITÁ':'AM'};
-const PC=['#FFD600','#22c55e','#3b82f6','#f97316','#a855f7','#06b6d4','#ec4899','#84cc16','#f59e0b'];
-const MEDALS=['🥇','🥈','🥉'];
-const SISTEMA=['sistema leo','leo web','leo app'];
 
-let rawRows=[],charts={},lastLoad=null,rankExpanded=false,isDark=true;
-// Amarelo vivo tem baixo contraste em fundo claro — nesses casos usamos um dourado mais escuro
-function warnColor(){return isDark?'#FFD600':'#B8860B';}
-let _toastCount=0;
 
-// ══════ SPARKS ══════
-document.addEventListener('click',e=>{
-  for(let i=0;i<8;i++){
-    const s=document.createElement('div');s.className='spark';
-    const angle=(360/8)*i*(Math.PI/180),dist=28+Math.random()*28,sz=3+Math.random()*4;
-    s.style.cssText=`left:${e.clientX}px;top:${e.clientY}px;width:${sz}px;height:${sz}px;background:${Math.random()>.5?'#FFD600':'#fff'};--sx:${Math.cos(angle)*dist}px;--sy:${Math.sin(angle)*dist}px;animation-duration:${.4+Math.random()*.3}s`;
-    document.body.appendChild(s);setTimeout(()=>s.remove(),700);
-  }
-});
 
-// ══════ RIPPLE ══════
-document.addEventListener('click',e=>{
-  const b=e.target.closest('.btn');if(!b)return;
-  const r=document.createElement('span');r.className='ripple';
-  const rc=b.getBoundingClientRect(),sz=Math.max(rc.width,rc.height)*2;
-  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rc.left-sz/2}px;top:${e.clientY-rc.top-sz/2}px`;
-  b.appendChild(r);setTimeout(()=>r.remove(),550);
-});
 
-// ══════ CLOCK ══════
-(()=>{
-  const D=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
-  const M=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const tick=()=>{
-    const n=new Date();
-    document.getElementById('ck-t').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
-    document.getElementById('ck-d').textContent=D[n.getDay()]+', '+n.getDate()+' de '+M[n.getMonth()]+' de '+n.getFullYear();
-  };
-  tick();setInterval(tick,1000);
-})();
 
-// ══════ TEMA ══════
-function toggleTheme(){
-  isDark=!isDark;
-  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
-  document.getElementById('theme-btn').textContent=isDark?'🌙 Dark':'☀️ Light';
-  if(rawRows.length)renderAll();
-  showToast(isDark?'🌙':'☀️',isDark?'Modo escuro ativado':'Modo claro ativado','','info');
-}
 
-// ══════ TOAST ══════
-function showToast(ic,title,msg,type='info'){
-  if(_toastCount>=3)return; // max 3 simultâneos
-  _toastCount++;
-  const c=document.getElementById('toast-c');
-  const t=document.createElement('div');t.className='toast';
-  const colors={success:'#22c55e',warning:'#f97316',danger:'#ef4444',info:'#FFD600',pay:'#22c55e'};
-  const col=colors[type]||colors.info;
-  t.innerHTML=`<div class="t-ic">${ic}</div><div class="t-body">
-    <div class="t-title">${title}</div>${msg?`<div class="t-msg">${msg}</div>`:''}
-    <div class="t-bar"><div class="t-bf" style="background:${col}"></div></div></div>`;
-  t.style.borderLeftColor=col;t.style.borderLeftWidth='3px';
-  c.appendChild(t);
-  setTimeout(()=>{t.classList.add('out');setTimeout(()=>{t.remove();_toastCount=Math.max(0,_toastCount-1);},350);},5000);
-}
 
-// ══════ FETCH ══════
-async function refreshData(e){if(e)e.stopPropagation();await fetchData();}
-async function fetchData(){
-  showLoading();
-  try{
-    const url=SHEET_URL+'&_='+Date.now();
-    const r=await fetch(url,{cache:'no-cache'});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const txt=await r.text();
-    rawRows=parseCSV(txt);
-    _matriculaDateKey=undefined; // recalcula a coluna de data de matrícula a cada atualização
-    lastLoad=new Date();
-    finishLoad();
-  }catch(err){hideLoading();alert('Erro ao carregar:\n'+err.message);}
-}
-function parseCSV(txt){
-  const ln=txt.split('\n').filter(l=>l.trim());
-  if(ln.length<2)return[];
-  const hd=slv(ln[0]);
-  return ln.slice(1).map(line=>{
-    const v=slv(line),row={};
-    hd.forEach((h,i)=>row[h.trim()]=(v[i]||'').trim());
-    return row;
-  }).filter(r=>Object.values(r).some(v=>v));
-}
-function slv(line){
-  const res=[];let c='';let q=false;
-  for(let i=0;i<line.length;i++){
-    if(line[i]==='"')q=!q;
-    else if(line[i]===','&&!q){res.push(c);c='';}
-    else c+=line[i];
-  }
-  res.push(c);return res;
-}
 
-// ══════ POLO KEY ══════
-function getPoloInfo(row){
-  const n=(row['NOME_DO_POLO']||'').trim();
-  if(POLO_CFG[n])return POLO_CFG[n];
-  const nl=n.toLowerCase();
-  const f=Object.entries(POLO_CFG).find(([k])=>k.toLowerCase()===nl);
-  if(f)return f[1];
-  return{k:n.toUpperCase(),r:'?'};
-}
-function getPoloKey(r){return getPoloInfo(r).k;}
 
-// ══════ PARSE DATA — ROBUSTO ══════
-// Google Sheets CSV exporta "2026-06-03 00:00:00"
-// Criamos data LOCAL: new Date(ano, mes-1, dia)
-function parseDateStr(raw){
-  if(!raw||raw==='nan'||raw==='None'||raw==='null'||!raw.trim())return null;
-  const s=raw.trim();
-  // YYYY-MM-DD (com ou sem hora: "2026-06-03" ou "2026-06-03 00:00:00")
-  const m1=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(m1){const d=new Date(+m1[1],+m1[2]-1,+m1[3],12,0,0,0);if(!isNaN(d))return d;}
-  // DD/MM/YYYY
-  const m2=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if(m2){const d=new Date(+m2[3],+m2[2]-1,+m2[1],12,0,0,0);if(!isNaN(d))return d;}
-  // MM/DD/YYYY (fallback)
-  const m3=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if(m3){const d=new Date(+m3[3],+m3[1]-1,+m3[2],12,0,0,0);if(!isNaN(d))return d;}
-  return null;
-}
-function parseDatePag(row){return parseDateStr(row['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'');}
-// Debug: expor no console para diagnóstico
-window._debugDates=()=>{
-  const rows=rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
-  const{from,to}=getDateRange();
-  console.group('DEBUG pagamentos');
-  console.log('Período:',from?from.toLocaleDateString('pt-BR'):'—','até',to?to.toLocaleDateString('pt-BR'):'—');
-  rows.forEach(r=>{
-    const d=parseDatePag(r);
-    const raw=r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'];
-    const ok=d&&(!from||d>=from)&&(!to||d<=to);
-    console.log(raw,'→',d?d.toLocaleDateString('pt-BR'):'ERRO','| no período:',ok,'| polo:',r['NOME_DO_POLO']);
-  });
-  console.groupEnd();
-};
 
-// ══════ FILTRO PERÍODO ══════
-function onPeriodChange(){
-  const v=document.getElementById('f-period').value;
-  document.getElementById('custom-dates').style.display=v==='custom'?'flex':'none';
-  if(v!=='custom')renderAll();
-}
-function onRegiaoChange(){
-  const reg=document.getElementById('f-regiao').value;
-  const sel=document.getElementById('f-polo');
-  const prev=sel.value;
-  sel.innerHTML='<option value="TODOS">Todos os polos</option>';
-  const polos=[...new Set(rawRows.map(r=>{const i=getPoloInfo(r);if(reg!=='TODOS'&&i.r!==reg)return null;return i.k;}))].filter(Boolean).sort();
-  polos.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=cap(p)+(POLO_REG[p]?' ('+POLO_REG[p]+')':'');sel.appendChild(o)});
-  if(polos.includes(prev))sel.value=prev;
-  renderAll();
-}
 
-// Retorna {from, to} como datas LOCAIS
-function getDateRange(){
-  const v=document.getElementById('f-period').value;
-  const n=new Date();
-  const y=n.getFullYear(),mo=n.getMonth(),d=n.getDate();
-  if(v==='all')return{from:null,to:null};
-  if(v==='today')return{from:new Date(y,mo,d,0,0,0,0),to:new Date(y,mo,d,23,59,59,999)};
-  if(v==='week'){
-    // Semana começa na segunda (1=seg...0=dom)
-    const dow=n.getDay()===0?6:n.getDay()-1; // dias desde segunda
-    const monDate=d-dow;
-    return{from:new Date(y,mo,monDate,0,0,0,0),to:new Date(y,mo,monDate+6,23,59,59,999)};
-  }
-  if(v==='month')return{from:new Date(y,mo,1,0,0,0,0),to:new Date(y,mo+1,0,23,59,59,999)};
-  if(v==='year')return{from:new Date(y,0,1,0,0,0,0),to:new Date(y,11,31,23,59,59,999)};
-  if(v==='custom'){
-    const fv=document.getElementById('f-from').value;
-    const tv=document.getElementById('f-to').value;
-    const fp=fv?fv.split('-'):null,tp=tv?tv.split('-'):null;
-    return{from:fp?new Date(+fp[0],+fp[1]-1,+fp[2],0,0,0,0):null,to:tp?new Date(+tp[0],+tp[1]-1,+tp[2],23,59,59,999):null};
-  }
-  return{from:null,to:null};
-}
 
-function pagouNoPeriodo(row){
-  if((row['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()!=='S')return false;
-  const{from,to}=getDateRange();
-  if(!from&&!to)return true;
-  const d=parseDatePag(row);
-  if(!d)return false;
-  if(from&&d<from)return false;
-  if(to&&d>to)return false;
-  return true;
-}
 
-// ══════ DATA DE MATRÍCULA (ENTRADA) — detecta automaticamente a coluna na planilha ══════
-// Assim o filtro de período passa a valer para TODAS as métricas (total, ativos, cancelados,
-// pagos e não pagos), não só para "1ª mensalidade paga".
-let _matriculaDateKey;
-function getMatriculaDateKey(){
-  if(_matriculaDateKey!==undefined)return _matriculaDateKey;
-  if(!rawRows.length){_matriculaDateKey=null;return null;}
-  const keys=Object.keys(rawRows[0]);
-  const candidates=keys.filter(k=>/^DATA/i.test(k)&&/MATRICUL/i.test(k)&&!/CANCEL/i.test(k)&&!/MENSALIDADE/i.test(k));
-  _matriculaDateKey=candidates[0]||null;
-  if(!_matriculaDateKey)console.warn('Coluna de data de matrícula não encontrada — o filtro de período afetará apenas "1ª mensalidade paga".');
-  return _matriculaDateKey;
-}
-function getMatriculaDate(row){
-  const key=getMatriculaDateKey();
-  if(!key)return null;
-  return parseDateStr(row[key]||'');
-}
-// Retorna true se o aluno "entrou" (matriculou-se) dentro do período selecionado no filtro
-function noPeriodoEntrada(row){
-  const{from,to}=getDateRange();
-  if(!from&&!to)return true; // "Todo o período" — sem filtro
-  const key=getMatriculaDateKey();
-  if(!key)return true; // coluna não encontrada: não filtra (comportamento antigo, mais seguro)
-  const d=getMatriculaDate(row);
-  if(!d)return false;
-  if(from&&d<from)return false;
-  if(to&&d>to)return false;
-  return true;
-}
 
-function periodLabel(){
-  const v=document.getElementById('f-period').value;
-  const labels={all:'Todo o período',today:'Hoje',week:'Esta semana',month:'Este mês',year:'Este ano',custom:'Personalizado'};
-  if(v!=='custom')return labels[v]||v;
-  const f=document.getElementById('f-from').value,t=document.getElementById('f-to').value;
-  return f&&t?f.split('-').reverse().join('/')+' → '+t.split('-').reverse().join('/'):'Personalizado';
-}
 
-// ══════ PROCESS — filtra por polo/região e considera período ══════
-function processData(rows){
-  const bp={};
-  // Inicializa todos os polos conhecidos
-  Object.keys(METAS).forEach(p=>{bp[p]={total:0,paga:0,cancel:0,ativos:0,naoPaga:0,reg:POLO_REG[p]||'?'}});
-  const reg=document.getElementById('f-regiao').value;
-  const polo=document.getElementById('f-polo').value;
 
-  // ── Cohort A: alunos que ENTRARAM (matricularam-se) dentro do período selecionado ──
-  // Define total / ativos / cancelados / não pagaram (independente de quando o pagamento ocorreu)
-  rows.forEach(r=>{
-    if(!noPeriodoEntrada(r))return;
-    const inf=getPoloInfo(r);
-    const pk=inf.k,pr=inf.r;
-    if(reg!=='TODOS'&&pr!==reg)return;
-    if(polo!=='TODOS'&&pk!==polo)return;
-    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0,naoPaga:0,reg:pr};
-    const ca=(r['DATA_CANCELAMENTO']||'').trim()!=='';
-    const pagouAlgumDia=(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
-    bp[pk].total++;
-    if(ca)bp[pk].cancel++;
-    else{
-      bp[pk].ativos++;
-      if(!pagouAlgumDia)bp[pk].naoPaga++;
-    }
-  });
-
-  // ── Cohort B: PAGAMENTOS ocorridos dentro do período selecionado ──
-  // Aqui NÃO filtramos pela data de matrícula: se o pagamento aconteceu no período (ex.: hoje),
-  // conta como "1ª mensalidade paga" mesmo que o aluno tenha se matriculado antes.
-  rows.forEach(r=>{
-    const inf=getPoloInfo(r);
-    const pk=inf.k,pr=inf.r;
-    if(reg!=='TODOS'&&pr!==reg)return;
-    if(polo!=='TODOS'&&pk!==polo)return;
-    if(!bp[pk])bp[pk]={total:0,paga:0,cancel:0,ativos:0,naoPaga:0,reg:pr};
-    if(pagouNoPeriodo(r))bp[pk].paga++;
-  });
-
-  return Object.entries(bp)
-    .filter(([p])=>{
-      // Filtrar por região
-      if(reg!=='TODOS'&&POLO_REG[p]!==reg)return false;
-      // Filtrar por polo específico
-      if(polo!=='TODOS'&&p!==polo)return false;
-      return true;
-    })
-    .map(([p,d])=>({
-      polo:p,total:d.total,ativos:d.ativos,cancel:d.cancel,
-      paga:d.paga,naoPaga:d.naoPaga,
-      meta:METAS[p]||0,reg:d.reg
-    }));
-}
-
-function getColabs(rows){
-  const mp={};
-  const reg=document.getElementById('f-regiao').value;
-  const polo=document.getElementById('f-polo').value;
-  rows.forEach(r=>{
-    const inf=getPoloInfo(r);
-    if(reg!=='TODOS'&&inf.r!==reg)return;
-    if(polo!=='TODOS'&&inf.k!==polo)return;
-    const nome=(r['ESPECIALIZACAO_MATRICULOU']||'').trim();
-    if(!nome||SISTEMA.some(s=>nome.toLowerCase().includes(s)))return;
-    if(!mp[nome])mp[nome]={nome,total:0,paga:0,polo:cap(inf.k)};
-    // "total" (matrículas) é contado pela data de matrícula; "paga" pela data de pagamento
-    if(noPeriodoEntrada(r))mp[nome].total++;
-    if(pagouNoPeriodo(r))mp[nome].paga++;
-  });
-  return Object.values(mp).sort((a,b)=>b.paga-a.paga||b.total-a.total);
-}
-
-function getCursos(rows){
-  const mp={};
-  const reg=document.getElementById('f-regiao').value;
-  const polo=document.getElementById('f-polo').value;
-  rows.forEach(r=>{
-    if(!noPeriodoEntrada(r))return;
-    const inf=getPoloInfo(r);
-    if(reg!=='TODOS'&&inf.r!==reg)return;
-    if(polo!=='TODOS'&&inf.k!==polo)return;
-    const c=(r['NOME_DO_CURSO']||'').trim();if(!c)return;
-    if(!mp[c])mp[c]={nome:c,total:0};mp[c].total++;
-  });
-  return Object.values(mp).sort((a,b)=>b.total-a.total);
-}
-
-function sum(a,k){return a.reduce((s,b)=>s+(b[k]||0),0)}
-function cap(s){return(s||'').split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(' ')}
-
-// ══════ META LABEL + VALOR — respeita filtro ══════
-function metaLabel(){
-  const polo=document.getElementById('f-polo').value;
-  const reg=document.getElementById('f-regiao').value;
-  if(polo!=='TODOS')return 'Meta de '+cap(polo);
-  if(reg!=='TODOS'){const rn={AC:'Acre · AC',RO:'Rondônia · RO',AM:'Amazonas · AM'};return 'Meta — '+rn[reg];}
-  return 'Meta total da rede';
-}
-
-// ══════ FINISH LOAD ══════
-function finishLoad(){
-  // Guardar o polo selecionado antes de recriar o select
-  const selPolo=document.getElementById('f-polo');
-  const prevPolo=selPolo.value||'TODOS';
-  const reg=document.getElementById('f-regiao').value||'TODOS';
-
-  // Popular polos sem alterar região/período selecionados
-  const polos=[...new Set(rawRows.map(r=>getPoloKey(r)))].filter(Boolean).sort();
-  selPolo.innerHTML='<option value="TODOS">Todos os polos</option>';
-  polos.filter(p=>reg==='TODOS'||POLO_REG[p]===reg).forEach(p=>{
-    const o=document.createElement('option');o.value=p;
-    o.textContent=cap(p)+(POLO_REG[p]?' ('+POLO_REG[p]+')':'');
-    selPolo.appendChild(o);
-  });
-  // Restaurar polo se ainda existir
-  if([...selPolo.options].some(o=>o.value===prevPolo))selPolo.value=prevPolo;
-
-  document.getElementById('hero-sec').style.display='block';
-  document.getElementById('proj-bar').style.display='flex';
-  document.getElementById('filters').style.display='flex';
-  showContent();renderAll();
-  // Toasts iniciais
-  setTimeout(()=>{
-    const data=processData(rawRows);
-    const pg=sum(data,'paga');
-    if(pg>0){showToast('💰','Pagamentos registrados',pg+' pagamento'+(pg!==1?'s':'')+' confirmado'+(pg!==1?'s':'')+' no período atual.','pay');}
-    // Verificar se o último pagamento foi há mais de 3 dias
-    const pagRows=rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
-    if(pagRows.length){
-      const dates=pagRows.map(r=>parseDatePag(r)).filter(Boolean).sort((a,b)=>b-a);
-      if(dates.length){
-        const diff=Math.round((new Date()-dates[0])/(86400000));
-        if(diff>=3)setTimeout(()=>showToast('📅','Atenção','Último pagamento há '+diff+' dia'+(diff!==1?'s':'')+'. Acione os colaboradores!','warning'),1500);
-      }
-    }
-  },1000);
-}
-
-// ══════ RENDER ALL ══════
-function renderAll(){
-  const data=processData(rawRows);
-  renderHero(data);renderProj(data);
-  renderKPIs(data);
-  renderMetaBars(data);
-  renderStatusChart(data);
-  renderNaoChart(data);renderDistChart(data);
-  renderRankColab(rawRows);renderCursos(rawRows);
-  renderTable(data);
-}
-
-// ══════ HERO ══════
-function renderHero(data){
-  const total=sum(data,'total'),meta=sum(data,'meta'),paga=sum(data,'paga'),ativos=sum(data,'ativos');
-  const pct=meta>0?Math.round(paga/meta*100):0;
-  const reg=document.getElementById('f-regiao').value;
-  const polo=document.getElementById('f-polo').value;
-  const ctx=polo!=='TODOS'?cap(polo):reg!=='TODOS'?{AC:'Acre',RO:'Rondônia',AM:'Amazonas'}[reg]:'Todos os polos';
-  document.getElementById('hero-sub').textContent='Monitoramento em tempo real · '+ctx+' · '+periodLabel();
-  document.getElementById('hero-st').innerHTML=[
-    {v:total,l:'Calouros'},{v:ativos,l:'Ativos'},{v:paga,l:'1ª Paga'},
-    {v:meta,l:polo!=='TODOS'?'Meta do polo':reg!=='TODOS'?'Meta da região':'Meta total'},
-    {v:pct+'%',l:'Da meta'},
-    {v:lastLoad?lastLoad.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—',l:'Atualizado'}
-  ].map(s=>`<div class="hs"><div class="hs-v">${s.v}</div><div class="hs-l">${s.l}</div></div>`).join('');
-}
-
-// ══════ PROJEÇÃO ══════
-function renderProj(data){
-  const paga=sum(data,'paga'),meta=sum(data,'meta'),faltam=Math.max(0,meta-paga);
-  // Ritmo baseado nos pagamentos com data
-  const pagRows=rawRows.filter(r=>pagouNoPeriodo(r));
-  const diasAtivos=Math.max(pagRows.length>0?7:0,1); // mínimo 7 dias se tiver dados
-  const ritmo=paga>0?Math.max(Math.round(paga/Math.max(diasAtivos/7,1)),1):0;
-  let proj='—';
-  if(ritmo>0&&faltam>0){
-    const semanas=Math.ceil(faltam/ritmo);
-    const dp=new Date();dp.setDate(dp.getDate()+semanas*7);
-    proj=dp.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-  }else if(faltam===0)proj='🎉 Meta atingida!';
-  else proj='Aguardando pagamentos';
-  document.getElementById('pj-d').textContent=proj;
-  document.getElementById('pj-r').textContent=ritmo>0?ritmo+' pag./semana':'Aguardando dados';
-  document.getElementById('pj-f').textContent=faltam+' pagamento'+(faltam!==1?'s':'');
-  document.getElementById('pj-per').textContent=periodLabel();
-}
-
-// ══════ KPIs ══════
-function renderKPIs(data){
-  const tot=sum(data,'total'),at=sum(data,'ativos'),ca=sum(data,'cancel');
-  const pg=sum(data,'paga'),np=sum(data,'naoPaga'),mt=sum(data,'meta');
-  const tp=at>0?Math.round(pg/at*100):0;
-  const tr=at>0?Math.round(np/at*100):0;
-  const pm=mt>0?Math.round(pg/mt*100):0;
-  const ft=Math.max(0,mt-pg);
-  const pcp=data.filter(d=>d.paga>0).length;
-  const ntot=data.length||1;
-  const pm2=data.filter(d=>d.meta>0);
-  const melhor=pm2.length?pm2.reduce((a,b)=>(b.paga/b.meta>a.paga/a.meta)?b:a):null;
-  const per=periodLabel();const ps=per==='Todo o período'?'':' · '+per;
-  const mlbl=metaLabel();
-
-  // Função que cria um KPI — detalhes via data-attributes (evita quebra por aspas/espaços)
-  const mkKPI=(k,i)=>`
-    <div class="kpi ${k.c}" style="animation-delay:${i*.05}s" data-mid="${k.mid}" data-ml="${k.ml.replace(/"/g,'')}">
-      <div class="kpi-top">
-        <div class="kpi-ic">${k.ic}</div>
-        <span class="kpi-det">detalhes ▸</span>
-      </div>
-      <div class="kpi-l">${k.l}</div>
-      <div class="kpi-v" style="${k.sm?'font-size:15px;font-weight:800;line-height:1.3':''}">${k.v}</div>
-      <div class="kpi-s">${k.s}</div>
-      ${k.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(k.b||0,100)}%"></div></div>`:''}
-    </div>`;
-
-  const mk=(id,kpis)=>{ document.getElementById(id).innerHTML=kpis.map((k,i)=>mkKPI(k,i)).join(''); };
-
-  mk('kg1',[
-    {l:'Total de calouros',v:tot,s:'matriculados na base',ic:'🎓',c:'kb',b:null,mid:'total',ml:'Total por polo'},
-    {l:'Matrículas ativas',v:at,s:ca>0?ca+' cancelamento'+(ca!==1?'s':''):'zero cancelamentos',ic:'✅',c:'kg2c',b:Math.round(at/Math.max(tot,1)*100),mid:'ativos',ml:'Ativos por polo'},
-    {l:'1ª mensalidade paga',v:pg,s:tp+'% dos ativos'+ps,ic:'💰',c:'ky',b:tp,mid:'paga',ml:'1ª mensalidade paga por polo'},
-    {l:'Não pagaram (ativos)',v:np,s:tr+'% em risco de evasão',ic:'⚠️',c:'kr',b:tr,mid:'naoPaga',ml:'Sem pagamento por polo'},
-    {l:'Progresso da meta',v:pm+'%',s:pg+' de '+mt+' pagamentos',ic:'🎯',c:'ko',b:pm,mid:'meta',ml:'Progresso por polo'},
-    {l:'Cancelados',v:ca,s:ca===0?'excelente retenção!':'requer atenção',ic:'❌',c:ca>0?'kr':'kg2c',b:null,mid:'cancel',ml:'Cancelados por polo'},
-  ]);
-  mk('kg2',[
-    {l:'Faltam para meta',v:ft,s:'pagamentos restantes',ic:'⏳',c:'ko',b:null,mid:'faltam',ml:'Faltam por polo'},
-    {l:'Taxa de conversão',v:tp+'%',s:'pagamentos ÷ ativos',ic:'📈',c:tp>=50?'kg2c':tp>=25?'ky':'kr',b:tp,mid:'conv',ml:'Taxa por polo'},
-    {l:mlbl,v:mt,s:'pagamentos esperados',ic:'📋',c:'kw',b:null,mid:'metaT',ml:mlbl+' por polo'},
-    {l:'Polos com pagamentos',v:pcp,s:'de '+ntot+' polo'+(ntot!==1?'s':'')+' filtrado'+(ntot!==1?'s':''),ic:'🏫',c:'kp',b:Math.round(pcp/ntot*100),mid:'polosPag',ml:'Polos com pagamentos'},
-    {l:'Polo destaque',v:melhor?cap(melhor.polo):'—',s:melhor&&melhor.meta>0?Math.round(melhor.paga/melhor.meta*100)+'% da meta':'—',ic:'🏆',c:'ky',b:null,sm:true,mid:'destaque',ml:'Top polos'},
-    {l:'Alunos em risco',v:np,s:'ativos sem pagamento',ic:'🔴',c:np>10?'kr':'ko',b:Math.round(np/Math.max(at,1)*100),mid:'risco',ml:'Em risco por polo'},
-  ]);
-}
-
-// ══════ MODAL — detalhes dos KPIs ══════
-function openModal(tipo,titulo){
-  document.getElementById('mbox').className='mbox';
-  const data=processData(rawRows);
-  document.getElementById('mtitle').textContent=titulo;
-
-  const rowH=(name,val,color,pct,sub='')=>`
-    <div class="mrow"><div style="flex:1">
-      <div class="mname">${name}</div>
-      ${sub?`<div class="msub">${sub}</div>`:''}
-      <div class="mprog"><div class="mpb"><div class="mpf" style="width:${pct||0}%;background:${color}"></div></div></div>
-    </div><div class="mval" style="color:${color}">${val}</div></div>`;
-
-  let rows=[];
-  const cc={total:'#3b82f6',ativos:'#22c55e',paga:warnColor(),naoPaga:'#ef4444',cancel:'#ef4444'};
-
-  if(['total','ativos','paga','naoPaga','cancel'].includes(tipo)){
-    const maxV=Math.max(...data.map(d=>d[tipo]||0),1);
-    rows=data.filter(d=>d.total>0).sort((a,b)=>(b[tipo]||0)-(a[tipo]||0)).map(d=>{
-      const tag=d.reg&&d.reg!=='?'?` <span style="font-size:9px;color:var(--tx3)">${d.reg}</span>`:'';
-      return rowH(cap(d.polo)+tag,d[tipo]||0,cc[tipo],Math.round((d[tipo]||0)/maxV*100));
-    });
-  }else if(tipo==='meta'||tipo==='conv'){
-    rows=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).map(d=>{
-      const pct=Math.round(d.paga/d.meta*100);
-      const c=pct>=50?'#22c55e':pct>=25?warnColor():'#ef4444';
-      return rowH(cap(d.polo),tipo==='conv'?pct+'%':d.paga+'/'+d.meta,c,Math.min(pct,100),pct+'% da meta');
-    });
-  }else if(tipo==='faltam'){
-    rows=data.filter(d=>d.meta>0).sort((a,b)=>Math.max(0,b.meta-b.paga)-Math.max(0,a.meta-a.paga)).map(d=>{
-      const f=Math.max(0,d.meta-d.paga);
-      return rowH(cap(d.polo),f+' restantes','#f97316',Math.round(f/d.meta*100));
-    });
-  }else if(tipo==='metaT'){
-    rows=data.sort((a,b)=>b.meta-a.meta).map(d=>rowH(cap(d.polo),d.meta||'sem meta','var(--tx)',0));
-  }else if(tipo==='polosPag'){
-    rows=data.filter(d=>d.paga>0).sort((a,b)=>b.paga-a.paga).map(d=>{
-      return rowH(cap(d.polo),d.paga+' pagamento'+(d.paga!==1?'s':''),warnColor(),Math.round(d.paga/Math.max(...data.map(x=>x.paga),1)*100));
-    });
-  }else if(tipo==='destaque'){
-    rows=data.filter(d=>d.meta>0).sort((a,b)=>(b.paga/b.meta)-(a.paga/a.meta)).slice(0,5).map((d,i)=>{
-      const pct=Math.round(d.paga/d.meta*100);
-      return rowH((MEDALS[i]||'')+(i>=3?` ${i+1}º`:'')+ ' '+cap(d.polo),pct+'% da meta',warnColor(),pct);
-    });
-  }else if(tipo==='risco'){
-    rows=data.filter(d=>d.naoPaga>0).sort((a,b)=>b.naoPaga-a.naoPaga).map(d=>{
-      return rowH(cap(d.polo),d.naoPaga+' em risco','#ef4444',Math.round(d.naoPaga/Math.max(...data.map(x=>x.naoPaga),1)*100));
-    });
-  }
-
-  // Tipos que têm lista de alunos exportável
-  var exportTipos = {'total':'total','ativos':'ativos','paga':'paga','naoPaga':'naoPaga','cancel':'cancel'};
-  var exportBtn = '';
-  if(exportTipos[tipo]){
-    exportBtn = '<div style="padding:0 0 16px">'+
-      '<button onclick="exportAlunos(\''+tipo+'\')" style="'+
-        'width:100%;padding:10px 16px;background:#FFD600;color:#000;border:none;'+
-        'border-radius:9px;font-size:13px;font-family:Inter,sans-serif;font-weight:700;'+
-        'display:flex;align-items:center;justify-content:center;gap:8px;'+
-        'transition:background .2s;box-shadow:0 2px 12px rgba(255,214,0,.25)">'+
-        '⬇ Baixar planilha Excel (.xlsx)</button>'+
-      '<div style="font-size:10px;color:var(--tx3);text-align:center;margin-top:6px">Abre direto no Excel com nome, CPF, matrícula, contato e polo</div>'+
-      '</div>';
-  }
-
-  if(!rows.length)rows=['<div style="padding:24px;text-align:center;color:var(--tx3);font-size:13px">Sem dados para exibir no período/filtro selecionado.</div>'];
-  document.getElementById('mbody').innerHTML = exportBtn + rows.join('');
-  document.getElementById('modal').style.display='flex';
-}
-
-// botão detalhes dos KPIs usa onclick direto no elemento
-
-// ══════ EXPANDIR GRÁFICOS — recria com dados ao vivo ══════
-function expandMetaBars(){
-  document.getElementById('mbox').className='mbox mbox-big';
-  document.getElementById('mtitle').textContent='Progresso da meta · linha de chegada por polo';
-  const src=document.getElementById('meta-bars');
-  document.getElementById('mbody').innerHTML=`<div style="padding:8px 0;max-height:600px;overflow-y:auto">${src.innerHTML}</div>`;
-  document.getElementById('modal').style.display='flex';
-}
-
-function expandChart(canvasId,titulo,chartKey){
-  document.getElementById('mbox').className='mbox mbox-big';
-  document.getElementById('mtitle').textContent=titulo;
-  // Criar canvas novo dentro do modal
-  const wrap=document.createElement('div');
-  wrap.style.cssText='position:relative;height:520px;width:100%';
-  const nc=document.createElement('canvas');
-  nc.id='modal-cv';
-  wrap.appendChild(nc);
-  document.getElementById('mbody').innerHTML='';
-  document.getElementById('mbody').appendChild(wrap);
-  // Recriar o gráfico com dados atuais no canvas novo
-  const data=processData(rawRows);
-  if(window._mc){window._mc.destroy();window._mc=null;}
-  if(chartKey==='st')     _buildExpandSt(nc,data);
-  else if(chartKey==='nao')   _buildExpandNao(nc,data);
-  else if(chartKey==='dist')  _buildExpandDist(nc,data);
-  document.getElementById('modal').style.display='flex';
-}
-
-function _buildExpandSt(nc,data){
-  const pg=sum(data,'paga'),np=sum(data,'naoPaga'),ca=sum(data,'cancel');
-  const colors=['#FFD600','#ef4444',isDark?'#252830':'#d1d5db'];
-  window._mc=new Chart(nc,{type:'doughnut',
-    data:{labels:['Pagaram','Não pagaram','Cancelados'],datasets:[{data:[pg,np,ca],backgroundColor:colors,borderWidth:3,borderColor:isDark?'#111318':'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{color:isDark?'#aaa':'#555',font:{family:'Inter',size:12}}},tooltip:TO()}}
-  });
-}
-function _buildExpandNao(nc,data){
-  const s=[...data].filter(d=>d.total>0).sort((a,b)=>b.naoPaga-a.naoPaga);
-  window._mc=new Chart(nc,{type:'bar',
-    data:{labels:s.map(d=>cap(d.polo)),datasets:[{label:'Não pagaram',data:s.map(d=>d.naoPaga),backgroundColor:s.map((_,i)=>PC[i%PC.length]+'99'),borderColor:s.map((_,i)=>PC[i%PC.length]),borderWidth:1,borderRadius:6,maxBarThickness:40}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:TO()},
-      scales:{x:{ticks:{color:TC(),font:{size:12}},grid:{color:GC()},beginAtZero:true},y:{ticks:{color:TC(),font:{size:12,family:'Inter'}},grid:{display:false}}}}
-  });
-}
-function _buildExpandDist(nc,data){
-  const r=data.filter(d=>d.total>0);
-  window._mc=new Chart(nc,{type:'pie',
-    data:{labels:r.map(d=>cap(d.polo)),datasets:[{data:r.map(d=>d.total),backgroundColor:PC.slice(0,r.length).map(c=>c+'aa'),borderColor:isDark?'#0c0d11':'#fff',borderWidth:3}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:true,position:'right',labels:{color:isDark?'#aaa':'#555',font:{family:'Inter',size:12},boxWidth:12,padding:10}},tooltip:TO()}}
-  });
-}
-function closeModal(){
-  document.getElementById('modal').style.display='none';
-  if(window._mc){window._mc.destroy();window._mc=null;}
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-
-// ══ EXPORTAR LISTA DE ALUNOS ══
-function exportAlunos(tipo){
-  var reg  = document.getElementById('f-regiao').value;
-  var polo = document.getElementById('f-polo').value;
-
-  var tipoLabels={total:'Todos os Alunos',ativos:'Matrículas Ativas',paga:'1ª Mensalidade Paga',naoPaga:'Não Pagaram (Ativos)',cancel:'Cancelados',risco:'Alunos em Risco'};
-  var tipoLabel = tipoLabels[tipo]||'Alunos';
-  var regLabel  = reg==='TODOS'?'Todas as Regiões':reg==='AC'?'Acre':reg==='RO'?'Rondônia':'Amazonas';
-  var poloLabel = polo==='TODOS'?'Todos os Polos':cap(polo);
-
-  // ── Filtrar alunos ──
-  // "paga" é filtrado pela DATA DE PAGAMENTO (independente de quando matriculou).
-  // Os demais tipos são filtrados pela DATA DE MATRÍCULA (cohort que entrou no período).
-  var rows = rawRows.filter(function(r){
-    var inf = getPoloInfo(r);
-    if(reg!=='TODOS' && inf.r!==reg) return false;
-    if(polo!=='TODOS' && inf.k!==polo) return false;
-    var raw = (r['DATA_CANCELAMENTO']||'').trim();
-    var cancelado = raw!=='' && raw!=='nan' && raw!=='None' && raw!=='NaT';
-    var pagouFlag = (r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
-    var ativo     = !cancelado;
-    if(tipo==='paga')    return pagouNoPeriodo(r);
-    if(!noPeriodoEntrada(r)) return false;
-    if(tipo==='naoPaga') return ativo && !pagouFlag;
-    if(tipo==='cancel')  return cancelado;
-    if(tipo==='ativos')  return ativo;
-    if(tipo==='risco')   return ativo && !pagouFlag;
-    return true; // total e demais
-  });
-
-  if(!rows.length){alert('Nenhum aluno encontrado com o filtro atual.');return;}
-
-  // ── Montar dados ──
-  var now = new Date();
-  var dataGer = now.toLocaleDateString('pt-BR')+' às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-
-  var headers=['Nº','Nome Completo','Cód. Matrícula','Curso','Polo','Data Matrícula','Telefone','Celular','E-mail','Situação','Pagou 1ª Mens.','Data Pagamento','Colaborador'];
-
-  var dataRows = rows.map(function(r,i){
-    var rawC = (r['DATA_CANCELAMENTO']||'').trim();
-    var cancelado = rawC!=='' && rawC!=='nan' && rawC!=='None';
-    var pagou = (r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S';
-    // Data pagamento formatada
-    var dataPag='';
-    if(pagou){
-      var m=((r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'])||'').match(/(\d{4})-(\d{2})-(\d{2})/);
-      if(m) dataPag=m[3]+'/'+m[2]+'/'+m[1];
-    }
-    // Data de matrícula formatada (coluna detectada automaticamente na planilha)
-    var dataMat='';
-    var dMat=getMatriculaDate(r);
-    if(dMat) dataMat=dMat.toLocaleDateString('pt-BR');
-    // CPF — Google Sheets exporta em notação científica (ex: 7.05981902950000E+10)
-    // NÃO usar parseFloat (perde precisão). Usar o expoente para extrair dígitos corretos.
-    var cpfRaw = String(r['CPF']||'').trim();
-    var cpf = '';
-    if(cpfRaw.toUpperCase().indexOf('E') >= 0){
-      var parts = cpfRaw.toUpperCase().split('E');
-      var mantissa = parts[0].replace('.',''); // "705981902950000"
-      var exp = parseInt(parts[1]);            // 10
-      var totalDigits = exp + 1;               // 11 dígitos do CPF
-      cpf = mantissa.substring(0, totalDigits);
-    } else {
-      cpf = cpfRaw.split('.')[0].replace(/\D/g,'');
-    }
-    cpf = cpf.padStart(11,'0');
-    if(cpf.length === 11) cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
-    return[
-      i+1,
-      r['NOME']||'',
-      r['CODIGO_ALUNO']||'',
-      r['NOME_DO_CURSO']||'',
-      r['NOME_DO_POLO']||'',
-      dataMat,
-      r['TELEFONE']||'',
-      r['CELULAR']||'',
-      r['EMAIL']||'',
-      cancelado?'Cancelado':'Ativo',
-      pagou?'Sim':'Não',
-      dataPag,
-      r['ESPECIALIZACAO_MATRICULOU']||''
-    ];
-  });
-
-  // ── Criar workbook com SheetJS ──
-  var wb = XLSX.utils.book_new();
-
-  // Bloco de título + dados
-  var sheetData=[
-    ['RELATÓRIO DE ALUNOS — '+tipoLabel.toUpperCase()],
-    ['Polo: '+poloLabel+'   |   Região: '+regLabel+'   |   Período: '+periodLabel()],
-    ['Gerado em: '+dataGer+'   |   Total de alunos: '+rows.length],
-    [],
-    headers
-  ].concat(dataRows);
-
-  var ws = XLSX.utils.aoa_to_sheet(sheetData);
-
-  // Largura das colunas
-  ws['!cols']=[
-    {wch:4},{wch:36},{wch:13},{wch:28},
-    {wch:32},{wch:13},{wch:16},{wch:16},{wch:34},
-    {wch:11},{wch:13},{wch:14},{wch:28}
-  ];
-
-  // Mesclar título (linha 1 = row 0)
-  ws['!merges']=[
-    {s:{r:0,c:0},e:{r:0,c:12}},
-    {s:{r:1,c:0},e:{r:1,c:12}},
-    {s:{r:2,c:0},e:{r:2,c:12}}
-  ];
-
-  // Nome da aba (máx 31 chars, sem caracteres especiais)
-  var abaName=(polo==='TODOS'?'Todos os Polos':cap(polo))
-    .replace(/[:\\\/?*\[\]]/g,'').substring(0,28);
-
-  XLSX.utils.book_append_sheet(wb,ws,abaName||'Relatório');
-
-  // Nome do arquivo
-  var poloF=polo==='TODOS'?'todos':polo.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,20);
-  var perF =periodLabel().replace(/[^a-zA-Z0-9]/g,'_').substring(0,15);
-  XLSX.writeFile(wb,'alunos_'+tipo+'_'+poloF+'_'+perF+'.xlsx');
-
-  showToast('📥','Planilha exportada!',rows.length+' aluno'+(rows.length!==1?'s':'')+' · .xlsx gerado','pay');
-}
-
-// ══════ CHART OPTS ══════
-function TO(){
-  return{backgroundColor:isDark?'#14151a':'#fff',
-    borderColor:isDark?'rgba(255,214,0,.18)':'rgba(0,0,0,.15)',borderWidth:1,
-    titleColor:isDark?'#fff':'#111',bodyColor:isDark?'#888':'#555',
-    padding:11,cornerRadius:9,
-    titleFont:{family:'Inter',weight:'700',size:12},bodyFont:{family:'Inter',size:11}};
-}
-function GC(){return isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.07)';}
-function TC(){return isDark?'#3e4250':'#9ca3af';}
-
-// ══════ BARRAS META ══════
-function renderMetaBars(data){
-  const relevant=data.filter(d=>d.total>0);
-  if(!relevant.length){document.getElementById('meta-bars').innerHTML='<div style="color:var(--tx3);font-size:12px">Sem dados.</div>';return;}
-  const html=relevant.map((d,i)=>{
-    const pct=d.meta>0?Math.min(Math.round(d.paga/d.meta*100),100):0;
-    const color=pct>=50?PC[i%PC.length]:pct>=20?'#f97316':'#ef4444';
-    const faltam=Math.max(0,d.meta-d.paga);
-    const gradient=`linear-gradient(90deg,${color}99,${color})`;
-    return `<div class="mb-item">
-      <div class="mb-header">
-        <span class="mb-polo">${cap(d.polo)}</span>
-        <span class="mb-vals">${d.paga}/${d.meta||'—'} &nbsp;
-          <strong style="color:${color}">${pct}%</strong>
-          ${d.meta>0?'<span style="color:var(--tx3);font-size:9px"> META</span>':''}
-        </span>
-      </div>
-      <div class="mb-track">
-        ${d.meta>0?'<div class="mb-goal-line"></div>':''}
-        <div class="mb-fill" style="width:${pct}%;background:${gradient}"></div>
-      </div>
-      <div class="mb-sub">
-        ${d.meta>0&&faltam>0
-          ?`Faltam <strong style="color:${color}">${faltam}</strong> pagamento${faltam!==1?'s':''} para a meta`
-          :d.meta>0?'<strong style="color:#22c55e">✓ Meta atingida!</strong>'
-          :'<span style="color:var(--tx3)">Sem meta definida</span>'}
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('meta-bars').innerHTML=html;
-}
-
-// ══════ STATUS CHART ══════
-function renderStatusChart(data){
-  const pg=sum(data,'paga'),np=sum(data,'naoPaga'),ca=sum(data,'cancel'),at=sum(data,'ativos');
-  const tp=at>0?Math.round(pg/at*100):0;
-  document.getElementById('taxa-pag').textContent=tp+'%';
-  const colors=['#FFD600','#ef4444',isDark?'#252830':'#d1d5db'];
-  const lbls=['Pagaram','Não pagaram','Cancelados'],vals=[pg,np,ca];
-  document.getElementById('leg-st').innerHTML=lbls.map((l,i)=>`
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2)">
-        <span style="width:8px;height:8px;border-radius:2px;background:${colors[i]};display:inline-block"></span>${l}
-      </span><strong style="font-size:12px;color:var(--tx)">${vals[i]}</strong>
-    </div>`).join('');
-  if(charts.st)charts.st.destroy();
-  charts.st=new Chart(document.getElementById('ch-st'),{type:'doughnut',
-    data:{labels:lbls,datasets:[{data:vals,backgroundColor:colors,borderWidth:3,borderColor:isDark?'#111318':'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:TO()}}
-  });
-}
-
-// ══════ NÃO PAGOU ══════
-function renderNaoChart(data){
-  const s=[...data].filter(d=>d.total>0).sort((a,b)=>b.naoPaga-a.naoPaga);
-  if(charts.nao)charts.nao.destroy();
-  charts.nao=new Chart(document.getElementById('ch-nao'),{type:'bar',
-    data:{labels:s.map(d=>cap(d.polo)),datasets:[{label:'Não pagaram',data:s.map(d=>d.naoPaga),
-      backgroundColor:s.map((_,i)=>PC[i%PC.length]+'77'),borderColor:s.map((_,i)=>PC[i%PC.length]),
-      borderWidth:1,borderRadius:4,maxBarThickness:18}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:TO()},
-      scales:{x:{ticks:{color:TC(),font:{size:10}},grid:{color:GC()},beginAtZero:true},
-        y:{ticks:{color:TC(),font:{size:10,family:'Inter'}},grid:{display:false}}}}
-  });
-}
-
-// ══════ DISTRIBUIÇÃO ══════
-function renderDistChart(data){
-  const r=data.filter(d=>d.total>0);
-  if(charts.dist)charts.dist.destroy();
-  charts.dist=new Chart(document.getElementById('ch-dist'),{type:'pie',
-    data:{labels:r.map(d=>cap(d.polo)),datasets:[{data:r.map(d=>d.total),
-      backgroundColor:PC.slice(0,r.length).map(c=>c+'aa'),borderColor:isDark?'#0c0d11':'#fff',borderWidth:3}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:true,position:'bottom',labels:{color:TC(),font:{size:9,family:'Inter'},boxWidth:7,padding:6}},tooltip:TO()}}
-  });
-}
-
-// ══════ RANK ══════
-function renderRankColab(rows){
-  const colabs=getColabs(rows);
-  const maxP=Math.max(...colabs.map(c=>c.paga),1);
-  const TOP=5;
-  function mkItem(c,i){
-    const medal=i<3?MEDALS[i]:'';
-    const color=i===0?warnColor():i===1?'#c0c0c0':i===2?'#cd7f32':PC[i%PC.length];
-    return `<div class="ritem">
-      ${medal?`<div class="rmed">${medal}</div>`:`<div class="rnum">${i+1}º</div>`}
-      <div class="rinfo">
-        <div class="rname">${c.nome}</div>
-        <div class="rpolo">${c.polo||'—'}</div>
-        <div class="rbg"><div class="rbf" style="width:${Math.round(c.paga/maxP*100)}%;background:${color}"></div></div>
-      </div>
-      <div style="text-align:right">
-        <div class="rbadge" style="background:${i===0?'rgba(255,214,0,.1)':'rgba(128,128,128,.08)'};color:${color};border:1px solid ${color}22">
-          ${c.paga} pago${c.paga!==1?'s':''}
-        </div>
-        <div style="font-size:9px;color:var(--tx3);margin-top:3px">${c.total} matrícula${c.total!==1?'s':''}</div>
-      </div>
-    </div>`;
-  }
-  if(!colabs.length){document.getElementById('rank-top').innerHTML='<div style="color:var(--tx3);font-size:12px;padding:12px">Sem dados no período/filtro selecionado.</div>';document.getElementById('rank-more-btn').style.display='none';return;}
-  document.getElementById('rank-top').innerHTML=colabs.slice(0,TOP).map((c,i)=>mkItem(c,i)).join('');
-  document.getElementById('rank-rest').innerHTML=colabs.slice(TOP).map((c,i)=>mkItem(c,i+TOP)).join('');
-  const rest=colabs.slice(TOP).length;
-  const btn=document.getElementById('rank-more-btn');
-  if(rest>0){btn.style.display='flex';document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+rest+' colaborador'+(rest!==1?'es':'');}
-  else btn.style.display='none';
-}
-function toggleRankMore(){
-  rankExpanded=!rankExpanded;
-  document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');
-  document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';
-  const n=document.getElementById('rank-rest').children.length;
-  document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+n+' colaborador'+(n!==1?'es':'');
-}
-
-// ══════ CURSOS ══════
-function renderCursos(rows){
-  const cursos=getCursos(rows);
-  const maxT=Math.max(...cursos.map(c=>c.total),1);
-  if(!cursos.length){document.getElementById('cursos-list').innerHTML='<div style="color:var(--tx3);font-size:12px">Sem dados.</div>';return;}
-  const top=cursos.slice(0,5);
-  const bot=cursos.length>5?cursos.slice(-3).filter(c=>c.total<(top[top.length-1]?.total||999)):[];
-  const tC=[warnColor(),'#22c55e','#3b82f6','#a855f7','#06b6d4'];
-  const mkci=(c,i,col)=>`<div class="ci"><div class="ci-rank">${i+1}º</div>
-    <div class="ci-name" title="${c.nome}">${c.nome}</div>
-    <div class="ci-bg"><div class="ci-f" style="width:${Math.round(c.total/maxT*100)}%;background:${col}"></div></div>
-    <div class="ci-n" style="color:${col}">${c.total}</div></div>`;
-  let html=`<div class="curso-sec"><div class="curso-sec-label">🔝 Mais vendidos</div>${top.map((c,i)=>mkci(c,i,tC[i]||'#555')).join('')}</div>`;
-  if(bot.length)html+=`<div class="curso-sec"><div class="curso-sec-label">🔻 Menos vendidos</div>${bot.map((c,i)=>mkci(c,cursos.length-bot.length+i,'#ef4444')).join('')}</div>`;
-  document.getElementById('cursos-list').innerHTML=html;
-}
-
-// ══════ TABLE ══════
-function renderTable(data){
-  const tP=sum(data,'paga'),tM=sum(data,'meta'),tPct=tM>0?Math.round(tP/tM*100):0;
-  const ranked=[...data].sort((a,b)=>{const pa=a.meta>0?a.paga/a.meta:0,pb=b.meta>0?b.paga/b.meta:0;return pb-pa;});
-  const rc={AC:'var(--g)',RO:'var(--bl)',AM:'var(--p)'};
-  const rows=ranked.map((d,i)=>{
-    const pct=d.meta>0?Math.round(d.paga/d.meta*100):0;
-    const pc=pct>=50?'#22c55e':pct>=25?warnColor():'#ef4444';
-    const medal=i<3&&d.total>0?MEDALS[i]:`<span style="color:var(--tx3);font-size:10px">${i+1}º</span>`;
-    const rt=d.reg&&d.reg!=='?'?`<span style="font-size:8px;color:${rc[d.reg]||'#888'};font-weight:700;margin-left:5px;opacity:.8">${d.reg}</span>`:'';
-    return `<tr><td style="padding-left:18px;font-size:14px;width:44px">${medal}</td>
-      <td><span style="font-weight:700;color:var(--tx);font-size:12.5px">${cap(d.polo)}</span>${rt}</td>
-      <td style="text-align:center">${d.total}</td><td style="text-align:center">${d.ativos}</td>
-      <td style="text-align:center"><span class="pl ${d.cancel>0?'pr2':'px'}">${d.cancel}</span></td>
-      <td style="text-align:center"><span class="pl ${d.paga>0?'pg':'px'}">${d.paga}</span></td>
-      <td style="text-align:center"><span class="pl ${d.naoPaga>0?'pr2':'px'}">${d.naoPaga}</span></td>
-      <td style="text-align:center;color:var(--tx3)">${d.meta||'—'}</td>
-      <td style="padding-right:16px;min-width:130px">
-        ${d.meta>0?`<div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(pct,100)}%;background:${pc}"></div></div><div class="pp" style="color:${pc}">${pct}%</div></div>`:'<span style="color:var(--tx3);font-size:10px">sem meta</span>'}
-      </td></tr>`;
-  }).join('');
-  document.getElementById('polo-table').innerHTML=`
-    <thead><tr><th style="padding-left:18px">#</th><th>Polo</th>
-      <th style="text-align:center">Total</th><th style="text-align:center">Ativos</th>
-      <th style="text-align:center">Cancelados</th><th style="text-align:center">1ª Paga</th>
-      <th style="text-align:center">Não Paga</th><th style="text-align:center">Meta</th>
-      <th style="padding-right:16px">Progresso</th></tr></thead>
-    <tbody>${rows}
-      <tr class="tr-tot"><td style="padding-left:18px">—</td><td><strong>TOTAL FILTRADO</strong></td>
-        <td style="text-align:center">${sum(data,'total')}</td><td style="text-align:center">${sum(data,'ativos')}</td>
-        <td style="text-align:center">${sum(data,'cancel')}</td><td style="text-align:center">${tP}</td>
-        <td style="text-align:center">${sum(data,'naoPaga')}</td><td style="text-align:center">${tM}</td>
-        <td style="padding-right:16px"><div class="pw"><div class="pb"><div class="pf" style="width:${Math.min(tPct,100)}%;background:var(--y)"></div></div><div class="pp" style="color:var(--y)">${tPct}%</div></div></td>
-      </tr></tbody>`;
-}
-
-// ══════ UI ══════
-function showLoading(){['content','filters','hero-sec','proj-bar'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none'});document.getElementById('loading').style.display='flex';}
-function hideLoading(){document.getElementById('loading').style.display='none'}
-function showContent(){hideLoading();document.getElementById('content').style.display='block'}
-
-// ══════ BOOT ══════
-// Listener para cliques nos KPIs
-document.addEventListener('click', function(e){
-  var kpi = e.target.closest('.kpi[data-mid]');
-  if(kpi){
-    var mid = kpi.getAttribute('data-mid');
-    var ml  = kpi.getAttribute('data-ml');
-    openModal(mid, ml);
-  }
-});
-
-window.addEventListener('load',fetchData);
-</script>
-</body>
-</html>
+<script src="assets/release-46a8caf1ef71.js"></script>
+</body></html>
