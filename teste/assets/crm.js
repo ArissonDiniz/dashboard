@@ -111,11 +111,7 @@ function studentLabels(r){const tags=[];const tag=(s,c='')=>'<span class="crm-ta
  if(Core.academicNote(r))tags.push(tag('Com indicação de nota','tag-academic'));
  if(r._credit===true)tags.push(tag('Com aproveitamento','tag-academic'));
  if(r._lastAccess)tags.push(tag('Último acesso: '+r._lastAccess.split('-').reverse().join('/')));
- const state=Core.dueState(r,crmToday()),d=Core.expectedDue(r),date=d?d.split('-').reverse().join('/'):'';
- if(state==='overdue')tags.push(tag('Vencido há '+Math.round((Date.parse(crmToday())-Date.parse(d))/86400000)+' dias · previsto '+date,'tag-overdue'));
- if(state==='today')tags.push(tag('Vence hoje · previsto','tag-today'));
- if(state==='future')tags.push(tag('A vencer · previsto '+date,'tag-future'));
- if(state==='unknown')tags.push(tag('Vencimento previsto indisponível'));
+ const dueTag=dueLabel(r);if(dueTag)tags.push(dueTag);
  return tags.length?'<div class="student-labels">'+tags.join(' ')+'</div>':'';
 }
 
@@ -131,4 +127,12 @@ function whatsappNumber(value){
 function whatsappContact(r){
  const n=whatsappNumber(r.CELULAR)||whatsappNumber(r.TELEFONE);
  return n?'<a class="btn whatsapp-contact" href="https://wa.me/'+n+'" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Abrir WhatsApp · +'+n+'</a>':'<p class="crm-info">WhatsApp indisponível: confira o telefone com DDD no relatório.</p>';
+}
+
+function dueLabel(r,today=crmToday()){
+ const state=Core.dueState(r,today);if(state==='na')return '';
+ const date=displayDate(Core.expectedDue(r));
+ const labels={overdue:['Vencido','tag-overdue'],today:['Vence hoje','tag-today'],future:['A vencer','tag-future'],unknown:['Vencimento previsto indisponível','']};
+ const [label,style]=labels[state]||labels.unknown;
+ return '<span class="crm-tag due-label '+style+'">'+esc(label)+(state==='unknown'?'':'<br><span>Vencimento previsto: '+esc(date)+'</span>')+'</span>';
 }

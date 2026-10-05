@@ -329,7 +329,7 @@ function renderMetaBars(data){
     const color=pct>=50?PC[i%PC.length]:pct>=20?'#f97316':'#ef4444';
     const faltam=Math.max(0,d.meta-d.paga);
     const gradient=`linear-gradient(90deg,${color}99,${color})`;
-    return `<div class="mb-item">
+    return `<div class="mb-item" data-performance="${pct>=50?'high':pct>=25?'middle':'low'}">
       <div class="mb-header">
         <span class="mb-polo">${esc(cap(d.polo))}</span>
         <span class="mb-vals">${d.paga}/${d.meta||'—'} &nbsp;
