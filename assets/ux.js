@@ -11,7 +11,7 @@ function renderWorkspace(data){
  document.getElementById('work-queue').innerHTML=items.map(([key,title,fn])=>'<button class="queue-item" onclick="openQueue(\''+key+'\')"><strong>'+rows.filter(fn).length+'</strong><span>'+title+'</span><small>Ver alunos</small></button>').join('');
 }
 function openQueue(key){openCRM('ativos',true);$c('priority').value=key;filterCRM();}
-function compactLabels(r){let parts=[];if(Core.academicNote(r))parts.push('Indicação de nota');if(r._credit===true)parts.push('Aproveitamento');return (parts.length?'<small class="academic-line">'+esc(parts.join(' · '))+'</small>':'')+dueLabel(r);}
+function compactLabels(r){let parts=[];if(Core.academicNote(r))parts.push('Indicação de nota');if(r._credit===true)parts.push('Aproveitamento');return (parts.length?'<small class="academic-line">'+esc(parts.join(' · '))+'</small>':'')+'<small class="academic-line last-access">Último acesso: '+esc(r._lastAccess?displayDate(r._lastAccess):'não informado no relatório')+'</small>'+dueLabel(r);}
 function crmView(key){if(crm.edit){cancelEditCRM();if(crm.edit)return;}$c('payment').value=key==='welcome'?'ativos':key;$c('priority').value=key==='welcome'?'welcome':'';['academic','credit','due'].forEach(id=>$c(id).value='');filterCRM();}
 function resetCRMFilters(){['search','status','priority','academic','credit','due'].forEach(id=>$c(id).value='');$c('polo').value='TODOS';$c('period').value='all';$c('payment').value='total';$c('order').value='priority';filterCRM();}
 function syncCRMView(){const key=$c('priority').value==='welcome'?'welcome':$c('payment').value;document.querySelectorAll('[data-view]').forEach(e=>e.setAttribute('aria-pressed',String(e.dataset.view===key)));const n=['academic','credit','due','priority'].filter(id=>$c(id).value).length;$c('filter-count').textContent=n?'('+n+' ativos)':'';$c('polo').parentElement.hidden=snapshot.polos.length===1;$c('quick').hidden=$c('payment').value!=='naoPaga';document.querySelectorAll('[data-quick]').forEach(e=>e.setAttribute('aria-pressed',String($c(e.dataset.quick).value===e.dataset.value)));}
@@ -35,3 +35,7 @@ function detailStudents(type,index){const polo=detailPolos[index];closeModal();o
 
 function displayDate(d){return d?d.split('-').reverse().join('/'):'—';}
 function quickFilter(id,value){$c(id).value=$c(id).value===value?'':value;filterCRM();}
+
+function crmJump(end){
+ const el=$c('dialog');el.scrollTo({top:end?el.scrollHeight:0,behavior:'smooth'});
+}

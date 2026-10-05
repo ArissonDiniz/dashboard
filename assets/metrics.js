@@ -26,6 +26,7 @@ function renderAll(){
 }
 function renderHero(data){
  const pg=sum(data,'paga'),meta=sum(data,'meta'),po=document.getElementById('f-polo').value;
+ const visiblePolos=data.map(d=>cap(d.polo));document.getElementById('hero-polo').textContent=po!=='TODOS'?'Polo '+cap(po):visiblePolos.length===1?'Polo '+visiblePolos[0]:currentProfile?.role==='admin'?'Visão da rede':'Polos: '+visiblePolos.join(' · ');
  document.getElementById('hero-sub').textContent=(snapshot?.campaign.name||'Campanha')+' · '+(po==='TODOS'?'Polos autorizados':cap(po));
  document.getElementById('hero-st').innerHTML=[{v:pg+' / '+meta,l:'Pagamentos na meta'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado · Acre'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
 }
