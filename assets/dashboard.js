@@ -3,9 +3,9 @@
 
 
 // Metas por polo
-const METAS={};
-const POLO_CFG={};
-const POLO_REG={};
+const METAS=Object.create(null);
+const POLO_CFG=Object.create(null);
+const POLO_REG=Object.create(null);
 const PC=['#FFD600','#22c55e','#3b82f6','#f97316','#a855f7','#06b6d4','#ec4899','#84cc16','#f59e0b'];
 const MEDALS=['','',''];
 const SISTEMA=['sistema leo','leo web','leo app'];
@@ -192,7 +192,7 @@ function metaLabel(){
   const polo=document.getElementById('f-polo').value;
   const reg=document.getElementById('f-regiao').value;
   if(polo!=='TODOS')return 'Meta de '+cap(polo);
-  if(reg!=='TODOS'){const rn={AC:'Acre · AC',RO:'Rondônia · RO',AM:'Amazonas · AM'};return 'Meta — '+rn[reg];}
+  if(reg!=='TODOS'){const rn={AC:'Acre · AC',RO:'Rondônia · RO',AM:'Amazonas · AM'};return 'Meta — '+(rn[reg]||reg);}
   return 'Meta total da rede';
 }
 
@@ -258,7 +258,7 @@ function expandMetaBars(){
   document.getElementById('mbox').className='mbox mbox-big';
   document.getElementById('mtitle').textContent='Progresso da meta · linha de chegada por polo';
   const src=document.getElementById('meta-bars');
-  document.getElementById('mbody').innerHTML=`<div style="padding:8px 0;max-height:600px;overflow-y:auto">${src.innerHTML}</div>`;
+  document.getElementById('mbody').innerHTML=`<div style="padding:8px 0;max-height:600px;overflow-y:auto">${src.innerHTML.replace(/tier-(?=(?:tip-)?\d+-)/g,'expanded-tier-')}</div>`;
   document.getElementById('modal').style.display='flex';
 }
 
@@ -321,35 +321,28 @@ function GC(){return isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.07)';}
 
 
 // ══════ BARRAS META ══════
+function toggleGoalTier(id){const e=document.getElementById(id);if(!e)return;const open=e.classList.toggle('tier-open');e.querySelector('button').setAttribute('aria-expanded',String(open));}
+function goalTiers(d){
+ const polo=snapshot?.polos.find(p=>p.short_name===d.polo),g=snapshot?.goals.find(g=>g.polo_id===polo?.id);
+ return [{key:'bronze',label:'Bronze',target:g?.bronze,color:'#c88a50'},{key:'silver',label:'Prata',target:g?.silver,color:'#aebdce'},{key:'gold',label:'Ouro',target:d.meta,color:'#ffd600'}].filter(t=>Number.isInteger(t.target)&&t.target>0);
+}
 function renderMetaBars(data){
-  const relevant=data.filter(d=>d.total>0||d.paga>0||d.meta>0);
-  if(!relevant.length){document.getElementById('meta-bars').innerHTML='<div style="color:var(--tx3);font-size:12px">Sem dados.</div>';return;}
-  const html=relevant.map((d,i)=>{
-    const pct=d.meta>0?Math.round(d.paga/d.meta*100):0;
-    const color=pct>=50?PC[i%PC.length]:pct>=20?'#f97316':'#ef4444';
-    const faltam=Math.max(0,d.meta-d.paga);
-    const gradient=`linear-gradient(90deg,${color}99,${color})`;
-    return `<div class="mb-item" data-performance="${pct>=50?'high':pct>=25?'middle':'low'}">
-      <div class="mb-header">
-        <span class="mb-polo">${esc(cap(d.polo))}</span>
-        <span class="mb-vals">${d.paga}/${d.meta||'—'} &nbsp;
-          <strong style="color:${color}">${pct}%</strong>
-          ${d.meta>0?'<span style="color:var(--tx3);font-size:9px"> META</span>':''}
-        </span>
-      </div>
-      <div class="mb-track">
-        ${d.meta>0?'<div class="mb-goal-line"></div>':''}
-        <div class="mb-fill" style="width:${Math.min(pct,100)}%;background:${gradient}"></div>
-      </div>
-      <div class="mb-sub">
-        ${d.meta>0&&faltam>0
-          ?`Faltam <strong style="color:${color}">${faltam}</strong> pagamento${faltam!==1?'s':''} para a meta`
-          :d.meta>0?'<strong style="color:#22c55e"> Meta atingida!</strong>'
-          :'<span style="color:var(--tx3)">Sem meta definida</span>'}
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('meta-bars').innerHTML=html;
+ const relevant=data.filter(d=>d.total>0||d.paga>0||d.meta>0);
+ if(!relevant.length){document.getElementById('meta-bars').innerHTML='<p class="context">Sem dados ou metas cadastradas.</p>';return;}
+ document.getElementById('meta-bars').innerHTML=relevant.map((d,i)=>{
+  const pct=d.meta>0?Math.round(d.paga/d.meta*100):0,remaining=Math.max(0,d.meta-d.paga),tiers=goalTiers(d);
+  let previous=0;const segments=tiers.map(t=>{const start=previous,end=t.target/d.meta*100;previous=end;return t.color+' '+start+'%, '+t.color+' '+end+'%';}).join(',');
+  const description=t=>t.label+': meta '+t.target+' · '+Math.round(d.paga/t.target*100)+'% de atingimento · '+(d.paga>=t.target?'Meta atingida':'Faltam '+(t.target-d.paga)+' pagamentos');
+  return `<div class="mb-item goal-tiers" data-performance="${pct>=50?'high':pct>=25?'middle':'low'}">
+   <div class="mb-header"><span class="mb-polo">${esc(cap(d.polo))}</span><span class="mb-vals">${d.paga}/${d.meta||'—'} <strong>${d.meta>0?pct+'%':'—'}</strong> <span class="gold-label">Ouro</span></span></div>
+   <div class="tier-track" role="progressbar" aria-label="${esc(cap(d.polo))} · meta ouro" aria-valuemin="0" aria-valuemax="${d.meta||1}" aria-valuenow="${Math.min(d.paga,d.meta||1)}" aria-valuetext="${esc(d.meta>0?d.paga+' de '+d.meta+' pagamentos · '+pct+'%':'Sem meta definida')}">
+    <div class="tier-fill" style="background:linear-gradient(90deg,${segments||'#ffd600, #ffd600'});clip-path:inset(0 ${100-Math.min(pct,100)}% 0 0)"></div>
+   </div>
+   <div class="tier-markers">${tiers.map(t=>`<button type="button" class="tier-marker" style="left:${t.target/d.meta*100}%;--tier-color:${t.color}" title="${esc(description(t))}" aria-label="${esc(description(t))}" onclick="toggleGoalTier('tier-${i}-${t.key}')"></button>`).join('')}</div>
+   <div class="tier-labels">${tiers.map(t=>`<div class="tier-detail tier-${t.key}" id="tier-${i}-${t.key}"><button type="button" class="tier-trigger" aria-expanded="false" aria-describedby="tier-tip-${i}-${t.key}" onclick="toggleGoalTier('tier-${i}-${t.key}')"><span class="tier-dot" style="background:${t.color}"></span>${t.label} <strong>${t.target}</strong></button><div class="tier-tooltip" id="tier-tip-${i}-${t.key}" role="tooltip">${esc(description(t))}</div></div>`).join('')}</div>
+   <div class="mb-sub">${d.meta>0?(remaining?'Faltam <strong>'+remaining+'</strong> pagamentos para ouro':'<strong class="goal-achieved">Meta ouro atingida</strong>'):'Sem meta definida'}</div>
+  </div>`;
+ }).join('');
 }
 
 // ══════ STATUS CHART ══════

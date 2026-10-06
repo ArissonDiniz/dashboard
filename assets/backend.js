@@ -10,7 +10,7 @@ function clearPrivateUI(){
  document.querySelectorAll('.toast').forEach(e=>e.remove());closeModal();
  document.querySelectorAll('dialog[open]').forEach(x=>x.close());
  if(typeof crm!=='undefined'){crm.open=false;crm.edit=null;crm.dirty=false;crm.historyToken++;document.getElementById('crm-rows').innerHTML='';document.getElementById('crm-editor').innerHTML='';}
- ['kg1','kg2','hero-st','meta-bars','rank-top','rank-rest','cursos-list','polo-table','mbody','admin-body'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
+ ['kg1','kg2','hero-st','meta-bars','rank-top','rank-rest','cursos-list','polo-table','mbody','admin-body','crm-promise-summary'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
  Object.values(charts).forEach(c=>c.destroy());charts={};
  document.getElementById('auth-screen').hidden=false;document.getElementById('auth-screen').inert=false;
  document.getElementById('app-shell').hidden=true;document.getElementById('app-shell').inert=true;
@@ -73,6 +73,8 @@ async function fetchData(){
  snapshot=data;currentProfile=data.profile;document.getElementById('admin-button').hidden=currentProfile.role!=='admin';
  Object.keys(METAS).forEach(k=>delete METAS[k]);Object.keys(POLO_CFG).forEach(k=>delete POLO_CFG[k]);Object.keys(POLO_REG).forEach(k=>delete POLO_REG[k]);
  data.polos.forEach(p=>{POLO_CFG[p.name]={k:p.short_name,r:p.region};POLO_REG[p.short_name]=p.region;METAS[p.short_name]=data.goals.find(g=>g.polo_id===p.id)?.target||0;});
+ const regionFilter=document.getElementById('f-regiao'),selectedRegion=regionFilter.value;
+ const regions=[...new Set(data.polos.map(p=>p.region))].sort();regionFilter.innerHTML='<option value="TODOS">Todas as regiões</option>'+regions.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'</option>').join('');regionFilter.value=regions.includes(selectedRegion)?selectedRegion:'TODOS';
  const records=data.students.map(toLegacy);rawRows=records.filter(r=>!r._missing);missingRows=records.filter(r=>r._missing);crmStates=Object.create(null);data.followups.forEach(f=>crmStates[f.inscription_id]=stateFromDB(f));
  window.dashboardZone=data.campaign.timezone;
  dashboardSession={email:currentProfile.email,admin:currentProfile.role==='admin',zone:data.campaign.timezone,polos:data.polos.map(p=>p.name)};

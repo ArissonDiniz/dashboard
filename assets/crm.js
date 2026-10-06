@@ -5,10 +5,27 @@ function crmState(r){return crmStates[r._key]||Core.empty();}
 function paymentLabel(r){return r._missing?'Ausente do relatório':(Core.paid(r)?'Pago':'Não pago')+(Core.cancelled(r)?' · cancelado':' · ativo');}
 function contactTag(s){return '<span class="crm-tag crm-s'+Core.statuses.indexOf(s.status)+'">'+esc(s.status)+'</span>';}
 function messageCRM(text){$c('message').textContent=text;const note=$c('editor-message');if(note)note.textContent=text;}
+function promiseSituation(r,today){const date=crmState(r).promised;if(!date||!Core.dateValid(date))return '';return Core.paid(r)?'paid':date<today?'overdue':'pending';}
+function changePromiseFilter(){
+ if($c('promise-month').value||$c('promise-state').value){
+  if(!$c('promise-state').value)$c('promise-state').value='all';
+  // A data consultada é a promessa, não a entrada da matrícula ou do pagamento.
+  $c('period').value='all';$c('payment').value='total';$c('priority').value='';
+ }
+ filterCRM();
+}
+function drawPromiseSummary(rows,today){
+ const month=$c('promise-month').value,active=month||$c('promise-state').value,el=$c('promise-summary');
+ el.hidden=!active;if(!active){el.textContent='';return;}
+ const counts={pending:0,overdue:0,paid:0};rows.forEach(r=>{const state=promiseSituation(r,today);if(state)counts[state]++;});
+ const total=counts.pending+counts.overdue+counts.paid;
+ const label=month?new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(month+'-01T12:00:00Z')):'todos os meses';
+ el.textContent=total+' matrículas com promessa para '+label+' — '+counts.pending+' aguardando, '+counts.overdue+' vencidas e '+counts.paid+' já pagas. Totais conforme os demais filtros; a situação da promessa selecionada filtra a lista abaixo. Pagamento conforme o relatório sincronizado.';
+}
 function openCRM(tipo,all=false){
   if(dataBusy)return;
   if(!dashboardSession){alert('Carregue os dados pelo aplicativo publicado primeiro.');return;}
-  crm.open=true;crm.page=0;$c('period').value=all?'all':'selected';['academic','credit','due'].forEach(id=>$c(id).value='');$c('payment').value=tipo;$c('search').value='';$c('status').value='';$c('priority').value='';
+  crm.open=true;crm.page=0;$c('period').value=all?'all':'selected';['academic','credit','due','promise-month','promise-state'].forEach(id=>$c(id).value='');$c('payment').value=tipo;$c('search').value='';$c('status').value='';$c('priority').value='';
   const polos=[...new Set([...rawRows,...missingRows].map(getPoloKey))].sort();
   $c('polo').innerHTML='<option value="TODOS">Todos dentro do filtro principal</option>'+polos.map(p=>'<option value="'+esc(p)+'">'+esc(cap(p))+'</option>').join('');
   drawCRM();if(!$c('dialog').open)$c('dialog').showModal();
@@ -24,8 +41,11 @@ function drawCRM(resetEditor=true){
   const days=Math.max(1,Math.min(3650,Number($c('days').value)||7)),today=crmToday();
   const all=$c('period').value==='all'||['today','late','welcome','idle','promise'].includes(priority);
   const base=(tipo==='missing'?missingRows:rawRows).filter(r=>scope(r)&&Core.metric(r,tipo,all?{from:null,to:null}:getDateRange(),filterMode()));
-  crm.visible=base.filter(r=>{
+  const promiseMonth=$c('promise-month').value,promiseState=$c('promise-state').value;
+  const matching=base.filter(r=>{
     const s=crmState(r);
+    if((promiseMonth||promiseState)&&!promiseSituation(r,today))return false;
+    if(promiseMonth&&!s.promised.startsWith(promiseMonth+'-'))return false;
     if(polo!=='TODOS'&&getPoloKey(r)!==polo)return false;
     if(query&&!((r.NOME||'')+' '+(r.CODIGO_ALUNO||'')+' '+r._key).toLocaleLowerCase('pt-BR').includes(query))return false;
     if(!matchesLabels(r,today))return false;
@@ -36,7 +56,9 @@ function drawCRM(resetEditor=true){
     if(['today','late'].includes(priority)&&Core.due(s,today)!==priority)return false;
     if(priority==='idle'&&(r._missing||Core.paid(r)||Core.cancelled(r)||!Core.idle(s,today,days)))return false;
     return true;
-  }).sort((a,b)=>($c('order').value==='priority'?Core.priority(crmState(a),crmState(b),today):0)||(a.NOME||'').localeCompare(b.NOME||'','pt-BR'));
+  });
+  drawPromiseSummary(matching,today);
+  crm.visible=matching.filter(r=>!promiseState||promiseState==='all'||promiseSituation(r,today)===promiseState).sort((a,b)=>($c('order').value==='priority'?Core.priority(crmState(a),crmState(b),today):0)||(a.NOME||'').localeCompare(b.NOME||'','pt-BR'));
   const pages=Math.max(1,Math.ceil(crm.visible.length/50));crm.page=Math.max(0,Math.min(pages-1,crm.page));
   $c('context').textContent=(all?'Toda a campanha':periodLabel())+' · '+document.getElementById('f-polo').selectedOptions[0].textContent;
   $c('count').textContent=crm.visible.length+' alunos encontrados';
@@ -44,7 +66,7 @@ function drawCRM(resetEditor=true){
   $c('page').textContent='Página '+(crm.page+1)+' de '+pages;
   $c('rows').innerHTML=crm.visible.slice(crm.page*50,crm.page*50+50).map((r,i)=>{
     const s=crmState(r),due=Core.due(s,today),label=due==='late'?' · ATRASADO':due==='today'?' · HOJE':'';
-    return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+esc(paymentLabel(r))+compactLabels(r)+contactTag(s)+'</td><td>'+esc(displayDate(s.lastContact))+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc(displayDate(s.nextContact)+label)+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender</button></td></tr>';
+    return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+esc(paymentLabel(r))+compactLabels(r)+contactTag(s)+(s.promised?'<small class="academic-line">Promessa: '+esc(displayDate(s.promised))+'</small>':'')+'</td><td>'+esc(displayDate(s.lastContact))+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc(displayDate(s.nextContact)+label)+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender</button></td></tr>';
   }).join('')||'<tr><td colspan="6">Nenhum aluno encontrado com estes filtros.</td></tr>';
   if(resetEditor&&!crm.edit)$c('editor').hidden=true;
 }
