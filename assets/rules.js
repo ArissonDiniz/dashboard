@@ -1,7 +1,7 @@
 /* Regras compartilhadas e testáveis. Datas civis no fuso da campanha. */
 (function(root){
  const clean=v=>String(v??'').trim();
- const statuses=['Não contatado','Contatado','Aguardando retorno','Retornar depois'];
+ const statuses=['Não contatado','Contatado','Aguardando retorno','Retornar depois','Contato inexistente'];
  const empty=()=>({welcome:'Pendente',outcome:'Não informado',promised:'',event:'record_update',status:statuses[0],notes:'',lastContact:'',nextContact:'',author:'',updatedAt:'',version:0});
  const cancelled=r=>!['','nan','none','nat','null'].includes(clean(r.DATA_CANCELAMENTO).toLowerCase());
  const paid=r=>clean(r.PRIMEIRA_MENSALIDADE_COBRADA_PAGA)==='S';
@@ -29,7 +29,7 @@
  function draft(d,t){
   if(!statuses.includes(d.status)||typeof d.notes!=='string'||d.notes.length>6000)throw Error('Confira status e observações (máximo de 6.000 caracteres).');
   if(!dateValid(d.lastContact)||!dateValid(d.nextContact)||d.lastContact>t)throw Error('Confira as datas; último contato não pode ser futuro.');
-  if(d.status!=='Não contatado'&&!d.lastContact)throw Error('Informe a data do último contato.');
+  if(!['Não contatado','Contato inexistente'].includes(d.status)&&!d.lastContact)throw Error('Informe a data do último contato.');
   if(d.status==='Retornar depois'&&!d.nextContact)throw Error('Informe a data de retorno.');
   if(d.nextContact&&d.lastContact&&d.nextContact<d.lastContact)throw Error('Retorno anterior ao contato.');return d;
  }
