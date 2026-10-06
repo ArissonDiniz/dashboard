@@ -43,8 +43,5 @@ function crmJump(end){
 const rankProductionRender=renderRankColab;
 renderRankColab=function(rows){
  rankProductionRender(rows);
- let info=document.getElementById('rank-production-info');
- if(!info){info=document.createElement('p');info.id='rank-production-info';info.className='context';document.getElementById('rank-top').before(info);}
- info.textContent=sellerProductionError?'Ranking indisponível. Atualize os dados; o administrador deve conferir a instalação do SQL 08.':'Visão da rede · o mesmo ranking para todos. Soma a produção em todos os polos, na campanha e no período selecionados. Filtros de polo e região não se aplicam aqui. Inclui cancelados pagos.';
  if(sellerProductionError)document.getElementById('rank-top').textContent='Não foi possível carregar a produção completa.';
 };

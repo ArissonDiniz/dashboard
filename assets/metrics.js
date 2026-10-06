@@ -56,7 +56,7 @@ function getColabs(rows){
    const c=mp.get(key)||{nome:name,polo:'Produção nos polos autorizados',total:0,paga:0};if(noPeriodoEntrada(r))c.total++;if(pagouNoPeriodo(r))c.paga++;mp.set(key,c);
   });
  }
- return [...mp.values()].filter(c=>c.total||c.paga).sort((a,b)=>b.paga-a.paga||b.total-a.total||a.nome.localeCompare(b.nome));
+ return [...mp.values()].filter(c=>c.paga>0&&!/(chat[\s_-]*bot|rob[oôó]|robot|sistema|leo[\s_-]*(web|app)|\bbot\b)/i.test(c.nome)).sort((a,b)=>b.paga-a.paga||b.total-a.total||a.nome.localeCompare(b.nome));
 }
 function TC(){return isDark?'#b5bbc8':'#4b5563';}
 function onPeriodChange(){document.getElementById('custom-dates').style.display=document.getElementById('f-period').value==='custom'?'flex':'none';renderAll();}
