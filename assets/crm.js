@@ -2,7 +2,14 @@ const crm={open:false,dirty:false,edit:null,visible:[],page:0,saving:false,reque
 const $c=id=>document.getElementById('crm-'+id);
 function crmToday(){return new Intl.DateTimeFormat('sv-SE',{timeZone:dashboardSession?.zone||'America/Rio_Branco',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
 function crmState(r){return crmStates[r._key]||Core.empty();}
-function paymentLabel(r){return r._missing?'Ausente do relatório':(Core.paid(r)?'Pago':'Não pago')+(Core.cancelled(r)?' · cancelado':' · ativo');}
+function crmCancelled(r){return Core.cancelled(r)||crmState(r).status==='Cancelado';}
+function crmMatches(r,type,range,mode){
+ if(type==='cancel')return crmCancelled(r);
+ if(crmCancelled(r))return false;
+ return Core.metric(r,type,range,mode);
+}
+function changeCRMStatusFilter(){if($c('status').value==='Cancelado'){$c('payment').value='cancel';$c('period').value='all';$c('priority').value='';}filterCRM();}
+function paymentLabel(r){return (r._missing?'Ausente do relatório · ':'')+(Core.paid(r)?'Pago':'Não pago')+(crmState(r).status==='Cancelado'&&!Core.cancelled(r)?' · cancelado no acompanhamento (relatório ativo)':Core.cancelled(r)?' · cancelado no relatório':' · ativo');}
 function contactTag(s){return '<span class="crm-tag crm-s'+Core.statuses.indexOf(s.status)+'">'+esc(s.status)+'</span>';}
 function messageCRM(text){$c('message').textContent=text;const note=$c('editor-message');if(note)note.textContent=text;}
 function promiseSituation(r,today){const date=crmState(r).promised;if(!date||!Core.dateValid(date))return '';return Core.paid(r)?'paid':date<today?'overdue':'pending';}
@@ -39,8 +46,8 @@ function drawCRM(resetEditor=true){
   if(!crm.open)return;
   const tipo=$c('payment').value, query=$c('search').value.trim().toLocaleLowerCase('pt-BR'),polo=$c('polo').value,status=$c('status').value,priority=$c('priority').value;
   const days=Math.max(1,Math.min(3650,Number($c('days').value)||7)),today=crmToday();
-  const all=$c('period').value==='all'||['today','late','welcome','idle','promise'].includes(priority);
-  const base=(tipo==='missing'?missingRows:rawRows).filter(r=>scope(r)&&Core.metric(r,tipo,all?{from:null,to:null}:getDateRange(),filterMode()));
+  const all=tipo==='cancel'||$c('period').value==='all'||['today','late','welcome','idle','promise','welcome_done','unrecorded','promise_pending'].includes(priority);
+  const base=(tipo==='cancel'?[...rawRows,...missingRows]:tipo==='missing'?missingRows:rawRows).filter(r=>scope(r)&&crmMatches(r,tipo,all?{from:null,to:null}:getDateRange(),filterMode()));
   const promiseMonth=$c('promise-month').value,promiseState=$c('promise-state').value;
   const matching=base.filter(r=>{
     const s=crmState(r);
@@ -50,6 +57,7 @@ function drawCRM(resetEditor=true){
     if(query&&!((r.NOME||'')+' '+(r.CODIGO_ALUNO||'')+' '+r._key).toLocaleLowerCase('pt-BR').includes(query))return false;
     if(!matchesLabels(r,today))return false;
     if(status&&s.status!==status)return false;
+    if(['welcome_done','unrecorded','promise_pending'].includes(priority)&&!postSaleMatch(r,priority,today))return false;
     if(priority==='welcome'&&s.welcome==='Concluído')return false;
     if(priority==='promise'&&!promiseLate(r,today))return false;
     if(priority==='new'&&s.status!=='Não contatado')return false;
@@ -60,7 +68,7 @@ function drawCRM(resetEditor=true){
   drawPromiseSummary(matching,today);
   crm.visible=matching.filter(r=>!promiseState||promiseState==='all'||promiseSituation(r,today)===promiseState).sort((a,b)=>($c('order').value==='priority'?Core.priority(crmState(a),crmState(b),today):0)||(a.NOME||'').localeCompare(b.NOME||'','pt-BR'));
   const pages=Math.max(1,Math.ceil(crm.visible.length/50));crm.page=Math.max(0,Math.min(pages-1,crm.page));
-  $c('context').textContent=(all?'Toda a campanha':periodLabel())+' · '+document.getElementById('f-polo').selectedOptions[0].textContent;
+  $c('context').textContent=(tipo==='cancel'?'Cancelados no relatório ou no acompanhamento · toda a campanha':all?'Toda a campanha · cancelados ocultos':periodLabel()+' · cancelados ocultos')+' · '+document.getElementById('f-polo').selectedOptions[0].textContent;
   $c('count').textContent=crm.visible.length+' alunos encontrados';
   if(typeof syncCRMView==='function')syncCRMView();
   $c('page').textContent='Página '+(crm.page+1)+' de '+pages;
@@ -102,7 +110,7 @@ async function saveCRM(){
       $c('conflict').innerHTML='<div class="crm-conflict">Outro colaborador salvou uma alteração. Seu rascunho permanece no formulário. Compare antes de salvar uma nova versão.<br><br>Registro atual: '+esc(result.state.author)+' · '+esc(result.state.updatedAt)+'<br>'+esc(result.state.status)+' · Último: '+esc(result.state.lastContact)+' · Retorno: '+esc(result.state.nextContact)+'<br>'+esc(result.state.notes)+'<br><br><button class="btn btn-gh btn-sm" type="button" onclick="reviewConflictCRM()">Revisei: manter meu rascunho para uma nova versão</button></div>';
       messageCRM('Conflito detectado. Nenhuma alteração sua foi gravada.');
     }else{
-      crmStates[crm.edit._key]=result.state;crm.editVersion=result.state.version;crm.dirty=false;crm.requestBody=null;
+      crmStates[crm.edit._key]=result.state;crm.editVersion=result.state.version;crm.dirty=false;crm.requestBody=null;if(typeof acceptLocalFollowup==='function')acceptLocalFollowup();
       $c('conflict').innerHTML='';drawCRM(false);if(typeof renderWorkspace==='function')renderWorkspace(processData(rawRows));messageCRM(' Atendimento salvo e compartilhado. Versão '+result.state.version+'.');
       const key=crm.edit._key,token=++crm.historyToken;
       try{const history=await rpc('getHistory',key);if(token===crm.historyToken&&!crm.dirty&&crm.edit?._key===key)drawEditor(crm.edit,history);}catch(e){messageCRM(' Salvo. Histórico indisponível agora: '+e.message);}
@@ -112,7 +120,7 @@ async function saveCRM(){
 }
 function reviewConflictCRM(){crm.editVersion=crm.conflict.version;crm.requestBody=null;$c('conflict').textContent='Rascunho mantido. Ajuste o texto para incorporar as duas alterações e clique em Salvar atendimento.';messageCRM('Revisão habilitada; nada salvo ainda.');}
 function exportCRM(format="xlsx"){
-  const data=crm.visible.map(r=>{const s=crmState(r);return {'Nome':r.NOME,'Matrícula':r.CODIGO_ALUNO,'Chave':r._key,'Curso':r.NOME_DO_CURSO,'Polo':r.NOME_DO_POLO,'Situação':paymentLabel(r),'Telefone':r.CELULAR||r.TELEFONE,'Indicação de nota':Core.academicNote(r)?'Sim':'Sem indicação no relatório','Aproveitamento':r._credit===true?'S':r._credit===false?'N':'Não informado','Último acesso':r._lastAccess||'','Vencimento previsto':Core.dueState(r,crmToday())==='na'?'':Core.expectedDue(r)||'','Situação vencimento previsto':Core.dueState(r,crmToday()),'Data matrícula':r.DATA_MATRICULA,'Data pagamento':r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA,'Boas-vindas':s.welcome,'Resultado contato':s.outcome,'Pagamento prometido':s.promised,'Status':s.status,'Observações':s.notes,'Último contato':s.lastContact,'Próximo contato':s.nextContact,'Responsável':s.author,'Atualizado em':s.updatedAt};});
+  const data=crm.visible.map(r=>{const s=crmState(r);return {'Nome':r.NOME,'Matrícula':r.CODIGO_ALUNO,'Chave':r._key,'Curso':r.NOME_DO_CURSO,'Polo':r.NOME_DO_POLO,'Situação':paymentLabel(r),'Telefone':r.CELULAR||r.TELEFONE,'Indicação de nota':Core.academicNote(r)?'Sim':'Sem indicação no relatório','Aproveitamento':r._credit===true?'S':r._credit===false?'N':'Não informado','Último acesso':r._lastAccess||'','Vencimento previsto':Core.dueState(r,crmToday())==='na'?'':Core.expectedDue(r)||'','Situação vencimento previsto':Core.dueState(r,crmToday()),'Data matrícula':r.DATA_MATRICULA,'Data pagamento':r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA,'Boas-vindas':s.welcome,'Resultado contato':s.outcome,'Pagamento prometido':s.promised,'Status':s.status,'Observações':s.notes,'Último contato':s.lastContact,'Próximo contato':s.nextContact,'Última alteração por':s.author,'Atualizado em':s.updatedAt};});
   if(!data.length){messageCRM('Nenhum aluno para exportar.');return;}
   if(format==='csv'){
     const cell=v=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';

@@ -6,6 +6,7 @@ function authMessage(s){document.getElementById('auth-message').textContent=s;}
 function clearPrivateUI(){
  authEpoch++;
  sellerProduction=null;sellerProductionError=false;rawRows=[];missingRows=[];crmStates={};snapshot=null;dashboardSession=null;currentProfile=null;
+ if(typeof resetUpdateNotice==='function')resetUpdateNotice();
  document.getElementById('admin-secret').textContent='';
  document.querySelectorAll('.toast').forEach(e=>e.remove());closeModal();
  document.querySelectorAll('dialog[open]').forEach(x=>x.close());
@@ -81,7 +82,7 @@ async function fetchData(){
  const camp=document.getElementById('f-campaign');camp.innerHTML=data.campaigns.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');camp.value=campaign;
  const ranking=await db.rpc('seller_production',{p_campaign:campaign});if(epoch!==authEpoch)return;
  sellerProduction=ranking.error?[]:(ranking.data||[]);sellerProductionError=!!ranking.error;
- lastLoad=new Date(data.loaded_at);_matriculaDateKey=undefined;finishLoad();
+ lastLoad=new Date(data.loaded_at);_matriculaDateKey=undefined;finishLoad();if(typeof acceptUpdateSnapshot==='function')acceptUpdateSnapshot();
  document.getElementById('session-label').textContent=currentProfile.name+' · '+currentProfile.email+' · '+dashboardSession.zone;
  document.getElementById('load-error').hidden=true;document.getElementById('load-retry').hidden=true;
  if(typeof crm!=='undefined'&&crm.open){crm.dirty=false;crm.edit=null;crm.historyToken++;drawCRM();}
