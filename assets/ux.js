@@ -8,14 +8,17 @@ function renderWorkspace(data){
  if(restricted)document.getElementById('session-label').textContent=currentProfile.name+' · Polo '+snapshot.polos[0].name;
  renderPostSale();
 }
-const postSaleColumns=[['welcome_done','Boas-vindas concluídas'],['welcome','Boas-vindas pendentes'],['unrecorded','Sem registro'],['late','Retornos atrasados'],['promise_pending','Promessas pendentes']];
+const postSaleColumns=[['welcome_done','RECEPÇÃO CONCLUÍDA'],['welcome','RECEPÇÃO PENDENTE'],['today','RETORNOS HOJE'],['late','RETORNOS VENCIDOS'],['promise_today','PROMESSAS HOJE'],['promise','PROMESSAS VENCIDAS']];
 function postSaleMatch(r,key,today){
  if(r._missing||crmCancelled(r))return false;
  const s=crmState(r);
  if(key==='welcome_done')return s.welcome==='Concluído';
  if(key==='welcome')return s.welcome!=='Concluído';
  if(key==='unrecorded')return !crmStates[r._key];
+ if(key==='today')return Core.due(s,today)==='today';
+ if(key==='promise_today')return !Core.paid(r)&&s.promised===today;
  if(key==='late')return Core.due(s,today)==='late';
+ if(key==='promise')return promiseLate(r,today);
  if(key==='promise_pending')return !Core.paid(r)&&!!s.promised;
  return false;
 }
@@ -29,8 +32,11 @@ function openPostSale(key,index){
 function renderPostSale(){
  const t=crmToday(),rows=rawRows.filter(r=>scope(r)&&!crmCancelled(r)&&!r._missing);
  const polos=snapshot.polos.map((p,i)=>({...p,index:i})).filter(p=>scope({NOME_DO_POLO:p.name}));
- const line=(label,list,index)=>'<tr><th scope="row">'+esc(label)+'</th>'+postSaleColumns.map(([key,title])=>{const n=list.filter(r=>postSaleMatch(r,key,t)).length;return '<td><button class="post-sale-count" '+(n?'':'disabled')+' aria-label="'+esc(label+' · '+title+': '+n)+'" onclick="openPostSale(\''+key+'\','+index+')">'+n+'</button></td>';}).join('')+'</tr>';
- document.getElementById('work-queue').innerHTML='<div class="tw"><table class="pt"><thead><tr><th>Polo</th>'+postSaleColumns.map(([key,title])=>'<th>'+title+'</th>').join('')+'</tr></thead><tbody>'+polos.map(p=>line(p.short_name,rows.filter(r=>r.CODIGO_DO_POLO===p.id),p.index)).join('')+(polos.length>1?line('Total selecionado',rows,-1):'')+'</tbody></table></div><p class="context">Sem registro: nenhuma anotação ou atendimento salvo. Promessas pendentes incluem as vencidas, enquanto o relatório não confirmar pagamento.</p>';
+ const button=(key,title,list,index,tile=false)=>{const n=list.filter(r=>postSaleMatch(r,key,t)).length,urgent=['late','promise'].includes(key)&&n>0;return '<button class="'+(tile?'post-sale-tile':'post-sale-count')+(urgent?' post-sale-urgent':'')+'" '+(n?'':'disabled')+' aria-label="'+esc(title+': '+n)+'" title="'+esc(title)+'" onclick="openPostSale(\''+key+'\','+index+')">'+(tile?'<span>'+esc(title)+'</span>':'')+'<strong>'+n+'</strong></button>';};
+ if(polos.length===1){const p=polos[0];document.getElementById('work-queue').innerHTML='<div class="post-sale-polo">'+esc(cap(p.short_name))+'</div><div class="post-sale-tiles">'+postSaleColumns.map(([key,title])=>button(key,title,rows,p.index,true)).join('')+'</div>';return;}
+ const line=(label,list,index)=>'<tr'+(index<0?' class="post-sale-total"':'')+'><th scope="row">'+esc(label)+'</th>'+postSaleColumns.map(([key,title])=>'<td>'+button(key,title,list,index)+'</td>').join('')+'</tr>';
+ document.getElementById('work-queue').innerHTML='<div class="tw"><table class="pt"><thead><tr><th>Polo</th>'+postSaleColumns.map(([key,title])=>'<th>'+title+'</th>').join('')+'</tr></thead><tbody>'+polos.map(p=>line(cap(p.short_name),rows.filter(r=>r.CODIGO_DO_POLO===p.id),p.index)).join('')+(polos.length>1?line('Total',rows,-1):'')+'</tbody></table></div>';
+
 }
 function openQueue(key){openCRM('ativos',true);$c('priority').value=key;filterCRM();}
 function compactLabels(r){let parts=[];if(Core.academicNote(r))parts.push('Indicação de nota');if(r._credit===true)parts.push('Aproveitamento');return (parts.length?'<small class="academic-line">'+esc(parts.join(' · '))+'</small>':'')+'<small class="academic-line last-access">Último acesso: '+esc(r._lastAccess?displayDate(r._lastAccess):'não informado no relatório')+'</small>'+dueLabel(r);}
