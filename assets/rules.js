@@ -30,6 +30,7 @@
   if(!statuses.includes(d.status)||typeof d.notes!=='string'||d.notes.length>6000)throw Error('Confira status e observações (máximo de 6.000 caracteres).');
   if(!dateValid(d.lastContact)||!dateValid(d.nextContact)||d.lastContact>t)throw Error('Confira as datas; último contato não pode ser futuro.');
   if(!['Não contatado','Contato inexistente','Solicitou cancelamento','Cancelado'].includes(d.status)&&!d.lastContact)throw Error('Informe a data do último contato.');
+  if(d.welcome==='Tentativa sem resposta'&&!['Contato inexistente','Solicitou cancelamento','Cancelado'].includes(d.status)&&(!d.nextContact||d.nextContact<t))throw Error('Agende o próximo contato para hoje ou uma data futura após a tentativa sem resposta.');
   if(d.status==='Retornar depois'&&!d.nextContact)throw Error('Informe a data de retorno.');
   if(d.nextContact&&d.lastContact&&d.nextContact<d.lastContact)throw Error('Retorno anterior ao contato.');return d;
  }

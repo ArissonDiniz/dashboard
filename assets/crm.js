@@ -46,7 +46,7 @@ function drawCRM(resetEditor=true){
   if(!crm.open)return;
   const tipo=$c('payment').value, query=$c('search').value.trim().toLocaleLowerCase('pt-BR'),polo=$c('polo').value,status=$c('status').value,priority=$c('priority').value;
   const days=Math.max(1,Math.min(3650,Number($c('days').value)||7)),today=crmToday();
-  const all=tipo==='cancel'||$c('period').value==='all'||['today','late','welcome','idle','promise','welcome_done','unrecorded','promise_pending','promise_today'].includes(priority);
+  const all=tipo==='cancel'||$c('period').value==='all'||['today','late','welcome','idle','promise','welcome_done','unrecorded','promise_pending','promise_today','welcome_attempt'].includes(priority);
   const base=(tipo==='cancel'?[...rawRows,...missingRows]:tipo==='missing'?missingRows:rawRows).filter(r=>scope(r)&&crmMatches(r,tipo,all?{from:null,to:null}:getDateRange(),filterMode()));
   const promiseMonth=$c('promise-month').value,promiseState=$c('promise-state').value;
   const matching=base.filter(r=>{
@@ -57,8 +57,8 @@ function drawCRM(resetEditor=true){
     if(query&&!((r.NOME||'')+' '+(r.CODIGO_ALUNO||'')+' '+r._key).toLocaleLowerCase('pt-BR').includes(query))return false;
     if(!matchesLabels(r,today))return false;
     if(status&&s.status!==status)return false;
-    if(['welcome_done','unrecorded','promise_pending','promise_today'].includes(priority)&&!postSaleMatch(r,priority,today))return false;
-    if(priority==='welcome'&&s.welcome==='Concluído')return false;
+    if(['welcome_done','unrecorded','promise_pending','promise_today','welcome_attempt'].includes(priority)&&!postSaleMatch(r,priority,today))return false;
+    if(priority==='welcome'&&!postSaleMatch(r,'welcome',today))return false;
     if(priority==='promise'&&!promiseLate(r,today))return false;
     if(priority==='new'&&s.status!=='Não contatado')return false;
     if(['today','late'].includes(priority)&&Core.due(s,today)!==priority)return false;

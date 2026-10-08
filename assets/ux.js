@@ -13,10 +13,11 @@ function postSaleMatch(r,key,today){
  if(r._missing||crmCancelled(r))return false;
  const s=crmState(r);
  if(key==='welcome_done')return s.welcome==='Concluído';
- if(key==='welcome')return s.welcome!=='Concluído';
- if(key==='unrecorded')return !crmStates[r._key];
+ if(key==='welcome')return s.welcome==='Pendente'&&s.status!=='Contato inexistente';
+ if(key==='welcome_attempt')return s.welcome==='Tentativa sem resposta'&&s.status!=='Contato inexistente';
  if(key==='today')return Core.due(s,today)==='today';
  if(key==='promise_today')return !Core.paid(r)&&s.promised===today;
+ if(key==='unrecorded')return !crmStates[r._key];
  if(key==='late')return Core.due(s,today)==='late';
  if(key==='promise')return promiseLate(r,today);
  if(key==='promise_pending')return !Core.paid(r)&&!!s.promised;
