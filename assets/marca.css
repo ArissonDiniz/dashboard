@@ -547,3 +547,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .hero-actions{align-items:center}
 .auto-nota{font-size:14px;color:var(--preto);margin-right:6px}
 @media (max-width:700px){.auto-nota{width:100%;margin:0 0 6px}}
+/* Elementos escondidos continuam escondidos, mesmo sendo botões */
+[hidden],.btn[hidden],button[hidden]{display:none!important}
+/* Ficha: vencimento já aparece no bloco Matrícula */
+#crm-editor .due-label{display:none!important}

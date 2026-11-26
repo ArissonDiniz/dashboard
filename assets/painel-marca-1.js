@@ -1027,7 +1027,7 @@ function renderUpdateNotice(){
  if(freshness==='stale')messages.push('O relatório está há mais de '+hours+' horas sem sincronizar. '+(currentProfile?.role==='admin'?'Sincronize a nova extração pelo Sheets.':'Solicite uma nova sincronização ao administrador.'));
  if(freshness==='missing')messages.push('Ainda não há relatório sincronizado para esta campanha.');
  const ausentes=(typeof missingRows!=='undefined'?missingRows:[]).filter(r=>scope(r)).length,base=ausentes+rawRows.filter(r=>scope(r)).length;
- if(ausentes&&base&&ausentes/base>=0.1)messages.push('Atenção: '+ausentes+' alunos desta campanha não vieram no último relatório e estão escondidos dos números. Se isso não era esperado, baixe o relatório completo no sistema e sincronize de novo.');
+ if(currentProfile?.role==='admin'&&ausentes&&base&&ausentes/base>=0.1)messages.push('Atenção: '+ausentes+' alunos desta campanha não vieram no último relatório e estão escondidos dos números. Se isso não era esperado, baixe o relatório completo no sistema e sincronize de novo.');
  if(updateNotice.error)messages.push('Não foi possível verificar novas atualizações. Confira sua conexão e tente novamente.');
  for(const id of ['update-notice','crm-update-notice']){const e=document.getElementById(id);if(!e)continue;e.hidden=!messages.length;e.innerHTML=messages.length?'<div>'+messages.map(m=>'<p>'+esc(m)+'</p>').join('')+'</div>'+(updateNotice.newData?'<button class="btn btn-gh" onclick="fetchData()">Atualizar dados</button>':'')+(updateNotice.error?'<button class="btn btn-gh" onclick="checkDashboardUpdates(true)">Verificar novamente</button>':''):'';}
 }
@@ -1314,3 +1314,12 @@ const _checkUpdatesV4=checkDashboardUpdates;
 checkDashboardUpdates=async function(force=false){await _checkUpdatesV4(force);marcarConferencia();};
 const _fetchDataV4=fetchData;
 fetchData=async function(...a){await _fetchDataV4.apply(this,a);marcarConferencia();};
+
+// ══════ ACOMPANHAMENTO PARA O COLABORADOR: polo certo no subtítulo e sem botão de atualizar ══════
+const _drawCRMv3=drawCRM;
+drawCRM=function(...a){
+ _drawCRMv3.apply(this,a);
+ const ctx=document.getElementById('crm-context');
+ if(ctx&&snapshot?.polos?.length===1)ctx.textContent=ctx.textContent.replace(/Todos os polos|Todos dentro do filtro principal/,'Polo '+cap(snapshot.polos[0].short_name));
+ document.querySelectorAll('#crm-dialog button').forEach(b=>{if(b.textContent.trim()==='Atualizar dados')b.hidden=true;});
+};
