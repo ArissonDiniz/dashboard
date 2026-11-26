@@ -314,3 +314,9 @@ summary{font-size:13.5px!important}
 .tag-prouni{background:var(--verde)!important;color:var(--branco)!important;border-color:var(--verde)!important}
 .tag-reneg{background:#FFFBE0!important;border-color:var(--amarelo)!important;color:var(--preto)!important}
 .tag-nowhats{background:#FBECEB!important;border-color:var(--r)!important;color:var(--r)!important}
+
+/* Seis cards: grade de 3 colunas, sem buracos */
+#kg1{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
+#kg2:empty{display:none!important}
+@media (max-width:1000px){#kg1{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media (max-width:560px){#kg1{grid-template-columns:1fr!important}}
