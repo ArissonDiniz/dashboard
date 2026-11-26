@@ -321,3 +321,17 @@ summary{font-size:13.5px!important}
 @media (max-width:1000px){.indicator-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media (max-width:560px){.indicator-grid{grid-template-columns:1fr!important}}
 #polo-table th small{display:block;font-size:12px!important;font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px}
+
+/* Topo do painel: claro, sem bloco preto */
+.hero{background:var(--branco)!important;color:var(--preto)!important;border:1px solid var(--br)!important;border-radius:18px!important;padding:26px 28px!important}
+.hero .hero-title{color:var(--preto)!important;font-size:26px!important;font-weight:700!important}
+.hero .hero-polo{display:inline-block;background:var(--amarelo)!important;color:var(--preto)!important;border-radius:999px;padding:2px 14px!important;font-size:15px!important;font-weight:700;margin:6px 0 4px}
+.hero .hero-sub,.hero .hs-l{color:var(--preto)!important}
+.hero .btn-gh{background:var(--branco)!important;color:var(--preto)!important;border-color:var(--preto)!important}
+.hero .btn-gh:hover{background:var(--preto)!important;color:var(--branco)!important}
+.hero-stats{display:flex!important;flex-wrap:wrap;gap:12px!important;margin-top:18px!important}
+.hero .hs{flex:1;min-width:180px;background:#F6F6F4;border-radius:14px;padding:14px 18px!important}
+.hero .hs-v{color:var(--preto)!important;font-size:30px!important;font-weight:700!important}
+.hero .hs:first-child{background:#FFFBE0;border:1.5px solid var(--amarelo)}
+.hero-meta-barra{height:10px;border-radius:5px;background:#ECECE8;margin-top:10px;overflow:hidden}
+.hero-meta-barra span{display:block;height:100%;background:var(--amarelo);box-shadow:inset 0 0 0 1px rgba(35,31,32,.3);border-radius:5px}
