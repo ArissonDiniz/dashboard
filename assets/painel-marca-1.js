@@ -1323,3 +1323,52 @@ drawCRM=function(...a){
  if(ctx&&snapshot?.polos?.length===1)ctx.textContent=ctx.textContent.replace(/Todos os polos|Todos dentro do filtro principal/,'Polo '+cap(snapshot.polos[0].short_name));
  document.querySelectorAll('#crm-dialog button').forEach(b=>{if(b.textContent.trim()==='Atualizar dados')b.hidden=true;});
 };
+
+// ══════ FICHA ENXUTA E ATENDIMENTO RÁPIDO POR TIPO DE ALUNO ══════
+function tipoAluno(r){
+ if(Core.cancelled(r)||crmState(r).status==='Cancelado')return 'cancelado';
+ if(Core.paid(r))return 'pago';
+ if(ehProuni(r))return 'prouni';
+ return 'naoPagou';
+}
+fichaDados=function(r){
+ const item=(l,v)=>v?'<div class="ficha-item"><span>'+l+'</span><strong>'+esc(v)+'</strong></div>':'';
+ const tipo=tipoAluno(r),venc=Core.expectedDue(r);
+ const faixa={cancelado:['Cancelou a matrícula','ficha-cancelado'],pago:['Pagou a 1ª mensalidade','ficha-pago'],prouni:['Aluno ProUni (identificado pelo relatório)','ficha-bolsa'],naoPagou:['Ainda não pagou a 1ª mensalidade','']}[tipo];
+ const alertas=[];
+ if(tipo==='naoPagou'&&Core.academicNote(r))alertas.push('Já tem nota lançada e ainda não pagou a 1ª mensalidade.');
+ if(r._extra?.renegociou==='S')alertas.push('Renegociou a 1ª mensalidade.');
+ if(r._extra?.aceita_whats==='N')alertas.push('Não aceita WhatsApp: prefira ligar.');
+ return '<div class="ficha-situacao '+faixa[1]+'">'+esc(faixa[0])+'</div>'
+  +(alertas.length?'<ul class="ficha-alertas">'+alertas.map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul>':'')
+  +'<h4 class="ficha-secao">Dados do aluno</h4><div class="ficha-grid">'
+  +item('Matrícula',r.CODIGO_ALUNO)+item('Entrou em',displayDate(Core.dateOnly(r.DATA_MATRICULA)))
+  +item(Core.paid(r)?'Pagou em':'1º vencimento',Core.paid(r)?displayDate(Core.dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA)):(venc?displayDate(venc):''))
+  +(r.DATA_CANCELAMENTO?item('Cancelou em',displayDate(Core.dateOnly(r.DATA_CANCELAMENTO))):'')
+  +item('Último acesso às aulas',r._lastAccess?displayDate(r._lastAccess):'sem registro')+'</div>'
+  +'<h4 class="ficha-secao">Contato</h4><div class="ficha-grid">'+item('Telefone',r.CELULAR||r.TELEFONE)+item('E-mail',r.EMAIL)+'</div>'+whatsappContact(r);
+};
+const RAPIDOS={
+ naoAtendeu:'Liguei e não atendeu',conversou:'Conversei com o aluno',vaiPagar:'Conversei, vai pagar',convalidacao:'Aguardando convalidação',
+ bolsa:'Bolsa 100%',querCancelar:'Quer cancelar',voltar:'Quer voltar a estudar',confirmouCancel:'Confirmou o cancelamento',boasVindas:'Boas-vindas feitas'
+};
+botoesRapidos=function(){
+ const r=crm.edit;const tipo=r?tipoAluno(r):'naoPagou';
+ const lista={naoPagou:['naoAtendeu','vaiPagar','convalidacao','bolsa','querCancelar','conversou'],prouni:['naoAtendeu','boasVindas'],pago:['naoAtendeu','boasVindas'],cancelado:['naoAtendeu','voltar','confirmouCancel']}[tipo];
+ return '<div class="rapido"><span>Atendimento rápido</span><div class="rapido-botoes">'+lista.map(k=>'<button type="button" class="btn btn-gh" onclick="preencherRapido(\''+k+'\')">'+RAPIDOS[k]+'</button>').join('')+'</div><small>O botão preenche a ficha. Confira, escreva a observação e salve.</small></div>';
+};
+const _preencherV1=preencherRapido;
+preencherRapido=function(tipo){
+ const hoje=crmToday(),amanha=Core.plus(hoje,1),set=(id,v)=>{const e=$c(id);if(e)e.value=v;};
+ const extra={
+  vaiPagar:()=>{set('last',hoje);set('event','contact');set('welcome','Concluído');set('outcome','Prometeu pagamento');set('edit-status','Aguardando retorno');$c('promised').focus();},
+  convalidacao:()=>{set('last',hoje);set('event','contact');set('welcome','Concluído');set('outcome','Conversou');set('edit-status','Aguardando convalidação');set('next',Core.plus(hoje,7));},
+  bolsa:()=>{set('last',hoje);set('event','contact');set('welcome','Concluído');set('outcome','Conversou');set('edit-status','Aluno ProUni ou com bolsa 100%');set('next','');},
+  querCancelar:()=>{set('last',hoje);set('event','contact');set('welcome','Concluído');set('outcome','Conversou');set('edit-status','Solicitou cancelamento');},
+  voltar:()=>{set('last',hoje);set('event','contact');set('welcome','Concluído');set('outcome','Conversou');set('edit-status','Retornar depois');set('next',amanha);},
+  confirmouCancel:()=>{set('last',hoje);set('event','contact');set('outcome','Conversou');set('edit-status','Cancelado');set('next','');},
+  boasVindas:()=>{set('last',hoje);set('event','contact');set('welcome','Concluído');set('outcome','Conversou');set('edit-status','Contatado');set('next','');}
+ };
+ if(extra[tipo]){extra[tipo]();crm.dirty=true;messageCRM('Campos preenchidos. Confira, escreva a observação e salve.');$c('notes').focus();}
+ else _preencherV1(tipo);
+};

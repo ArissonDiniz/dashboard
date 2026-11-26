@@ -551,3 +551,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 [hidden],.btn[hidden],button[hidden]{display:none!important}
 /* Ficha: vencimento já aparece no bloco Matrícula */
 #crm-editor .due-label{display:none!important}
+
+/* Ficha enxuta */
+#crm-editor .student-labels{display:none!important}
+#crm-editor label:has(#crm-event){display:none!important}
+.ficha-situacao.ficha-cancelado{background:#F1F1EF;border-color:var(--cinza)}
+.ficha-situacao.ficha-bolsa{background:#E3F6F6;border-color:var(--verde)}
+.ficha-alertas{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ficha-alertas li{padding:8px 12px;border-radius:10px;background:#FFFBE0;border:1.5px solid var(--amarelo);font-size:15px;font-weight:600}
+.rapido small{display:block;margin-top:8px;font-size:13px;color:var(--preto)}
+.rapido-botoes{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))!important}
