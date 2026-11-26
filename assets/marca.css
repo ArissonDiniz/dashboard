@@ -531,3 +531,16 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .meta-unica [data-admin-section="goals"] form{grid-template-columns:minmax(160px,1.4fr) minmax(120px,1fr) auto!important}
 .adm-modo label{white-space:nowrap}
 [data-admin-section="goals"] .admin-section-body>p.context{display:none!important}
+
+/* Tipo de meta: botão de duas partes */
+#admin-dialog .adm-modo{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px}
+#admin-dialog .adm-modo>span{font-size:15px;font-weight:700;margin:0}
+#admin-dialog .adm-modo{--r:999px}
+#admin-dialog .adm-modo label{display:inline-flex!important;width:auto!important;align-items:center;justify-content:center;white-space:nowrap;min-height:40px;padding:0 18px!important;margin:0 -1.5px 0 0!important;border:1.5px solid var(--preto)!important;border-radius:0!important;background:var(--branco);font-size:15px!important;font-weight:700!important;line-height:1;cursor:pointer;gap:0}
+#admin-dialog .adm-modo label:nth-of-type(1){border-radius:999px 0 0 999px!important}
+#admin-dialog .adm-modo label:nth-of-type(2){border-radius:0 999px 999px 0!important}
+#admin-dialog .adm-modo label.ativo{background:var(--amarelo)}
+#admin-dialog .adm-modo label:hover:not(.ativo){background:#FFFBE0}
+#admin-dialog .adm-modo input{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;margin:0!important;padding:0!important;pointer-events:none}
+#admin-dialog .adm-modo label:has(input:focus-visible){outline:3px solid var(--verde);outline-offset:2px}
+#admin-dialog .adm-modo .adm-grupo{display:inline-flex}

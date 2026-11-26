@@ -1299,3 +1299,5 @@ drawAdmin=function(){
  goals.querySelectorAll('input[name="modo-meta"]').forEach(r=>r.onchange=async()=>{const {error}=await db.rpc('set_goal_mode',{p_campaign:snapshot.campaign.id,p_mode:r.value});if(error){adminMsg(error.message);return;}window.modoMeta=r.value;document.documentElement.classList.toggle('meta-unica',metaUnica());renderAll();drawAdmin();adminMsg(r.value==='single'?'Este semestre agora usa meta única.':'Este semestre agora usa bronze, prata e ouro.');});
  if(unica)goals.querySelectorAll('form label').forEach(l=>{if(/^\s*Ouro/.test(l.textContent))l.firstChild.textContent='Meta';});
 };
+// agrupa as duas opções num só botão
+const _drawAdminV5=drawAdmin;drawAdmin=function(){_drawAdminV5();const m=document.querySelector('#admin-dialog .adm-modo');if(m&&!m.querySelector('.adm-grupo')){const g=document.createElement('div');g.className='adm-grupo';m.querySelectorAll('label').forEach(l=>g.appendChild(l));m.appendChild(g);}};
