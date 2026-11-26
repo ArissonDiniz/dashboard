@@ -438,3 +438,20 @@ summary{font-size:13.5px!important}
 .update-notice p{font-size:15px!important;color:var(--preto)!important}
 #meta-bars .context,.corrida-proximo,.corrida-chip{font-size:15px!important;color:var(--preto)!important}
 .corrida-marca b{font-size:13px!important}
+
+/* Cards compactos */
+.kpi{padding:16px 18px!important;border-radius:14px!important}
+.kpi-top{margin-bottom:8px!important;align-items:center}
+.kpi-ic{width:34px!important;height:34px!important;border-radius:9px!important}
+.kpi-ic svg{width:19px;height:19px}
+.kpi-det{font-size:13px!important;padding:2px 8px!important;min-height:0!important}
+.kpi-l{font-size:15px!important;margin-bottom:0!important}
+.kpi-v{font-size:32px!important;margin:2px 0 0!important}
+.kpi-s{font-size:14px!important}
+.kx{padding-top:10px!important}
+.kx-barra{height:6px!important;border-radius:3px!important}
+.kx-itens{display:flex!important;flex-wrap:wrap;gap:4px 18px!important;margin-top:8px!important}
+.kx-item{background:none!important;padding:0!important;border-radius:0!important;display:flex;align-items:baseline;gap:5px}
+.kx-item strong{display:inline!important;font-size:16px!important}
+.kx-item span{font-size:14px!important}
+.indicator-grid{gap:14px!important}
