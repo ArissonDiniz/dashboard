@@ -368,3 +368,22 @@ summary{font-size:13.5px!important}
 .filter-wrap select,.filter-wrap input{min-height:40px;font-size:15px!important}
 .account-bar{margin:18px 0!important}
 .ftr{font-size:14px!important;color:var(--preto)!important;padding:28px 0!important}
+
+/* Lista do acompanhamento: ação principal clara, linhas mais compactas */
+#crm-dialog{border-radius:20px!important}
+#crm-dialog h2{font-size:26px!important}
+#crm-dialog .pt tbody td{padding:12px 10px!important;vertical-align:middle}
+#crm-dialog .pt tbody tr td:last-child .btn,#crm-dialog .pt tbody .btn-gh{background:var(--amarelo)!important;border-color:var(--amarelo)!important;color:var(--preto)!important;min-width:116px;min-height:44px;font-size:15px!important}
+#crm-dialog .pt tbody tr td:last-child .btn:hover{background:var(--preto)!important;border-color:var(--preto)!important;color:var(--amarelo)!important}
+.due-label{display:inline-block!important;border-radius:8px!important;padding:4px 10px!important;line-height:1.35!important;font-size:13px!important}
+.due-label span{font-weight:400}
+#crm-dialog .crm-tag{margin-top:5px!important;font-size:13px!important}
+#crm-dialog .crm-jump{display:flex;justify-content:flex-end;gap:6px}
+#crm-dialog .crm-jump .btn{min-height:34px;font-size:13px!important;padding:4px 12px!important}
+#crm-dialog .crm-tabs .btn{min-height:42px;font-size:15px!important;padding:6px 18px!important}
+#crm-dialog .pt thead th{font-size:13px!important;color:var(--preto)!important}
+
+/* Botão principal da página */
+.account-bar .btn-y{box-shadow:0 2px 0 var(--preto)!important;border:1.5px solid var(--preto)!important}
+.account-bar .btn-y:hover{transform:translateY(-1px)}
+.account-bar .btn-gh{min-height:44px}
