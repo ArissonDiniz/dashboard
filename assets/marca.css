@@ -238,3 +238,27 @@ summary{font-size:13.5px!important}
 .hero .hero-polo{background:var(--amarelo)!important;color:var(--preto)!important}
 #ck-d{display:none}
 .kpi-ic{width:44px!important;height:44px!important;border-radius:12px!important}
+
+/* Corrida para a meta: medalha conquistada, faixas e quanto falta */
+.corrida-item{padding:16px 0;border-bottom:1px solid var(--br)}
+.corrida-item:last-child{border-bottom:0}
+.corrida-topo{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.corrida-polo{font-size:18px;font-weight:700}
+.corrida-selo{background:var(--selo,#FFDD00);color:var(--preto);border:1.5px solid var(--preto);border-radius:999px;padding:3px 12px;font-size:14px;font-weight:700}
+.corrida-sem{background:var(--branco);border-style:dashed}
+.corrida-num{margin-left:auto;font-size:15px}
+.corrida-num strong{font-size:20px}
+.corrida-pista{position:relative;height:22px;margin:14px 0 22px;border-radius:11px;background:#ECECE8;overflow:visible}
+.corrida-zona{position:absolute;top:0;bottom:0;background:var(--zona);opacity:.28}
+.corrida-zona:first-child{border-radius:11px 0 0 11px}
+.corrida-feito{position:absolute;left:0;top:5px;height:12px;border-radius:6px;background:var(--preto);max-width:100%}
+.corrida-marca{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--cinza);border-radius:2px}
+.corrida-marca.ok{background:var(--preto)}
+.corrida-marca b{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:12px}
+.corrida-chips{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.corrida-chip{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;border:1.5px solid var(--br2);font-size:14px;line-height:1.3;background:var(--branco)}
+.corrida-chip.ok{border-color:var(--preto);background:color-mix(in srgb,var(--chip) 30%,#fff)}
+.corrida-bolinha{width:14px;height:14px;border-radius:50%;flex-shrink:0;background:var(--chip);border:1.5px solid var(--preto)}
+.corrida-chip:not(.ok) .corrida-bolinha{background:var(--branco);border-color:var(--chip)}
+.corrida-proximo{margin:10px 0 0;font-size:15px}
+@media (max-width:600px){.corrida-chips{grid-template-columns:1fr}.corrida-num{margin-left:0;width:100%}}

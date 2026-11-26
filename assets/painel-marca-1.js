@@ -387,19 +387,19 @@ function goalTiers(d){
 function renderMetaBars(data){
  const relevant=data.filter(d=>d.total>0||d.paga>0||d.meta>0);
  if(!relevant.length){document.getElementById('meta-bars').innerHTML='<p class="context">Sem dados ou metas cadastradas.</p>';return;}
- document.getElementById('meta-bars').innerHTML=relevant.map((d,i)=>{
-  const pct=d.meta>0?Math.round(d.paga/d.meta*100):0,remaining=Math.max(0,d.meta-d.paga),tiers=goalTiers(d);
-  let previous=0;const segments=tiers.map(t=>{const start=previous,end=t.target/d.meta*100;previous=end;return t.color+' '+start+'%, '+t.color+' '+end+'%';}).join(',');
-  const description=t=>t.label+': meta '+t.target+', '+Math.round(d.paga/t.target*100)+'% atingido. '+(d.paga>=t.target?'Meta atingida':'Faltam '+(t.target-d.paga)+' pagamentos');
-  return `<div class="mb-item goal-tiers" data-performance="${pct>=50?'high':pct>=25?'middle':'low'}">
-   <div class="mb-header"><span class="mb-polo">${esc(cap(d.polo))}</span><span class="mb-vals">${d.paga}/${d.meta||'sem meta'} <strong>${d.meta>0?pct+'%':''}</strong> <span class="gold-label">Ouro</span></span></div>
-   <div class="tier-track" role="progressbar" aria-label="Meta ouro de ${esc(cap(d.polo))}" aria-valuemin="0" aria-valuemax="${d.meta||1}" aria-valuenow="${Math.min(d.paga,d.meta||1)}" aria-valuetext="${esc(d.meta>0?d.paga+' de '+d.meta+' pagamentos, '+pct+'%':'Sem meta definida')}">
-    <div class="tier-fill" style="background:linear-gradient(90deg,${segments||'#ffd600, #ffd600'});clip-path:inset(0 ${100-Math.min(pct,100)}% 0 0)"></div>
-   </div>
-   <div class="tier-markers">${tiers.map(t=>`<button type="button" class="tier-marker" style="left:${t.target/d.meta*100}%;--tier-color:${t.color}" title="${esc(description(t))}" aria-label="${esc(description(t))}" onclick="toggleGoalTier('tier-${i}-${t.key}')"></button>`).join('')}</div>
-   <div class="tier-labels">${tiers.map(t=>`<div class="tier-detail tier-${t.key}" id="tier-${i}-${t.key}"><button type="button" class="tier-trigger" aria-expanded="false" aria-describedby="tier-tip-${i}-${t.key}" onclick="toggleGoalTier('tier-${i}-${t.key}')"><span class="tier-dot" style="background:${t.color}"></span>${t.label} <strong>${t.target}</strong></button><div class="tier-tooltip" id="tier-tip-${i}-${t.key}" role="tooltip">${esc(description(t))}</div></div>`).join('')}</div>
-   <div class="mb-sub">${d.meta>0?(remaining?'Faltam <strong>'+remaining+'</strong> pagamentos para ouro':'<strong class="goal-achieved">Meta ouro atingida</strong>'):'Sem meta definida'}</div>
-  </div>`;
+ document.getElementById('meta-bars').innerHTML=relevant.map(d=>{
+  const tiers=goalTiers(d).map(t=>({...t,color:t.key==='gold'?'#FFDD00':t.color}));
+  if(!d.meta||!tiers.length)return '<div class="corrida-item"><div class="corrida-topo"><span class="corrida-polo">'+esc(cap(d.polo))+'</span><span class="corrida-selo corrida-sem">Sem meta cadastrada</span></div><p class="corrida-proximo">'+d.paga+' pagamentos até agora.</p></div>';
+  const max=Math.max(d.meta,d.paga),pos=v=>Math.min(100,v/max*100);
+  const reached=tiers.filter(t=>d.paga>=t.target),best=reached[reached.length-1],next=tiers.find(t=>d.paga<t.target);
+  const selo=best?'<span class="corrida-selo" style="--selo:'+best.color+'">Bateu a meta '+best.label.toLowerCase()+'</span>':'<span class="corrida-selo corrida-sem">Ainda sem medalha</span>';
+  const proximo=next?'Faltam <strong>'+(next.target-d.paga)+'</strong> pagamentos para a meta '+next.label.toLowerCase()+' ('+next.target+').':(d.paga>d.meta?'Passou a meta ouro em <strong>'+(d.paga-d.meta)+'</strong> pagamentos.':'Meta ouro batida em cheio.');
+  const zonas=tiers.map((t,k)=>{const a=k?pos(tiers[k-1].target):0;return '<span class="corrida-zona" style="left:'+a+'%;width:'+(pos(t.target)-a)+'%;--zona:'+t.color+'"></span>';}).join('');
+  const marcas=tiers.map(t=>'<span class="corrida-marca'+(d.paga>=t.target?' ok':'')+'" style="left:'+pos(t.target)+'%"><b>'+t.target+'</b></span>').join('');
+  const chips=tiers.map(t=>{const ok=d.paga>=t.target;return '<li class="corrida-chip'+(ok?' ok':'')+'" style="--chip:'+t.color+'"><span class="corrida-bolinha"></span><span><strong>'+t.label+' ('+t.target+')</strong><br>'+(ok?'Batida':'Faltam '+(t.target-d.paga))+'</span></li>';}).join('');
+  return '<div class="corrida-item"><div class="corrida-topo"><span class="corrida-polo">'+esc(cap(d.polo))+'</span>'+selo+'<span class="corrida-num"><strong>'+d.paga+'</strong> de '+d.meta+' ('+Math.round(d.paga/d.meta*100)+'% do ouro)</span></div>'
+   +'<div class="corrida-pista" role="img" aria-label="'+esc(cap(d.polo))+': '+d.paga+' pagamentos. '+(best?'Bateu a meta '+best.label.toLowerCase()+'.':'Ainda sem medalha.')+'">'+zonas+'<span class="corrida-feito" style="width:'+pos(d.paga)+'%"></span>'+marcas+'</div>'
+   +'<ul class="corrida-chips">'+chips+'</ul><p class="corrida-proximo">'+proximo+'</p></div>';
  }).join('');
 }
 
