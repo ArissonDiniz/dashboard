@@ -335,3 +335,21 @@ summary{font-size:13.5px!important}
 .hero .hs:first-child{background:#FFFBE0;border:1.5px solid var(--amarelo)}
 .hero-meta-barra{height:10px;border-radius:5px;background:#ECECE8;margin-top:10px;overflow:hidden}
 .hero-meta-barra span{display:block;height:100%;background:var(--amarelo);box-shadow:inset 0 0 0 1px rgba(35,31,32,.3);border-radius:5px}
+/* Número da última marca não corta na borda */
+.corrida-pista{margin-right:14px}
+.corrida-marca:last-child b{left:auto;right:0;transform:none}
+
+/* Janelas de "Ver detalhes" */
+.mbox{border-radius:18px!important;border:0!important}
+.mtitle{font-size:22px!important;font-weight:700!important}
+#mbody{font-size:15px}
+#mbody .detail-row,#mbody [class*="det-row"],#mbody li{border-radius:12px}
+#mbody strong,#mbody b{font-size:18px}
+.mclose{border-radius:10px!important;border:1.5px solid var(--preto)!important}
+.mrow.detail-row{background:var(--branco)!important;border:1px solid var(--br)!important;border-radius:12px!important;padding:12px 14px!important;gap:14px}
+.mrow.detail-row:hover{border-color:var(--preto)!important}
+.mname{font-size:16px!important;font-weight:700!important;color:var(--preto)!important}
+.mval{font-size:22px!important;font-weight:700!important;min-width:56px;text-align:right}
+.mpb{height:8px!important;border-radius:4px!important;background:#ECECE8!important}
+.mpf{border-radius:4px!important}
+#mbody .context{font-size:15px!important;color:var(--preto)!important;margin-bottom:12px}
