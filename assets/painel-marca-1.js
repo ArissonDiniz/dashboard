@@ -1343,7 +1343,7 @@ fichaDados=function(r){
   +(alertas.length?'<ul class="ficha-alertas">'+alertas.map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul>':'')
   +'<h4 class="ficha-secao">Dados do aluno</h4><div class="ficha-grid">'
   +item('Matrícula',r.CODIGO_ALUNO)+item('Entrou em',displayDate(Core.dateOnly(r.DATA_MATRICULA)))
-  +item(Core.paid(r)?'Pagou em':'1º vencimento',Core.paid(r)?displayDate(Core.dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA)):(venc?displayDate(venc):''))
+  +(Core.paid(r)?item('Pagou em',displayDate(Core.dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA))):tipo==='naoPagou'&&venc?item('1ª mensalidade cobrada vence em',displayDate(venc)):'')
   +(r.DATA_CANCELAMENTO?item('Cancelou em',displayDate(Core.dateOnly(r.DATA_CANCELAMENTO))):'')
   +item('Último acesso às aulas',r._lastAccess?displayDate(r._lastAccess):'sem registro')+'</div>'
   +'<h4 class="ficha-secao">Contato</h4><div class="ficha-grid">'+item('Telefone',r.CELULAR||r.TELEFONE)+item('E-mail',r.EMAIL)+'</div>'+whatsappContact(r);
