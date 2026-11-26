@@ -520,3 +520,12 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 [data-admin-section="goals"] form strong,[data-admin-section="goals"] form h3,[data-admin-section="goals"] form .goal-polo{font-size:16px!important}
 #admin-dialog .context{font-size:15px!important;color:var(--preto)!important}
 #admin-dialog .account-bar{border-bottom:1px solid var(--br);padding:10px 0;margin:0!important}
+
+/* Chave do tipo de meta */
+.adm-modo{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:12px}
+.adm-modo>span{font-size:15px;font-weight:700;margin-right:6px}
+.adm-modo label{display:inline-flex!important;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--preto);font-size:15px!important;font-weight:600!important;cursor:pointer;margin:0!important;background:var(--branco)}
+.adm-modo label.ativo{background:var(--amarelo)}
+.adm-modo input{accent-color:#231F20;margin:0!important;min-height:0!important}
+.meta-unica [data-admin-section="goals"] form label:has(input[name="bronze"]),.meta-unica [data-admin-section="goals"] form label:has(input[name="silver"]){display:none!important}
+.meta-unica [data-admin-section="goals"] form{grid-template-columns:minmax(160px,1.4fr) minmax(120px,1fr) auto!important}

@@ -1264,3 +1264,38 @@ drawAdmin=function(){
  }
  if(!body.dataset.abriu){['campaign','goals'].forEach(id=>{const s=sec(id);if(s)s.open=true;});body.dataset.abriu='1';}
 };
+
+// ══════ TIPO DE META POR SEMESTRE: medalhas (bronze, prata, ouro) ou meta única ══════
+window.modoMeta='tiers';
+const metaUnica=()=>window.modoMeta==='single';
+async function carregarModoMeta(){
+ try{const {data}=await db.from('campaign_settings').select('goal_mode').eq('campaign_id',snapshot.campaign.id).maybeSingle();window.modoMeta=data?.goal_mode||'tiers';}catch(e){window.modoMeta='tiers';}
+ document.documentElement.classList.toggle('meta-unica',metaUnica());
+}
+const _goalTiersV3=goalTiers;
+goalTiers=function(d){const t=_goalTiersV3(d);return metaUnica()?t.filter(x=>x.key==='gold').map(x=>({...x,label:'Meta',color:'#FFDD00'})):t;};
+const _fetchDataV3=fetchData;
+fetchData=async function(...a){await _fetchDataV3.apply(this,a);if(snapshot){await carregarModoMeta();if(rawRows.length||snapshot)renderAll();}};
+const _renderMetaBarsV3=renderMetaBars;
+renderMetaBars=function(data){
+ _renderMetaBarsV3(data);if(!metaUnica())return;
+ const box=document.getElementById('meta-bars');if(!box)return;
+ box.querySelectorAll('.corrida-selo').forEach(s=>{if(/Bateu a meta/.test(s.textContent))s.textContent='Bateu a meta';else if(/sem medalha/.test(s.textContent))s.textContent='Ainda não bateu';});
+ box.querySelectorAll('.corrida-num').forEach(s=>{s.innerHTML=s.innerHTML.replace('do ouro','da meta');});
+ box.querySelectorAll('.corrida-proximo').forEach(s=>{s.innerHTML=s.innerHTML.replace('para a meta meta','para a meta').replace('meta ouro','meta');});
+ box.querySelectorAll('.corrida-chips').forEach(c=>c.remove());
+};
+const _renderHeroV3=renderHero;
+renderHero=function(data){_renderHeroV3(data);if(!metaUnica())return;document.querySelectorAll('#hero-st .hs-l').forEach(l=>{l.textContent=l.textContent.replace('Faltam para a meta ouro','Faltam para a meta').replace('Meta ouro batida','Meta batida');});};
+const _drawAdminV4=drawAdmin;
+drawAdmin=function(){
+ _drawAdminV4();
+ const goals=document.querySelector('[data-admin-section="goals"]');if(!goals||!snapshot)return;
+ const unica=metaUnica();
+ goals.querySelector('summary').firstChild.textContent=(unica?'Meta por polo, ':'Metas por polo, ')+snapshot.campaign.name;
+ const tot=goals.querySelector('.adm-total');if(tot){tot.querySelector('span').textContent=unica?'Meta da rede':'Meta ouro da rede';tot.querySelector('small').textContent=unica?'Soma das metas dos polos. Este semestre usa meta única, sem bronze e prata.':'É a soma das metas dos polos. Bronze e prata são opcionais.';}
+ const chave='<div class="adm-modo" role="radiogroup" aria-label="Tipo de meta deste semestre"><span>Tipo de meta deste semestre</span><label class="'+(!unica?'ativo':'')+'"><input type="radio" name="modo-meta" value="tiers" '+(!unica?'checked':'')+'> Bronze, prata e ouro</label><label class="'+(unica?'ativo':'')+'"><input type="radio" name="modo-meta" value="single" '+(unica?'checked':'')+'> Meta única</label></div>';
+ goals.querySelector('.admin-section-body').insertAdjacentHTML('afterbegin',chave);
+ goals.querySelectorAll('input[name="modo-meta"]').forEach(r=>r.onchange=async()=>{const {error}=await db.rpc('set_goal_mode',{p_campaign:snapshot.campaign.id,p_mode:r.value});if(error){adminMsg(error.message);return;}window.modoMeta=r.value;document.documentElement.classList.toggle('meta-unica',metaUnica());renderAll();drawAdmin();adminMsg(r.value==='single'?'Este semestre agora usa meta única.':'Este semestre agora usa bronze, prata e ouro.');});
+ if(unica)goals.querySelectorAll('form label').forEach(l=>{if(/^\s*Ouro/.test(l.textContent))l.firstChild.textContent='Meta';});
+};
