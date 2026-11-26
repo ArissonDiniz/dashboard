@@ -1194,3 +1194,23 @@ function situacaoCelula(r,s,today){
  if(r._extra?.aceita_whats==='N')det.push('não aceita WhatsApp');
  return '<div class="sit"><div class="sit-chips">'+chips.join('')+contactTag(s)+'</div><div class="sit-det">'+esc(det.join(', '))+'</div></div>';
 }
+
+// ══════ CARDS COM DETALHE: barra e números de apoio ══════
+const _renderKPIsV3=renderKPIs;
+renderKPIs=function(data,acc){
+ _renderKPIsV3(data,acc);
+ const S=k=>sum(data,k),tot=S('total'),at=S('ativos'),ca=S('cancel'),pg=S('paga'),np=S('naoPaga'),cp=S('cohortPaid'),ap=S('activePaid');
+ const hoje=crmToday(),vencidos=rawRows.filter(r=>scope(r)&&!r._missing&&Core.metric(r,'naoPaga',getDateRange(),filterMode())&&Core.dueState(r,hoje)==='overdue').length;
+ const pc=(a,b)=>b?Math.round(a/b*100):0;
+ const barra=(partes)=>'<div class="kx-barra">'+partes.map(([v,c])=>'<span style="width:'+v+'%;background:'+c+'"></span>').join('')+'</div>';
+ const linha=(itens)=>'<div class="kx-itens">'+itens.map(([n,l,c])=>'<div class="kx-item"><strong'+(c?' style="color:'+c+'"':'')+'>'+n+'</strong><span>'+l+'</span></div>').join('')+'</div>';
+ const extra={
+  total:barra([[pc(at,tot),'#00A6A6'],[pc(ca,tot),'#B3261E']])+linha([[at,'ativas'],[ca,'canceladas']]),
+  ativos:barra([[pc(at,tot),'#00A6A6']])+linha([[pc(at,tot)+'%','das matrículas'],[ap,'já pagaram']]),
+  paga:barra([[pc(ap,tot),'#231F20'],[pc(cp-ap,tot),'#575756']])+linha([[ap,'ativos'],[Math.max(0,cp-ap),'pagaram e cancelaram']]),
+  naoPaga:barra([[pc(np,at),'#B3261E']])+linha([[pc(np,at)+'%','dos ativos'],[vencidos,'já venceram','#B3261E']]),
+  cancel:barra([[pc(ca,tot),'#B3261E']])+linha([[pc(ca,tot)+'%','das matrículas'],[Math.max(0,cp-ap),'pagaram antes']]),
+  conv:linha([[cp,'pagaram'],[Math.max(0,tot-cp),'não pagaram']])
+ };
+ document.querySelectorAll('#kg1 .kpi').forEach(k=>{const id=k.dataset.mid;if(extra[id]){k.querySelector('.kpi-bw')?.remove();k.insertAdjacentHTML('beforeend','<div class="kx">'+(id==='conv'?barra([[pc(cp,tot),'#00A6A6']]):'')+extra[id]+'</div>');}});
+};

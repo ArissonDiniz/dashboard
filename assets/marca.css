@@ -404,3 +404,25 @@ summary{font-size:13.5px!important}
 .btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:6px}
 #crm-dialog .pt tbody td:nth-child(1) strong{font-size:16px}
 #crm-dialog .pt tbody td{font-size:14px}
+
+/* Cards com detalhe */
+.kpi{display:flex!important;flex-direction:column}
+.kpi-l{font-size:16px!important;color:var(--preto)!important}
+.kpi-v{font-size:40px!important;font-weight:700!important;letter-spacing:-.02em!important;line-height:1.05!important;margin:4px 0 2px}
+.kg2c .kpi-v,.ky .kpi-v,.kb .kpi-v{color:var(--preto)!important}
+.kpi-s{font-size:15px!important;color:var(--preto)!important}
+.kx{margin-top:auto;padding-top:14px}
+.kx-barra{display:flex;height:10px;border-radius:5px;background:#ECECE8;overflow:hidden;gap:2px}
+.kx-barra span{display:block;height:100%}
+.kx-itens{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.kx-item{background:#F6F6F4;border-radius:10px;padding:8px 12px}
+.kx-item strong{display:block;font-size:20px;font-weight:700;color:var(--preto)}
+.kx-item span{font-size:14px;color:var(--preto)}
+.kpi-det{font-size:14px!important;font-weight:700!important;color:var(--preto)!important;background:var(--branco)!important;border:1.5px solid var(--preto)!important;border-radius:8px!important;padding:4px 10px!important}
+
+/* Ficha: rótulos e campos em preto, maiores */
+#crm-editor label{font-size:15px!important;font-weight:700!important;color:var(--preto)!important}
+#crm-editor input,#crm-editor select,#crm-editor textarea{font-size:16px!important;color:var(--preto)!important;font-weight:400!important;min-height:44px}
+#crm-editor .rapido-botoes .btn{font-size:15px!important}
+#crm-dialog label,#crm-dialog .crm-info,#crm-dialog summary{color:var(--preto)!important;font-size:15px!important}
+#crm-dialog input,#crm-dialog select{color:var(--preto)!important;font-size:15px!important}
