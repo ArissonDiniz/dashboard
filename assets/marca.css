@@ -474,3 +474,23 @@ summary{font-size:13.5px!important}
 .pc-urgente{border-color:var(--r);color:var(--r)}
 .pc-urgente:hover{background:#FBECEB}
 .pc-ok{font-size:14px;font-weight:600}
+
+/* Tela de entrada */
+#auth-screen{min-height:100vh;display:grid!important;grid-template-columns:minmax(320px,44%) 1fr;place-items:stretch!important;padding:0!important;background:var(--branco)}
+#auth-screen[hidden]{display:none!important}
+.auth-marca{background:var(--amarelo);padding:44px clamp(24px,4vw,64px);display:flex;flex-direction:column;justify-content:space-between;gap:40px}
+.auth-marca .marcas{align-self:flex-start}
+.auth-marca .m-rede{height:64px}.auth-marca .m-uni{height:27px}
+.auth-marca h2{font-size:clamp(34px,4.4vw,56px);font-weight:700;line-height:1;letter-spacing:-.02em;margin:0 0 14px;max-width:9ch}
+.auth-marca p{font-size:17px;line-height:1.5;max-width:32ch;margin:0}
+.auth-marca small{font-size:14px;font-weight:600}
+.auth-card{align-self:center;justify-self:center;width:min(100%,440px)!important;background:var(--branco)!important;border:0!important;border-radius:0!important;padding:32px 24px!important}
+.auth-card h1{font-size:32px!important;font-weight:700;margin:0 0 6px}
+.auth-card>p{font-size:16px!important;color:var(--preto)!important;margin:0 0 22px!important}
+.auth-card label{font-size:15px!important;font-weight:700!important;color:var(--preto)!important;margin:18px 0 6px!important}
+.auth-card input{min-height:50px;font-size:16px!important;border-radius:12px!important}
+.auth-card .btn{width:100%;min-height:52px;font-size:17px!important;margin-top:22px!important}
+.auth-card .btn-gh{margin-top:10px!important}
+.auth-ajuda{font-size:15px!important;margin-top:18px!important;color:var(--preto)!important}
+#auth-message:not(:empty){margin-top:16px;padding:12px 14px;border-radius:10px;background:#FBECEB;border:1.5px solid var(--r);font-size:15px;color:var(--preto)}
+@media (max-width:820px){#auth-screen{grid-template-columns:1fr}.auth-marca{padding:24px 16px 32px;gap:24px}.auth-marca h2{max-width:none;font-size:34px}.auth-marca small{display:none}.auth-marca .m-rede{height:50px}.auth-marca .m-uni{height:21px}}
