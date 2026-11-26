@@ -495,3 +495,28 @@ summary{font-size:13.5px!important}
 #auth-message:not(:empty){margin-top:16px;padding:12px 14px;border-radius:10px;background:#FBECEB;border:1.5px solid var(--r);font-size:15px;color:var(--preto)}
 @media (max-width:820px){#auth-screen{grid-template-columns:1fr}.auth-marca{padding:24px 16px 32px;gap:24px}.auth-marca h2{max-width:none;font-size:34px}.auth-marca small{display:none}.auth-marca .m-rede{height:50px}.auth-marca .m-uni{height:21px}}
 input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 40px #fff inset!important;-webkit-text-fill-color:#231F20!important}
+
+/* Administração organizada */
+#admin-dialog{background:var(--bg)!important;border:0!important;border-radius:20px!important;padding:24px 28px!important}
+#admin-dialog h2{font-size:28px!important;font-weight:700}
+.admin-section{background:var(--branco);border:1px solid var(--br)!important;border-radius:16px!important;padding:0!important;margin-bottom:14px}
+.admin-section>summary{padding:18px 22px;font-size:19px!important;font-weight:700!important;color:var(--preto)!important;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.admin-section-body{padding:0 22px 20px}
+.adm-sems{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:14px}
+.adm-sem{border:1.5px solid var(--br2);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.adm-sem strong{font-size:17px}
+.adm-sem p{margin:0;font-size:15px;line-height:1.5}
+.adm-sem-atual{border-color:var(--preto);background:#FFFBE0}
+.adm-passos{margin:6px 0 14px;font-size:15px}
+.adm-passos summary{font-weight:700;cursor:pointer}
+.adm-passos ol{margin:10px 0 0 18px;line-height:1.7}
+.adm-total{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:14px 16px;border-radius:12px;background:#FFFBE0;border:1.5px solid var(--amarelo);margin-bottom:12px}
+.adm-total span{font-size:15px;font-weight:700}
+.adm-total strong{font-size:24px}
+.adm-total small{width:100%;font-size:14px}
+[data-admin-section="goals"] form{display:grid!important;grid-template-columns:minmax(160px,1.4fr) repeat(3,minmax(90px,1fr)) auto;gap:10px;align-items:end;padding:10px 0!important;border-bottom:1px solid var(--br)}
+[data-admin-section="goals"] form label{font-size:13px!important;font-weight:700!important;margin:0!important}
+[data-admin-section="goals"] form input{min-height:40px!important;margin:4px 0 0!important;font-size:15px!important}
+[data-admin-section="goals"] form strong,[data-admin-section="goals"] form h3,[data-admin-section="goals"] form .goal-polo{font-size:16px!important}
+#admin-dialog .context{font-size:15px!important;color:var(--preto)!important}
+#admin-dialog .account-bar{border-bottom:1px solid var(--br);padding:10px 0;margin:0!important}

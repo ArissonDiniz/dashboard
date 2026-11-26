@@ -2,7 +2,7 @@
 window.APP_CONFIG = Object.freeze({
   supabaseUrl: 'https://ylaqhnlbrtarnpxpamkd.supabase.co',
   supabaseKey: 'sb_publishable_5alOV1WiFpzVNgDzBDGn_w_xG0Vm3c_',
-  campaign: '2026.2',
+  campaign: '2027.1',
   reportStaleHours: 24
 });
 
@@ -1239,4 +1239,28 @@ renderTable=function(data){
    +'<div class="pc-fazer"><span class="pc-fazer-t">Para fazer</span>'+(pend.length?pend.map(([k,l,v,u])=>'<button type="button" class="pc-acao'+(u?' pc-urgente':'')+'" onclick="openPostSale(\''+k+'\','+idx+')"><strong>'+v+'</strong> '+l+'</button>').join(''):'<span class="pc-ok">Nada pendente</span>')+'</div>'
    +'</article>';
  }).join('');
+};
+
+// ══════ ADMINISTRAÇÃO ORGANIZADA: semestres, metas, acessos, histórico ══════
+const _drawAdminV3=drawAdmin;
+drawAdmin=function(){
+ _drawAdminV3();
+ const body=document.getElementById('admin-body');if(!body||!snapshot)return;
+ const sec=id=>body.querySelector('[data-admin-section="'+id+'"]');
+ const ordem=['campaign','goals','accounts','imports','audit'].map(sec).filter(Boolean);
+ ordem.forEach(s=>body.appendChild(s));
+ const camp=sec('campaign');if(camp){
+  camp.querySelector('summary').firstChild.textContent='Semestres e prazos';
+  const lista=(snapshot.campaigns||[]).map(c=>'<div class="adm-sem'+(c.id===snapshot.campaign.id?' adm-sem-atual':'')+'"><strong>'+esc(c.name)+'</strong>'+(c.id===snapshot.campaign.id?'<span class="sit-chip sit-atencao">Aberto no painel</span>':'')+'<p>Matrículas de '+displayDate(c.starts_on)+' a '+displayDate(c.ends_on)+'<br>Pagamentos até '+displayDate(c.payment_ends_on||c.ends_on)+'</p></div>').join('');
+  const passos='<details class="adm-passos"><summary>Como começar um semestre novo</summary><ol><li>Clique em <b>Novo semestre</b> e preencha as datas.</li><li>Cadastre as metas de cada polo logo abaixo.</li><li>No Apps Script da planilha, troque <b>CAMPAIGN_ID</b> para o semestre novo.</li><li>Cole o relatório novo na aba DADOS e sincronize. O semestre anterior continua guardado.</li></ol></details>';
+  const corpo=camp.querySelector('.admin-section-body');corpo.querySelector('p.context')?.remove();
+  corpo.insertAdjacentHTML('afterbegin','<div class="adm-sems">'+lista+'</div>'+passos);
+  corpo.querySelectorAll('button').forEach(b=>{if(b.textContent.trim()==='Nova campanha')b.textContent='Novo semestre';if(b.textContent.trim()==='Editar campanha atual')b.textContent='Editar semestre aberto';});
+ }
+ const goals=sec('goals');if(goals){
+  const total=(snapshot.goals||[]).reduce((a,g)=>a+(Number(g.gold??g.target)||0),0);
+  goals.querySelector('summary').firstChild.textContent='Metas por polo, '+snapshot.campaign.name;
+  goals.querySelector('.admin-section-body').insertAdjacentHTML('afterbegin','<div class="adm-total"><span>Meta ouro da rede</span><strong>'+total+' pagamentos</strong><small>É a soma das metas dos polos. Bronze e prata são opcionais.</small></div>');
+ }
+ if(!body.dataset.abriu){['campaign','goals'].forEach(id=>{const s=sec(id);if(s)s.open=true;});body.dataset.abriu='1';}
 };
