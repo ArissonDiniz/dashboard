@@ -12,6 +12,7 @@ window.APP_CONFIG = Object.freeze({
  const clean=v=>String(v??'').trim();
  const statuses=['Não contatado','Contatado','Aguardando retorno','Retornar depois','Contato inexistente','Solicitou cancelamento','Cancelado','Aguardando convalidação','Aluno ProUni ou com bolsa 100%'];
  let exempt=()=>false;function setExempt(f){exempt=f;}
+ let dueHook=null;function setDue(f){dueHook=f;}
  const empty=()=>({welcome:'Pendente',outcome:'Não informado',promised:'',event:'record_update',status:statuses[0],notes:'',lastContact:'',nextContact:'',author:'',updatedAt:'',version:0});
  const cancelled=r=>!['','nan','none','nat','null'].includes(clean(r.DATA_CANCELAMENTO).toLowerCase());
  const paid=r=>clean(r.PRIMEIRA_MENSALIDADE_COBRADA_PAGA)==='S';
@@ -49,9 +50,9 @@ window.APP_CONFIG = Object.freeze({
  function priority(a,b,t){const rank=s=>({late:0,today:1,future:3,none:s.status==='Não contatado'?2:4})[due(s,t)];return rank(a)-rank(b)||(a.nextContact||'9999').localeCompare(b.nextContact||'9999')||(a.lastContact||'').localeCompare(b.lastContact||'');}
  function goalEligible(r,c){const enrolled=dateOnly(r.DATA_MATRICULA),payment=dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA);return !r._missing&&paid(r)&&!!enrolled&&!!payment&&enrolled>=c.starts_on&&(!c.ends_on||enrolled<=c.ends_on)&&payment>=c.starts_on&&(!(c.payment_ends_on||c.ends_on)||payment<=(c.payment_ends_on||c.ends_on))&&(c.include_cancelled_paid_in_goal!==false||!cancelled(r));}
  function academicNote(r){return clean(r._engagement)==='Nota disciplina (data)';}
- function expectedDue(r){const d=dateOnly(r.DATA_MATRICULA);if(!d)return null;const y=Number(d.slice(0,4)),m=Number(d.slice(5,7));return m===6?y+'-08-10':(y+(m===12?1:0))+'-'+String(m%12+1).padStart(2,'0')+'-10';}
+ function expectedDue(r){if(dueHook){const o=dueHook(r);if(o)return o;}const d=dateOnly(r.DATA_MATRICULA);if(!d)return null;const y=Number(d.slice(0,4)),m=Number(d.slice(5,7));return m===6?y+'-08-10':(y+(m===12?1:0))+'-'+String(m%12+1).padStart(2,'0')+'-10';}
  function dueState(r,t){if(r._missing||cancelled(r)||paid(r)||exempt(r))return 'na';const d=expectedDue(r);return !d?'unknown':d<t?'overdue':d===t?'today':'future';}
- const core={setExempt,exempt:r=>exempt(r),academicNote,expectedDue,dueState,goalEligible,clean,statuses,empty,cancelled,paid,dateOnly,dateValid,today,plus,range,inRange,metric,draft,due,idle,priority};
+ const core={setExempt,setDue,exempt:r=>exempt(r),academicNote,expectedDue,dueState,goalEligible,clean,statuses,empty,cancelled,paid,dateOnly,dateValid,today,plus,range,inRange,metric,draft,due,idle,priority};
  root.Core=core;if(typeof module!=='undefined')module.exports=core;
 })(typeof window!=='undefined'?window:globalThis);
 
@@ -702,9 +703,9 @@ function renderTable(data){
  const ranked=[...data].sort((a,b)=>{const x=lookup.get(a.polo)||a,y=lookup.get(b.polo)||b;return (y.meta?y.paga/y.meta:0)-(x.meta?x.paga/x.meta:0)||b.paga-a.paga;});
  const conv=d=>d.total?Math.round(d.cohortPaid/d.total*100)+'%':'sem matrículas';
  const rows=ranked.map((d,i)=>{const g=lookup.get(d.polo)||d,m=medalha(g);
-  return '<tr><td><span class="rk-pos'+(i<3?' rk-top':'')+'">'+(i+1)+'º</span></td><td class="rk-polo"><strong>'+esc(cap(d.polo))+'</strong> <small>'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.paga+'</td><td>'+(d.naoPaga?'<span class="rk-alerta">'+d.naoPaga+'</span>':'0')+'</td><td>'+d.cancel+'</td><td>'+conv(d)+'</td><td>'+(m?'<span class="corrida-selo" style="--selo:'+m.color+'">'+m.label+'</span>':'<span class="corrida-selo corrida-sem">Nenhuma</span>')+'</td><td class="rk-meta">'+g.paga+' de '+(g.meta||'?')+barra(g)+'</td></tr>';}).join('');
+  return '<tr><td><span class="rk-pos'+(i<3?' rk-top':'')+'">'+(i+1)+'º</span></td><td class="rk-polo"><strong>'+esc(cap(d.polo))+'</strong> <small>'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.paga+'</td><td>'+(d.naoPaga?'<span class="rk-alerta">'+d.naoPaga+'</span>':'0')+'</td><td>'+d.cancel+'</td><td>'+conv(d)+'</td>'+posVendaCelulas(d.polo)+'</tr>';}).join('');
  const tot={paga:sum(acc,'paga'),meta:sum(acc,'meta')},tt=k=>sum(data,k);
- document.getElementById('polo-table').innerHTML='<thead><tr>'+['','Polo','Matrículas','Pagaram','Sem pagamento','Cancelados','Conversão','Medalha','Meta ouro'].map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td></td><td><strong>Rede</strong></td><td>'+tt('total')+'</td><td>'+tt('paga')+'</td><td>'+tt('naoPaga')+'</td><td>'+tt('cancel')+'</td><td>'+(tt('total')?Math.round(tt('cohortPaid')/tt('total')*100)+'%':'')+'</td><td></td><td class="rk-meta">'+tot.paga+' de '+tot.meta+barra(tot)+'</td></tr></tbody>';
+ document.getElementById('polo-table').innerHTML='<thead><tr>'+['','Polo','Matrículas','Pagaram','Sem pagamento','Cancelados','Conversão','Recepção pendente','Retornos atrasados','Promessas vencidas'].map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td></td><td><strong>Rede</strong></td><td>'+tt('total')+'</td><td>'+tt('paga')+'</td><td>'+tt('naoPaga')+'</td><td>'+tt('cancel')+'</td><td>'+(tt('total')?Math.round(tt('cohortPaid')/tt('total')*100)+'%':'')+'</td>'+posVendaCelulas(null)+'</tr></tbody>';
 }
 
 ;
@@ -1124,4 +1125,52 @@ whatsappContact=function(r){
  const n=whatsappNumber(r.CELULAR)||whatsappNumber(r.TELEFONE);
  if(!n)return '<p class="crm-info">WhatsApp indisponível: confira o telefone com DDD no relatório.</p>';
  return '<a class="btn whatsapp-contact" href="https://wa.me/'+n+'?text='+encodeURIComponent(mensagemWhatsApp(r))+'" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Chamar no WhatsApp com mensagem pronta</a>';
+};
+
+// ══════ V3: DADOS EXTRAS DO RELATÓRIO, PÓS-VENDA NO RESUMO E ATUALIZAÇÃO AUTOMÁTICA ══════
+const MESES={JANEIRO:1,FEVEREIRO:2,'MARÇO':3,MARCO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,AGOSTO:8,SETEMBRO:9,OUTUBRO:10,NOVEMBRO:11,DEZEMBRO:12};
+function vencimentoConvenio(r){
+ const c=String(r._extra?.convenio||'').toUpperCase(),m=c.match(/PRIMEIRO PAGAMENTO EM ([A-ZÇ]+)/);if(!m||!MESES[m[1]])return null;
+ const d=Core.dateOnly(r.DATA_MATRICULA);if(!d)return null;let y=Number(d.slice(0,4));const mes=MESES[m[1]];if(mes<Number(d.slice(5,7)))y++;
+ return y+'-'+String(mes).padStart(2,'0')+'-10';
+}
+Core.setDue(vencimentoConvenio);
+const ehProuni=r=>String(r._extra?.entrada||'').toUpperCase()==='PROUNI';
+Core.setExempt(r=>ehProuni(r)||(typeof crmState==='function'&&crmState(r).status==='Aluno ProUni ou com bolsa 100%'));
+async function carregarExtras(){
+ if(!db||!snapshot)return;const campaign=snapshot.campaign.id,mapa=Object.create(null);let from=0;
+ try{for(;;){const {data,error}=await db.from('student_extras').select('inscription_id,extra').eq('campaign_id',campaign).order('inscription_id').range(from,from+999);if(error)throw error;data.forEach(x=>mapa[x.inscription_id]=x.extra||{});if(data.length<1000)break;from+=1000;}}catch(e){console.warn('Dados extras indisponíveis',e);return;}
+ [...rawRows,...missingRows].forEach(r=>{r._extra=mapa[r._key]||null;});
+}
+const _fetchDataV2=fetchData;
+fetchData=async function(...a){await _fetchDataV2.apply(this,a);await carregarExtras();if(rawRows.length){renderAll();if(crm.open&&!crm.edit)drawCRM(false);}};
+const _studentLabelsV2=studentLabels;
+studentLabels=function(r){
+ const extras=[];const tag=(s,c='')=>'<span class="crm-tag '+c+'">'+esc(s)+'</span>';
+ if(ehProuni(r))extras.push(tag('ProUni pelo relatório','tag-prouni'));
+ if(r._extra?.renegociou==='S')extras.push(tag('Renegociou a 1ª mensalidade','tag-reneg'));
+ if(r._extra?.aceita_whats==='N')extras.push(tag('Não aceita WhatsApp','tag-nowhats'));
+ const base=_studentLabelsV2(r);
+ return extras.length?base.replace(/(<div[^>]*class="[^"]*student-labels[^"]*"[^>]*>)/,'$1'+extras.join(''))+(base.includes('student-labels')?'':'<div class="student-labels">'+extras.join('')+'</div>'):base;
+};
+const _fichaDadosV2=fichaDados;
+fichaDados=function(r){
+ const x=r._extra||{},item=(l,v)=>v?'<div class="ficha-item"><span>'+l+'</span><strong>'+esc(v)+'</strong></div>':'';
+ const oferta=String(x.convenio||'').split(':')[0];
+ const venc=vencimentoConvenio(r);
+ const mais=item('Forma de entrada',x.entrada)+item('Oferta',oferta)+item('1º vencimento',venc?displayDate(venc):'')+item('Disciplina atual',String(x.disciplina||'').replace(/:\s*$/,''))+item('Turno',x.turno);
+ return _fichaDadosV2(r).replace('<h4 class="ficha-secao">Contato</h4>',(mais?'<h4 class="ficha-secao">Matrícula</h4><div class="ficha-grid">'+mais+'</div>':'')+'<h4 class="ficha-secao">Contato</h4>');
+};
+function posVendaCelulas(polo){
+ const t=crmToday(),idx=polo?snapshot.polos.findIndex(p=>p.short_name===polo):-1;
+ const rows=rawRows.filter(r=>scope(r)&&!r._missing&&!crmCancelled(r)&&(!polo||getPoloKey(r)===polo));
+ return [['welcome',''],['late','urgente'],['promise','urgente']].map(([k,u])=>{const n=rows.filter(r=>postSaleMatch(r,k,t)).length;return '<td>'+(n?'<button type="button" class="rk-acao'+(u?' rk-urgente':'')+'" onclick="openPostSale(\''+k+'\','+idx+')">'+n+'</button>':'0')+'</td>';}).join('');
+}
+const _renderPostSaleV2=renderPostSale;
+renderPostSale=function(...a){_renderPostSaleV2.apply(this,a);const sec=document.querySelector('section.work-queue');if(sec){const varios=snapshot.polos.filter(p=>scope({NOME_DO_POLO:p.name})).length>1;sec.hidden=varios;}};
+// Atualização automática: recarrega sozinho quando há dados novos e ninguém está editando
+const _checkUpdatesV2=checkDashboardUpdates;
+checkDashboardUpdates=async function(force=false){
+ await _checkUpdatesV2(force);
+ if(updateNotice.newData&&!dataBusy&&!crm.saving&&!crm.dirty&&!crm.edit){updateNotice.newData=false;await fetchData();}
 };
