@@ -50,9 +50,16 @@ window.APP_CONFIG = Object.freeze({
  function priority(a,b,t){const rank=s=>({late:0,today:1,future:3,none:s.status==='Não contatado'?2:4})[due(s,t)];return rank(a)-rank(b)||(a.nextContact||'9999').localeCompare(b.nextContact||'9999')||(a.lastContact||'').localeCompare(b.lastContact||'');}
  function goalEligible(r,c){const enrolled=dateOnly(r.DATA_MATRICULA),payment=dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA);return !r._missing&&paid(r)&&!!enrolled&&!!payment&&enrolled>=c.starts_on&&(!c.ends_on||enrolled<=c.ends_on)&&payment>=c.starts_on&&(!(c.payment_ends_on||c.ends_on)||payment<=(c.payment_ends_on||c.ends_on))&&(c.include_cancelled_paid_in_goal!==false||!cancelled(r));}
  function academicNote(r){return clean(r._engagement)==='Nota disciplina (data)';}
- function expectedDue(r){if(dueHook){const o=dueHook(r);if(o)return o;}const d=dateOnly(r.DATA_MATRICULA);if(!d)return null;const y=Number(d.slice(0,4)),m=Number(d.slice(5,7));return m===6?y+'-08-10':(y+(m===12?1:0))+'-'+String(m%12+1).padStart(2,'0')+'-10';}
+ function expectedDueBase(r){if(dueHook){const o=dueHook(r);if(o)return o;}const d=dateOnly(r.DATA_MATRICULA);if(!d)return null;const y=Number(d.slice(0,4)),m=Number(d.slice(5,7));return m===6?y+'-08-10':(y+(m===12?1:0))+'-'+String(m%12+1).padStart(2,'0')+'-10';}
  function dueState(r,t){if(r._missing||cancelled(r)||paid(r)||exempt(r))return 'na';const d=expectedDue(r);return !d?'unknown':d<t?'overdue':d===t?'today':'future';}
- const core={setExempt,setDue,exempt:r=>exempt(r),academicNote,expectedDue,dueState,goalEligible,clean,statuses,empty,cancelled,paid,dateOnly,dateValid,today,plus,range,inRange,metric,draft,due,idle,priority};
+
+ // Vencimento no próximo dia útil bancário: fim de semana e feriados nacionais (fixos e móveis) passam para o dia seguinte.
+ function pascoa(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;return y+'-'+String(mes).padStart(2,'0')+'-'+String(dia).padStart(2,'0');}
+ const feriadosCache={};
+ function feriados(y){if(feriadosCache[y])return feriadosCache[y];const p=pascoa(y),s=new Set(['01-01','04-21','05-01','09-07','10-12','11-02','11-15','11-20','12-25'].map(x=>y+'-'+x));[-48,-47,-2,60].forEach(n=>s.add(plus(p,n)));return feriadosCache[y]=s;}
+ function diaUtil(d){let x=d;for(let i=0;i<10;i++){const w=new Date(x+'T12:00:00Z').getUTCDay();if(w!==0&&w!==6&&!feriados(Number(x.slice(0,4))).has(x))return x;x=plus(x,1);}return x;}
+ function expectedDue(r){const d=expectedDueBase(r);return d?diaUtil(d):null;}
+ const core={diaUtil,setExempt,setDue,exempt:r=>exempt(r),academicNote,expectedDue,dueState,goalEligible,clean,statuses,empty,cancelled,paid,dateOnly,dateValid,today,plus,range,inRange,metric,draft,due,idle,priority};
  root.Core=core;if(typeof module!=='undefined')module.exports=core;
 })(typeof window!=='undefined'?window:globalThis);
 
