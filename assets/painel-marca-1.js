@@ -1226,7 +1226,7 @@ renderTable=function(data){
   const idx=snapshot.polos.findIndex(p=>p.short_name===d.polo);
   const rows=rawRows.filter(r=>scope(r)&&!r._missing&&!crmCancelled(r)&&getPoloKey(r)===d.polo);
   const n=k=>rows.filter(r=>postSaleMatch(r,k,t)).length;
-  const tarefas=[['late','retornos atrasados',n('late'),true],['promise','promessas vencidas',n('promise'),true],['welcome','recepções pendentes',n('welcome'),false]];
+  const pl=(v,s,p)=>v===1?s:p;const tarefas=[['late',pl(n('late'),'retorno atrasado','retornos atrasados'),n('late'),true],['promise',pl(n('promise'),'promessa vencida','promessas vencidas'),n('promise'),true],['welcome',pl(n('welcome'),'recepção pendente','recepções pendentes'),n('welcome'),false]];
   return {d,idx,tarefas,peso:tarefas[0][2]*2+tarefas[1][2]*2+tarefas[2][2]+d.naoPaga*2};
  }).sort((a,b)=>b.peso-a.peso);
  box.innerHTML=cards.map(({d,idx,tarefas})=>{
@@ -1235,7 +1235,7 @@ renderTable=function(data){
    +'<header class="pc-topo"><h3>'+esc(cap(d.polo))+'</h3><span class="pc-reg">'+esc(d.reg)+'</span></header>'
    +'<p class="pc-resumo"><strong>'+d.total+'</strong> matrículas, <strong>'+d.paga+'</strong> pagaram ('+pc(d.cohortPaid,d.total)+'%)</p>'
    +'<div class="pc-barra"><span style="width:'+pc(d.cohortPaid,d.total)+'%"></span></div>'
-   +'<div class="pc-tags">'+(d.naoPaga?'<span class="sit-chip sit-alerta-leve">'+d.naoPaga+' sem pagamento</span>':'<span class="sit-chip sit-ok">Todos os ativos pagaram</span>')+'<span class="sit-chip sit-neutro">'+d.cancel+' cancelados</span></div>'
+   +'<div class="pc-tags">'+(d.naoPaga?'<span class="sit-chip sit-alerta-leve">'+d.naoPaga+(d.naoPaga===1?' ativo':' ativos')+' sem pagamento</span>':'<span class="sit-chip sit-ok">Todos os ativos pagaram</span>')+'<span class="sit-chip sit-neutro">'+d.cancel+' cancelados</span></div>'
    +'<div class="pc-fazer"><span class="pc-fazer-t">Para fazer</span>'+(pend.length?pend.map(([k,l,v,u])=>'<button type="button" class="pc-acao'+(u?' pc-urgente':'')+'" onclick="openPostSale(\''+k+'\','+idx+')"><strong>'+v+'</strong> '+l+'</button>').join(''):'<span class="pc-ok">Nada pendente</span>')+'</div>'
    +'</article>';
  }).join('');
