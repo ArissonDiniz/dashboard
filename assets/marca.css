@@ -426,3 +426,15 @@ summary{font-size:13.5px!important}
 #crm-editor .rapido-botoes .btn{font-size:15px!important}
 #crm-dialog label,#crm-dialog .crm-info,#crm-dialog summary{color:var(--preto)!important;font-size:15px!important}
 #crm-dialog input,#crm-dialog select{color:var(--preto)!important;font-size:15px!important}
+
+/* Textos pequenos que sobraram: maiores e pretos */
+#session-label{font-size:15px!important;color:var(--preto)!important}
+.hero .hero-sub{font-size:16px!important}
+.hero .hs-l{font-size:15px!important;font-weight:600!important;text-transform:none!important;letter-spacing:0!important}
+.filter-wrap label,.filter-wrap .fl{font-size:15px!important;font-weight:700!important;color:var(--preto)!important;text-transform:none!important;letter-spacing:0!important}
+#period-help summary,#period-help{font-size:15px!important;color:var(--preto)!important}
+.brand-sub{font-size:14px!important;opacity:1!important}
+.live-tx{font-size:13px!important;font-weight:700!important;opacity:1!important}
+.update-notice p{font-size:15px!important;color:var(--preto)!important}
+#meta-bars .context,.corrida-proximo,.corrida-chip{font-size:15px!important;color:var(--preto)!important}
+.corrida-marca b{font-size:13px!important}
