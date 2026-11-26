@@ -697,12 +697,14 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 function renderTable(data){
  const acc=cumulative(),lookup=new Map(acc.map(d=>[d.polo,d]));
  const pct=d=>d.meta?Math.round(d.paga/d.meta*100):0;
- const progress=d=>{const n=pct(d),c=n>=50?'var(--g)':n>=25?'var(--warn)':'var(--r)';return d.meta?'<div class="pw"><div class="pb"><div class="pf" style="width:'+Math.min(n,100)+'%;background:'+c+'"></div></div><div class="pp" style="color:'+c+'">'+n+'%</div></div>':'Sem meta';};
- const badge=(v,c)=>'<span class="pl '+(v?c:'px')+'">'+v+'</span>';
+ const medalha=g=>{const ts=goalTiers(g).map(t=>({...t,color:t.key==='gold'?'#FFDD00':t.color})),ok=ts.filter(t=>g.paga>=t.target);return ok.length?ok[ok.length-1]:null;};
+ const barra=g=>{if(!g.meta)return '<span class="rk-sem">Sem meta</span>';const m=medalha(g),n=pct(g);return '<div class="rk-barra"><div class="rk-pista"><div class="rk-feito" style="width:'+Math.min(n,100)+'%;background:'+(m?m.color:'#575756')+'"></div></div><strong>'+n+'%</strong></div>';};
  const ranked=[...data].sort((a,b)=>{const x=lookup.get(a.polo)||a,y=lookup.get(b.polo)||b;return (y.meta?y.paga/y.meta:0)-(x.meta?x.paga/x.meta:0)||b.paga-a.paga;});
- const rows=ranked.map((d,i)=>{const goal=lookup.get(d.polo)||d;const tone=pct(goal)>=50?'var(--g)':pct(goal)>=25?'var(--warn)':'var(--r)';return '<tr data-performance="'+(pct(goal)>=50?'high':pct(goal)>=25?'middle':'low')+'" style="--performance:'+tone+'"><td><span class="rank-position rank-place-'+Math.min(i+1,4)+'">'+(i+1)+'º</span></td><td><strong>'+esc(cap(d.polo))+'</strong><small class="rank-region">'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.ativos+'</td><td>'+badge(d.cancel,'pr2')+'</td><td>'+badge(d.paga,'pg')+'</td><td>'+badge(d.naoPaga,'pr2')+'</td><td>'+goal.meta+'</td><td>'+progress(goal)+'</td></tr>';}).join('');
- const total={paga:sum(acc,'paga'),meta:sum(acc,'meta')};
- document.getElementById('polo-table').innerHTML='<thead><tr>'+['#','Polo','Matrículas','Ativos','Cancelamentos','1ª paga','Sem pagamento','Meta','Progresso da campanha'].map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td></td><td><strong>Total filtrado</strong></td>'+['total','ativos','cancel','paga','naoPaga'].map(k=>'<td>'+sum(data,k)+'</td>').join('')+'<td>'+total.meta+'</td><td>'+progress(total)+'</td></tr></tbody>';
+ const conv=d=>d.total?Math.round(d.cohortPaid/d.total*100)+'%':'sem matrículas';
+ const rows=ranked.map((d,i)=>{const g=lookup.get(d.polo)||d,m=medalha(g);
+  return '<tr><td><span class="rk-pos'+(i<3?' rk-top':'')+'">'+(i+1)+'º</span></td><td class="rk-polo"><strong>'+esc(cap(d.polo))+'</strong> <small>'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.paga+'</td><td>'+(d.naoPaga?'<span class="rk-alerta">'+d.naoPaga+'</span>':'0')+'</td><td>'+d.cancel+'</td><td>'+conv(d)+'</td><td>'+(m?'<span class="corrida-selo" style="--selo:'+m.color+'">'+m.label+'</span>':'<span class="corrida-selo corrida-sem">Nenhuma</span>')+'</td><td class="rk-meta">'+g.paga+' de '+(g.meta||'?')+barra(g)+'</td></tr>';}).join('');
+ const tot={paga:sum(acc,'paga'),meta:sum(acc,'meta')},tt=k=>sum(data,k);
+ document.getElementById('polo-table').innerHTML='<thead><tr>'+['','Polo','Matrículas','Pagaram','Sem pagamento','Cancelados','Conversão','Medalha','Meta ouro'].map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td></td><td><strong>Rede</strong></td><td>'+tt('total')+'</td><td>'+tt('paga')+'</td><td>'+tt('naoPaga')+'</td><td>'+tt('cancel')+'</td><td>'+(tt('total')?Math.round(tt('cohortPaid')/tt('total')*100)+'%':'')+'</td><td></td><td class="rk-meta">'+tot.paga+' de '+tot.meta+barra(tot)+'</td></tr></tbody>';
 }
 
 ;

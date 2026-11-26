@@ -287,3 +287,20 @@ summary{font-size:13.5px!important}
 .rapido-botoes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .rapido-botoes .btn{min-height:44px;font-size:14px!important}
 .proximo-aluno{margin-top:8px;font-size:15px!important}
+
+/* Resumo por polo */
+#polo-table{border-collapse:collapse;width:100%}
+#polo-table th{font-size:13px!important;font-weight:700;text-align:left;padding:10px 12px;border-bottom:2px solid var(--preto);background:transparent!important;color:var(--preto)!important}
+#polo-table td{padding:12px;border-bottom:1px solid var(--br);font-size:15px;text-align:left;color:var(--preto)}
+#polo-table tbody tr:hover{background:#FFFBE0!important}
+.rk-pos{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:8px;background:#F1F1EF;font-weight:700}
+.rk-top{background:var(--amarelo)}
+.rk-polo strong{font-size:16px}
+.rk-polo small{font-size:12px;font-weight:600;border:1px solid var(--br2);border-radius:6px;padding:1px 5px}
+.rk-alerta{color:var(--r);font-weight:700}
+.rk-meta{min-width:200px;font-weight:600}
+.rk-barra{display:flex;align-items:center;gap:8px;margin-top:4px}
+.rk-pista{flex:1;height:10px;border-radius:5px;background:#ECECE8;overflow:hidden}
+.rk-feito{height:100%;border-radius:5px;box-shadow:inset 0 0 0 1px rgba(35,31,32,.3)}
+.rk-sem{color:var(--cinza)}
+#polo-table .tr-tot td{border-top:2px solid var(--preto);font-weight:700;background:#F6F6F4}
