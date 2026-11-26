@@ -123,3 +123,113 @@ input:focus,select:focus,textarea:focus{border-color:var(--preto)!important;box-
 .kpi,.mb-item,.queue-item,.post-sale-tile,.crm-conflict{border-left-width:1px!important}
 *{box-shadow:none}
 .btn:focus-visible{box-shadow:0 0 0 3px var(--yd)!important}
+
+/* Textos pequenos ficaram maiores para ler sem esforço */
+.wm{font-size:14px!important}
+.brand{font-size:14px!important}
+.brand-sub{font-size:14.5px!important}
+#ck-d{font-size:14px!important}
+.live-tx{font-size:14px!important}
+.badge{font-size:14px!important}
+.theme-btn{font-size:14px!important}
+.hero-sub{font-size:14px!important}
+.hs-l{font-size:13.5px!important}
+.pj-l{font-size:14px!important}
+.pj-v{font-size:14px!important}
+.fl{font-size:13.5px!important}
+select,input[type=date]{font-size:13.5px!important}
+.date-sep{font-size:14px!important}
+.btn{font-size:13.5px!important}
+.btn-sm{font-size:14px!important}
+.kpi-det{font-size:13.5px!important}
+.kpi-l{font-size:14.5px!important}
+.kpi-s{font-size:14.5px!important}
+.mname{font-size:13.5px!important}
+.mval{font-size:14.5px!important}
+.msub{font-size:14.5px!important}
+.st{font-size:14px!important}
+.card-exp{font-size:14.5px!important}
+.ct{font-size:14px!important}
+.mb-polo{font-size:14.5px!important}
+.mb-vals{font-size:14px!important}
+.mb-sub{font-size:14px!important}
+.pt{font-size:13.5px!important}
+.pt th{font-size:14px!important}
+.pl{font-size:14px!important}
+.pp{font-size:14px!important}
+.rnum{font-size:14px!important}
+.rname{font-size:14px!important}
+.rpolo{font-size:14px!important}
+.rbadge{font-size:14px!important}
+.rmore-btn{font-size:14px!important}
+.curso-sec-label{font-size:13.5px!important}
+.ci-rank{font-size:13.5px!important}
+.ci-name{font-size:14.5px!important}
+.ci-n{font-size:13.5px!important}
+.gl{font-size:13.5px!important}
+.t-title{font-size:13.5px!important}
+.t-msg{font-size:14.5px!important}
+.ld-tx{font-size:13.5px!important}
+.ftr{font-size:13.5px!important}
+#crm-dialog label{font-size:13.5px!important}
+.crm-info{font-size:13.5px!important}
+.crm-tag{font-size:14px!important}
+#crm-message{font-size:14.5px!important}
+.crm-history{font-size:13.5px!important}
+.crm-conflict{font-size:13.5px!important}
+.auth-card label,#admin-dialog label{font-size:14.5px!important}
+.account-bar{font-size:13.5px!important}
+.context{font-size:13.5px!important}
+summary{font-size:13.5px!important}
+#crm-dialog .pt td{font-size:13.5px!important}
+#crm-dialog .pt th{font-size:14.5px!important}
+#crm-dialog .crm-tag{font-size:14px!important}
+.academic-line{font-size:14px!important}
+#crm-count{font-size:14.5px!important}
+.queue-item span{font-size:13.5px!important}
+.queue-item small{font-size:14.5px!important}
+#crm-editor-message:not(:empty){font-size:13.5px!important}
+#crm-quick .btn{font-size:14px!important}
+.mbox .context{font-size:14.5px!important}
+#crm-dialog .academic-line{font-size:13.5px!important}
+#crm-dialog .pt .crm-tag{font-size:13.5px!important}
+#crm-dialog .btn{font-size:14.5px!important}
+#crm-dialog .crm-info,#crm-dialog summary{font-size:14.5px!important}
+#crm-editor .student-labels .crm-tag{font-size:13.5px!important}
+#crm-editor .crm-history{font-size:14.5px!important}
+#polo-table th,#polo-table td{font-size:14.5px!important}
+#polo-table th{font-size:13.5px!important}
+.rank-region{font-size:14px!important}
+.rank-goal-note{font-size:14px!important}
+#polo-table .pl{font-size:13.5px!important}
+#polo-table .pp{font-size:14.5px!important}
+.st,.ct{font-size:14.5px!important}
+.proj-label,.pj-l{font-size:13.5px!important}
+.mb-vals,.mb-sub,.mb-sub span,.mb-vals span{font-size:14.5px!important}
+.rpolo,.rnum,.rmore-btn{font-size:14.5px!important}
+.ritem>div:last-child>div:last-child{font-size:13.5px!important}
+.rank-region,.rank-goal-note{font-size:13.5px!important}
+#crm-dialog .due-label>span{font-size:14.5px!important}
+.gold-label{font-size:14.5px!important}
+.tier-detail .tier-trigger{font-size:14.5px!important}
+.post-sale-table .pt th{font-size:14.5px!important}
+
+/* Contraste: todo texto preto; nada de branco ou cinza claro sobre amarelo */
+:root,[data-theme=dark],[data-theme=light]{--tx2:#231F20;--tx3:#231F20;--ctick:#231F20}
+.hero-polo{background:var(--amarelo)!important;color:var(--preto)!important}
+.hdr *,.btn,.crm-tabs [aria-pressed=true],.hist-count,.kpi-ic,.st-dot{color:var(--preto)!important}
+.hero .hs-l,.hero .hero-sub{color:#FFFFFF!important}
+.kpi-l,.hs-l,.fl,.ct,.st{letter-spacing:.02em!important;text-transform:none!important;font-weight:700!important}
+.kpi-s,.context,.crm-info,.hist-author,.hist-changes span,.hist-preview span,#session-label{color:var(--preto)!important}
+
+/* Ficha do aluno em blocos */
+.ficha-topo{display:flex;justify-content:flex-end}
+.ficha-situacao{margin:12px 0 4px;padding:10px 14px;border-radius:10px;background:#FBECEB;border:1.5px solid var(--r);font-weight:700;font-size:15px}
+.ficha-situacao.ficha-pago{background:#E3F6F6;border-color:var(--verde)}
+.ficha-secao{margin:22px 0 10px;font-size:13px!important;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--preto)}
+.ficha-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.ficha-item{background:#F6F6F4;border-radius:10px;padding:8px 12px;min-width:0}
+.ficha-item span{display:block;font-size:13px;font-weight:600}
+.ficha-item strong{display:block;font-size:15px;overflow-wrap:anywhere}
+.whatsapp-contact{display:flex!important;justify-content:center;margin-top:10px;font-size:16px!important;min-height:48px;align-items:center}
+.ficha-autor{margin:10px 0 0;font-size:13px}

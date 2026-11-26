@@ -69,7 +69,7 @@ const MEDALS=['','',''];
 const SISTEMA=['sistema leo','leo web','leo app'];
 
 let rawRows=[],charts={},lastLoad=null,rankExpanded=false,isDark=false;
-// Amarelo vivo tem baixo contraste em fundo claro — nesses casos usamos um dourado mais escuro
+// Amarelo vivo tem baixo contraste em fundo claro: nesses casos usamos um dourado mais escuro
 function warnColor(){return isDark?'#FFD600':'#735400';}
 let _toastCount=0;
 
@@ -142,7 +142,7 @@ function getPoloInfo(row){
 }
 function getPoloKey(r){return getPoloInfo(r).k;}
 
-// ══════ PARSE DATA — ROBUSTO ══════
+// ══════ PARSE DATA: ROBUSTO ══════
 // Google Sheets CSV exporta "2026-06-03 00:00:00"
 // Criamos data LOCAL: new Date(ano, mes-1, dia)
 function parseDateStr(raw){
@@ -165,12 +165,12 @@ window._debugDates=()=>{
   const rows=rawRows.filter(r=>(r['PRIMEIRA_MENSALIDADE_COBRADA_PAGA']||'').trim()==='S');
   const{from,to}=getDateRange();
   console.group('DEBUG pagamentos');
-  console.log('Período:',from?from.toLocaleDateString('pt-BR'):'—','até',to?to.toLocaleDateString('pt-BR'):'—');
+  console.log('Período:',from?from.toLocaleDateString('pt-BR'):'','até',to?to.toLocaleDateString('pt-BR'):'');
   rows.forEach(r=>{
     const d=parseDatePag(r);
     const raw=r['DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA'];
     const ok=d&&(!from||d>=from)&&(!to||d<=to);
-    console.log(raw,'→',d?d.toLocaleDateString('pt-BR'):'ERRO','| no período:',ok,'| polo:',r['NOME_DO_POLO']);
+    console.log(raw,'para',d?d.toLocaleDateString('pt-BR'):'ERRO','| no período:',ok,'| polo:',r['NOME_DO_POLO']);
   });
   console.groupEnd();
 };
@@ -193,7 +193,7 @@ function onRegiaoChange(){
 
 
 
-// ══════ DATA DE MATRÍCULA (ENTRADA) — detecta automaticamente a coluna na planilha ══════
+// ══════ DATA DE MATRÍCULA (ENTRADA): detecta automaticamente a coluna na planilha ══════
 // Assim o filtro de período passa a valer para TODAS as métricas (total, ativos, cancelados,
 // pagos e não pagos), não só para "1ª mensalidade paga".
 let _matriculaDateKey;
@@ -203,7 +203,7 @@ function getMatriculaDateKey(){
   const keys=Object.keys(rawRows[0]);
   const candidates=keys.filter(k=>/^DATA/i.test(k)&&/MATRICUL/i.test(k)&&!/CANCEL/i.test(k)&&!/MENSALIDADE/i.test(k));
   _matriculaDateKey=candidates[0]||null;
-  if(!_matriculaDateKey)console.warn('Coluna de data de matrícula não encontrada — o filtro de período afetará apenas "1ª mensalidade paga".');
+  if(!_matriculaDateKey)console.warn('Coluna de data de matrícula não encontrada: o filtro de período afetará apenas "1ª mensalidade paga".');
   return _matriculaDateKey;
 }
 function getMatriculaDate(row){
@@ -219,10 +219,10 @@ function periodLabel(){
   const labels={all:'Todo o período',today:'Hoje',week:'Esta semana',month:'Este mês',year:'Este ano',custom:'Personalizado'};
   if(v!=='custom')return labels[v]||v;
   const f=document.getElementById('f-from').value,t=document.getElementById('f-to').value;
-  return f&&t?f.split('-').reverse().join('/')+' → '+t.split('-').reverse().join('/'):'Personalizado';
+  return f&&t?f.split('-').reverse().join('/')+' até '+t.split('-').reverse().join('/'):'Personalizado';
 }
 
-// ══════ PROCESS — filtra por polo/região e considera período ══════
+// ══════ PROCESS: filtra por polo/região e considera período ══════
 
 
 
@@ -245,12 +245,12 @@ function getCursos(rows){
 function sum(a,k){return a.reduce((s,b)=>s+(b[k]||0),0)}
 function cap(s){return(s||'').split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(' ')}
 
-// ══════ META LABEL + VALOR — respeita filtro ══════
+// ══════ META LABEL + VALOR: respeita filtro ══════
 function metaLabel(){
   const polo=document.getElementById('f-polo').value;
   const reg=document.getElementById('f-regiao').value;
   if(polo!=='TODOS')return 'Meta de '+cap(polo);
-  if(reg!=='TODOS'){const rn={AC:'Acre · AC',RO:'Rondônia · RO',AM:'Amazonas · AM'};return 'Meta — '+(rn[reg]||reg);}
+  if(reg!=='TODOS'){const rn={AC:'do Acre',RO:'de Rondônia',AM:'do Amazonas'};return 'Meta '+(rn[reg]||reg);}
   return 'Meta total da rede';
 }
 
@@ -306,15 +306,15 @@ function finishLoad(){
 // ══════ KPIs ══════
 
 
-// ══════ MODAL — detalhes dos KPIs ══════
+// ══════ MODAL: detalhes dos KPIs ══════
 function openModal(type,title){if(['total','ativos','paga','naoPaga','cancel'].includes(type))openCRM(type);}
 
 // botão detalhes dos KPIs usa onclick direto no elemento
 
-// ══════ EXPANDIR GRÁFICOS — recria com dados ao vivo ══════
+// ══════ EXPANDIR GRÁFICOS: recria com dados ao vivo ══════
 function expandMetaBars(){
   document.getElementById('mbox').className='mbox mbox-big';
-  document.getElementById('mtitle').textContent='Progresso da meta · linha de chegada por polo';
+  document.getElementById('mtitle').textContent='Progresso da meta por polo';
   const src=document.getElementById('meta-bars');
   document.getElementById('mbody').innerHTML=`<div style="padding:8px 0;max-height:600px;overflow-y:auto">${src.innerHTML.replace(/tier-(?=(?:tip-)?\d+-)/g,'expanded-tier-')}</div>`;
   document.getElementById('modal').style.display='flex';
@@ -390,10 +390,10 @@ function renderMetaBars(data){
  document.getElementById('meta-bars').innerHTML=relevant.map((d,i)=>{
   const pct=d.meta>0?Math.round(d.paga/d.meta*100):0,remaining=Math.max(0,d.meta-d.paga),tiers=goalTiers(d);
   let previous=0;const segments=tiers.map(t=>{const start=previous,end=t.target/d.meta*100;previous=end;return t.color+' '+start+'%, '+t.color+' '+end+'%';}).join(',');
-  const description=t=>t.label+': meta '+t.target+' · '+Math.round(d.paga/t.target*100)+'% de atingimento · '+(d.paga>=t.target?'Meta atingida':'Faltam '+(t.target-d.paga)+' pagamentos');
+  const description=t=>t.label+': meta '+t.target+', '+Math.round(d.paga/t.target*100)+'% atingido. '+(d.paga>=t.target?'Meta atingida':'Faltam '+(t.target-d.paga)+' pagamentos');
   return `<div class="mb-item goal-tiers" data-performance="${pct>=50?'high':pct>=25?'middle':'low'}">
-   <div class="mb-header"><span class="mb-polo">${esc(cap(d.polo))}</span><span class="mb-vals">${d.paga}/${d.meta||'—'} <strong>${d.meta>0?pct+'%':'—'}</strong> <span class="gold-label">Ouro</span></span></div>
-   <div class="tier-track" role="progressbar" aria-label="${esc(cap(d.polo))} · meta ouro" aria-valuemin="0" aria-valuemax="${d.meta||1}" aria-valuenow="${Math.min(d.paga,d.meta||1)}" aria-valuetext="${esc(d.meta>0?d.paga+' de '+d.meta+' pagamentos · '+pct+'%':'Sem meta definida')}">
+   <div class="mb-header"><span class="mb-polo">${esc(cap(d.polo))}</span><span class="mb-vals">${d.paga}/${d.meta||'sem meta'} <strong>${d.meta>0?pct+'%':''}</strong> <span class="gold-label">Ouro</span></span></div>
+   <div class="tier-track" role="progressbar" aria-label="Meta ouro de ${esc(cap(d.polo))}" aria-valuemin="0" aria-valuemax="${d.meta||1}" aria-valuenow="${Math.min(d.paga,d.meta||1)}" aria-valuetext="${esc(d.meta>0?d.paga+' de '+d.meta+' pagamentos, '+pct+'%':'Sem meta definida')}">
     <div class="tier-fill" style="background:linear-gradient(90deg,${segments||'#ffd600, #ffd600'});clip-path:inset(0 ${100-Math.min(pct,100)}% 0 0)"></div>
    </div>
    <div class="tier-markers">${tiers.map(t=>`<button type="button" class="tier-marker" style="left:${t.target/d.meta*100}%;--tier-color:${t.color}" title="${esc(description(t))}" aria-label="${esc(description(t))}" onclick="toggleGoalTier('tier-${i}-${t.key}')"></button>`).join('')}</div>
@@ -460,13 +460,13 @@ function renderRankColab(rows){
   document.getElementById('rank-rest').innerHTML=colabs.slice(TOP).map((c,i)=>mkItem(c,i+TOP)).join('');
   const rest=colabs.slice(TOP).length;
   const btn=document.getElementById('rank-more-btn');
-  if(rest>0){btn.style.display='flex';document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+rest+' colaborador'+(rest!==1?'es':'');}
+  if(rest>0){btn.style.display='flex';document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');document.getElementById('rmi').textContent=rankExpanded?'Ver menos':'Ver mais';document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+rest+' colaborador'+(rest!==1?'es':'');}
   else btn.style.display='none';
 }
 function toggleRankMore(){
   rankExpanded=!rankExpanded;
   document.getElementById('rank-rest').className='rmore-hidden'+(rankExpanded?' open':'');
-  document.getElementById('rmi').textContent=rankExpanded?'▲':'▼';
+  document.getElementById('rmi').textContent=rankExpanded?'Ver menos':'Ver mais';
   const n=document.getElementById('rank-rest').children.length;
   document.getElementById('rmtx').textContent=rankExpanded?'Recolher':'Ver mais '+n+' colaborador'+(n!==1?'es':'');
 }
@@ -595,7 +595,7 @@ async function fetchData(){
  const ranking=await db.rpc('seller_production',{p_campaign:campaign});if(epoch!==authEpoch)return;
  sellerProduction=ranking.error?[]:(ranking.data||[]);sellerProductionError=!!ranking.error;
  lastLoad=new Date(data.loaded_at);_matriculaDateKey=undefined;finishLoad();if(typeof acceptUpdateSnapshot==='function')acceptUpdateSnapshot();
- document.getElementById('session-label').textContent=currentProfile.name+' · '+currentProfile.email+' · '+dashboardSession.zone;
+ document.getElementById('session-label').textContent=currentProfile.name+', '+currentProfile.email;
  document.getElementById('load-error').hidden=true;document.getElementById('load-retry').hidden=true;
  if(typeof crm!=='undefined'&&crm.open){crm.dirty=false;crm.edit=null;crm.historyToken++;drawCRM();}
  }catch(e){
@@ -642,23 +642,23 @@ function renderAll(){
  const data=processData(rawRows),acc=cumulative();renderHero(acc);renderKPIs(data,acc);renderMetaBars(acc);renderRankColab(rawRows);renderCursos(rawRows);renderTable(data);if(typeof renderWorkspace==='function')renderWorkspace(data);
  document.getElementById('metric-context').textContent=filterMode()==='events'?'Movimentação: matrícula pela data de entrada; pagamentos pela data do pagamento; cancelamentos pela data do cancelamento. Ativos, não pagantes e cursos referem-se às entradas do período.':'Matrículas do período: todos os indicadores operacionais analisam as mesmas entradas e sua situação atual.';
  document.getElementById('meta-context').textContent='A meta usa o acumulado da campanha. Região e polo também filtram a meta.';
- document.getElementById('campaign-deadline').textContent='Matrículas até '+displayDate(snapshot.campaign.ends_on)+' · pagamentos até '+displayDate(snapshot.campaign.payment_ends_on||snapshot.campaign.ends_on);
+ document.getElementById('campaign-deadline').textContent='Matrículas até '+displayDate(snapshot.campaign.ends_on)+' e pagamentos até '+displayDate(snapshot.campaign.payment_ends_on||snapshot.campaign.ends_on);
  }catch(e){document.getElementById('filter-error').textContent=e.message;}
 }
 function renderHero(data){
  const pg=sum(data,'paga'),meta=sum(data,'meta'),po=document.getElementById('f-polo').value;
- const visiblePolos=data.map(d=>cap(d.polo));document.getElementById('hero-polo').textContent=po!=='TODOS'?'Polo '+cap(po):visiblePolos.length===1?'Polo '+visiblePolos[0]:currentProfile?.role==='admin'?'Visão da rede':'Polos: '+visiblePolos.join(' · ');
- document.getElementById('hero-sub').textContent=(snapshot?.campaign.name||'Campanha')+' · '+(po==='TODOS'?'Polos autorizados':cap(po));
- document.getElementById('hero-st').innerHTML=[{v:pg+' / '+meta,l:'Pagamentos na meta'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado · Acre'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
+ const visiblePolos=data.map(d=>cap(d.polo));document.getElementById('hero-polo').textContent=po!=='TODOS'?'Polo '+cap(po):visiblePolos.length===1?'Polo '+visiblePolos[0]:currentProfile?.role==='admin'?'Visão da rede':'Polos: '+visiblePolos.join(', ');
+ document.getElementById('hero-sub').textContent=(snapshot?.campaign.name||'Campanha')+', '+(po==='TODOS'?'polos autorizados':cap(po));
+ document.getElementById('hero-st').innerHTML=[{v:pg+' / '+meta,l:'Pagamentos na meta'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado (horário do Acre)'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
 }
 function renderKPIs(data,acc){
  const tot=sum(data,'total'),pg=sum(data,'paga'),at=sum(data,'ativos'),np=sum(data,'naoPaga'),ca=sum(data,'cancel'),cp=sum(data,'cohortPaid'),mt=sum(acc,'meta'),ap=sum(acc,'paga');
  const activePaid=sum(data,'activePaid');const ratio=at?Math.round(activePaid/at*100):0,progress=mt?Math.round(ap/mt*100):0;const cohort=filterMode()==='cohort';
  const best=acc.filter(d=>d.meta>0).sort((a,b)=>b.paga/b.meta-a.paga/a.meta)[0];
  const k=(l,v,s,ic,c,mid,b=null)=>({l,v,s,ic,c,mid,b});
- const first=[k('Matrículas geradas',tot,'no período','','kb','total'),k('Matrículas ativas',at,'dos matriculados no período','','kg2c','ativos'),k('1ª mensalidade paga',pg,'inclui cancelados pagos','','ky','paga'),k('Ativos sem pagamento',np,'sem contar ProUni ou bolsa 100%','','kr','naoPaga'),k('Progresso da meta',progress+'%',ap+' de '+mt+' · acumulado','','ko','meta',progress),k(cohort?'Cancelados das entradas':'Cancelamentos no período',ca,cohort?'dos matriculados no período':'pela data do cancelamento','','kr','cancel')];
- const second=[k('Faltam para meta',Math.max(0,mt-ap),'pagamentos · acumulado','⏳','ko','faltam'),k('Conversão dos ativos',ratio+'%',activePaid+' ativos pagos ÷ '+at+' ativos','','kg2c','conv',ratio),k('Meta da campanha',mt,'polos selecionados · acumulado','','kw','metaT'),k('Polos com pagamentos',data.filter(d=>d.paga>0).length,'de '+data.length+' polos autorizados','','kp','polosPag'),k('Polo destaque',best?cap(best.polo):'—','por atingimento acumulado','','ky','destaque')];
- const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">detalhes ▸</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first);render('kg2',second.filter(x=>['faltam','conv'].includes(x.mid)));
+ const first=[k('Matrículas geradas',tot,'no período','','kb','total'),k('Matrículas ativas',at,'dos matriculados no período','','kg2c','ativos'),k('1ª mensalidade paga',pg,'inclui cancelados pagos','','ky','paga'),k('Ativos sem pagamento',np,'sem contar ProUni ou bolsa 100%','','kr','naoPaga'),k('Progresso da meta',progress+'%',ap+' de '+mt+' no acumulado','','ko','meta',progress),k(cohort?'Cancelados das entradas':'Cancelamentos no período',ca,cohort?'dos matriculados no período':'pela data do cancelamento','','kr','cancel')];
+ const second=[k('Faltam para meta',Math.max(0,mt-ap),'pagamentos no acumulado','','ko','faltam'),k('Conversão dos ativos',ratio+'%',activePaid+' ativos pagos ÷ '+at+' ativos','','kg2c','conv',ratio),k('Meta da campanha',mt,'soma dos polos selecionados','','kw','metaT'),k('Polos com pagamentos',data.filter(d=>d.paga>0).length,'de '+data.length+' polos autorizados','','kp','polosPag'),k('Polo destaque',best?cap(best.polo):'Nenhum ainda','por atingimento acumulado','','ky','destaque')];
+ const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">Ver detalhes</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first);render('kg2',second.filter(x=>['faltam','conv'].includes(x.mid)));
 }
 function statusParts(){const list=rawRows.filter(r=>scope(r)&&noPeriodoEntrada(r));return [list.filter(r=>!Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>!Core.cancelled(r)&&!Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&!Core.paid(r)).length];}
 function getColabs(rows){
@@ -687,7 +687,7 @@ openModal=function(type,title){
   const data=type==='conv'||type==='polosPag'?processData(rawRows):cumulative();
   document.getElementById('mbox').className='mbox';document.getElementById('mtitle').textContent=title;
   document.getElementById('mbody').innerHTML=data.filter(d=>type!=='polosPag'||d.paga>0).map(d=>{
-   const val=type==='conv'?(d.ativos?Math.round(d.activePaid/d.ativos*100):0)+'% · '+d.activePaid+'/'+d.ativos:type==='metaT'?d.meta:type==='faltam'?Math.max(0,d.meta-d.paga):type==='polosPag'?d.paga:d.paga+'/'+d.meta;
+   const val=type==='conv'?(d.ativos?Math.round(d.activePaid/d.ativos*100):0)+'% ('+d.activePaid+' de '+d.ativos+')':type==='metaT'?d.meta:type==='faltam'?Math.max(0,d.meta-d.paga):type==='polosPag'?d.paga:d.paga+'/'+d.meta;
    return '<div class="mrow"><span>'+esc(cap(d.polo))+'</span><strong>'+esc(val)+'</strong></div>';
   }).join('');document.getElementById('modal').style.display='flex';return;
  }
@@ -702,7 +702,7 @@ function renderTable(data){
  const ranked=[...data].sort((a,b)=>{const x=lookup.get(a.polo)||a,y=lookup.get(b.polo)||b;return (y.meta?y.paga/y.meta:0)-(x.meta?x.paga/x.meta:0)||b.paga-a.paga;});
  const rows=ranked.map((d,i)=>{const goal=lookup.get(d.polo)||d;const tone=pct(goal)>=50?'var(--g)':pct(goal)>=25?'var(--warn)':'var(--r)';return '<tr data-performance="'+(pct(goal)>=50?'high':pct(goal)>=25?'middle':'low')+'" style="--performance:'+tone+'"><td><span class="rank-position rank-place-'+Math.min(i+1,4)+'">'+(i+1)+'º</span></td><td><strong>'+esc(cap(d.polo))+'</strong><small class="rank-region">'+esc(d.reg)+'</small></td><td>'+d.total+'</td><td>'+d.ativos+'</td><td>'+badge(d.cancel,'pr2')+'</td><td>'+badge(d.paga,'pg')+'</td><td>'+badge(d.naoPaga,'pr2')+'</td><td>'+goal.meta+'</td><td>'+progress(goal)+'</td></tr>';}).join('');
  const total={paga:sum(acc,'paga'),meta:sum(acc,'meta')};
- document.getElementById('polo-table').innerHTML='<thead><tr>'+['#','Polo','Matrículas','Ativos','Cancelamentos','1ª paga','Sem pagamento','Meta','Progresso da campanha'].map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td>—</td><td><strong>Total filtrado</strong></td>'+['total','ativos','cancel','paga','naoPaga'].map(k=>'<td>'+sum(data,k)+'</td>').join('')+'<td>'+total.meta+'</td><td>'+progress(total)+'</td></tr></tbody>';
+ document.getElementById('polo-table').innerHTML='<thead><tr>'+['#','Polo','Matrículas','Ativos','Cancelamentos','1ª paga','Sem pagamento','Meta','Progresso da campanha'].map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody>'+rows+'<tr class="tr-tot"><td></td><td><strong>Total filtrado</strong></td>'+['total','ativos','cancel','paga','naoPaga'].map(k=>'<td>'+sum(data,k)+'</td>').join('')+'<td>'+total.meta+'</td><td>'+progress(total)+'</td></tr></tbody>';
 }
 
 ;
@@ -717,7 +717,7 @@ function crmMatches(r,type,range,mode){
  return Core.metric(r,type,range,mode);
 }
 function changeCRMStatusFilter(){if($c('status').value==='Cancelado'){$c('payment').value='cancel';$c('period').value='all';$c('priority').value='';}filterCRM();}
-function paymentLabel(r){return (r._missing?'Ausente do relatório · ':'')+(Core.paid(r)?'Pago':'Não pago')+(crmState(r).status==='Cancelado'&&!Core.cancelled(r)?' · cancelado no acompanhamento (relatório ativo)':Core.cancelled(r)?' · cancelado no relatório':' · ativo');}
+function paymentLabel(r){return (r._missing?'Ausente do relatório, ':'')+(Core.paid(r)?'Pago':'Não pago')+(crmState(r).status==='Cancelado'&&!Core.cancelled(r)?', cancelado no acompanhamento (ativo no relatório)':Core.cancelled(r)?', cancelado no relatório':', ativo');}
 function contactTag(s){return '<span class="crm-tag crm-s'+Core.statuses.indexOf(s.status)+'">'+esc(s.status)+'</span>';}
 function messageCRM(text){$c('message').textContent=text;const note=$c('editor-message');if(note)note.textContent=text;}
 function promiseSituation(r,today){const date=crmState(r).promised;if(!date||!Core.dateValid(date))return '';return Core.paid(r)?'paid':date<today?'overdue':'pending';}
@@ -735,7 +735,7 @@ function drawPromiseSummary(rows,today){
  const counts={pending:0,overdue:0,paid:0};rows.forEach(r=>{const state=promiseSituation(r,today);if(state)counts[state]++;});
  const total=counts.pending+counts.overdue+counts.paid;
  const label=month?new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(month+'-01T12:00:00Z')):'todos os meses';
- el.textContent=total+' matrículas com promessa para '+label+' — '+counts.pending+' aguardando, '+counts.overdue+' vencidas e '+counts.paid+' já pagas. Totais conforme os demais filtros; a situação da promessa selecionada filtra a lista abaixo. Pagamento conforme o relatório sincronizado.';
+ el.textContent=total+' matrículas com promessa para '+label+': '+counts.pending+' aguardando, '+counts.overdue+' vencidas e '+counts.paid+' já pagas. Totais conforme os demais filtros; a situação da promessa selecionada filtra a lista abaixo. Pagamento conforme o relatório sincronizado.';
 }
 function openCRM(tipo,all=false){
   if(dataBusy)return;
@@ -776,12 +776,12 @@ function drawCRM(resetEditor=true){
   drawPromiseSummary(matching,today);
   crm.visible=matching.filter(r=>!promiseState||promiseState==='all'||promiseSituation(r,today)===promiseState).sort((a,b)=>($c('order').value==='priority'?Core.priority(crmState(a),crmState(b),today):0)||(a.NOME||'').localeCompare(b.NOME||'','pt-BR'));
   const pages=Math.max(1,Math.ceil(crm.visible.length/50));crm.page=Math.max(0,Math.min(pages-1,crm.page));
-  $c('context').textContent=(tipo==='cancel'?'Cancelados no relatório ou no acompanhamento · toda a campanha':all?'Toda a campanha · cancelados ocultos':periodLabel()+' · cancelados ocultos')+' · '+document.getElementById('f-polo').selectedOptions[0].textContent;
+  $c('context').textContent=(tipo==='cancel'?'Cancelados no relatório ou no acompanhamento, toda a campanha':all?'Toda a campanha, sem cancelados':periodLabel()+', sem cancelados')+', '+document.getElementById('f-polo').selectedOptions[0].textContent;
   $c('count').textContent=crm.visible.length+' alunos encontrados';
   if(typeof syncCRMView==='function')syncCRMView();
   $c('page').textContent='Página '+(crm.page+1)+' de '+pages;
   $c('rows').innerHTML=crm.visible.slice(crm.page*50,crm.page*50+50).map((r,i)=>{
-    const s=crmState(r),due=Core.due(s,today),label=due==='late'?' · ATRASADO':due==='today'?' · HOJE':'';
+    const s=crmState(r),due=Core.due(s,today),label=due==='late'?' (atrasado)':due==='today'?' (hoje)':'';
     return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+esc(paymentLabel(r))+compactLabels(r)+contactTag(s)+(s.promised?'<small class="academic-line">Promessa: '+esc(displayDate(s.promised))+'</small>':'')+'</td><td>'+esc(displayDate(s.lastContact))+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc(displayDate(s.nextContact)+label)+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender</button></td></tr>';
   }).join('')||'<tr><td colspan="6">Nenhum aluno encontrado com estes filtros.</td></tr>';
   if(resetEditor&&!crm.edit)$c('editor').hidden=true;
@@ -798,8 +798,8 @@ async function editCRM(index){
 function drawEditor(r,history){
   const s=crmState(r);crm.editVersion=s.version;
   $c('editor').hidden=false;
-  $c('editor').innerHTML='<button class="btn btn-gh drawer-close" onclick="cancelEditCRM()">Fechar ficha</button><h3 tabindex="-1">'+esc(r.NOME)+'</h3>'+studentLabels(r)+'<p class="crm-info">Matrícula: '+esc(r.CODIGO_ALUNO)+' · Inscrição: '+esc(r._key)+'<br>Entrada: '+esc(r.DATA_MATRICULA)+' · Pagamento: '+esc(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA||'—')+' · Cancelamento: '+esc(r.DATA_CANCELAMENTO||'—')+' · '+esc(paymentLabel(r))+'<br>Telefone: '+esc(r.CELULAR||r.TELEFONE||'—')+' · E-mail: '+esc(r.EMAIL||'—')+'<br>Registro será atribuído a '+esc(dashboardSession.email)+'</p>'+whatsappContact(r)+
-    lastNotePreview(history)+'<div id="crm-editor-message" role="status" aria-live="polite"></div><form id="crm-form"><div class="crm-bar crm-status-bar"><label class="crm-status-field">Situação do aluno<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div><div class="crm-bar"><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div>'+followupFields(s)+'<label>Observações (atualize a cada atendimento)<textarea id="crm-notes" maxlength="6000" placeholder="O que foi conversado, combinado ou descoberto sobre o aluno">'+esc(s.notes)+'</textarea></label><div class="crm-bar crm-save-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar</button></div></form><div id="crm-conflict"></div>'+historyHTML(history);
+  $c('editor').innerHTML='<div class="ficha-topo"><button class="btn btn-gh drawer-close" onclick="cancelEditCRM()">Fechar ficha (Esc)</button></div><h3 tabindex="-1">'+esc(r.NOME)+'</h3>'+studentLabels(r)+fichaDados(r)+
+    lastNotePreview(history)+'<h4 class="ficha-secao">Registrar atendimento</h4><div id="crm-editor-message" role="status" aria-live="polite"></div><form id="crm-form"><div class="crm-bar crm-status-bar"><label class="crm-status-field">Situação do aluno<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div><div class="crm-bar"><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div>'+followupFields(s)+'<label>Observações (atualize a cada atendimento)<textarea id="crm-notes" maxlength="6000" placeholder="O que foi conversado, combinado ou descoberto sobre o aluno">'+esc(s.notes)+'</textarea></label><div class="crm-bar crm-save-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar</button></div></form><div id="crm-conflict"></div>'+historyHTML(history);
   $c('form').addEventListener('input',()=>{crm.dirty=true;});
   $c('form').addEventListener('submit',e=>{e.preventDefault();saveCRM();});
   $c('editor').scrollTop=0;$c('editor').querySelector('h3').focus();
@@ -815,7 +815,7 @@ async function saveCRM(){
     const result=await rpc('saveContact',{...JSON.parse(body),requestId:crm.requestId});
     if(!result.ok){
       crmStates[crm.edit._key]=result.state;crm.conflict=result.state;
-      $c('conflict').innerHTML='<div class="crm-conflict">Outro colaborador salvou uma alteração. Seu rascunho permanece no formulário. Compare antes de salvar uma nova versão.<br><br>Registro atual: '+esc(result.state.author)+' · '+esc(result.state.updatedAt)+'<br>'+esc(result.state.status)+' · Último: '+esc(result.state.lastContact)+' · Retorno: '+esc(result.state.nextContact)+'<br>'+esc(result.state.notes)+'<br><br><button class="btn btn-gh btn-sm" type="button" onclick="reviewConflictCRM()">Revisei: manter meu rascunho para uma nova versão</button></div>';
+      $c('conflict').innerHTML='<div class="crm-conflict">Outro colaborador salvou uma alteração. Seu rascunho permanece no formulário. Compare antes de salvar uma nova versão.<br><br>Registro atual: '+esc(result.state.author)+', '+esc(histWhen(result.state.updatedAt))+'<br>Situação: '+esc(result.state.status)+'<br>Último contato: '+esc(histValue('d',result.state.lastContact))+'<br>Retorno: '+esc(result.state.nextContact)+'<br>'+esc(result.state.notes)+'<br><br><button class="btn btn-gh btn-sm" type="button" onclick="reviewConflictCRM()">Revisei: manter meu rascunho para uma nova versão</button></div>';
       messageCRM('Conflito detectado. Nenhuma alteração sua foi gravada.');
     }else{
       crmStates[crm.edit._key]=result.state;crm.editVersion=result.state.version;crm.dirty=false;crm.requestBody=null;if(typeof acceptLocalFollowup==='function')acceptLocalFollowup();
@@ -863,7 +863,7 @@ function whatsappNumber(value){
 }
 function whatsappContact(r){
  const n=whatsappNumber(r.CELULAR)||whatsappNumber(r.TELEFONE);
- return n?'<a class="btn whatsapp-contact" href="https://wa.me/'+n+'" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Abrir WhatsApp · +'+n+'</a>':'<p class="crm-info">WhatsApp indisponível: confira o telefone com DDD no relatório.</p>';
+ return n?'<a class="btn whatsapp-contact" href="https://wa.me/'+n+'" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Chamar no WhatsApp</a>':'<p class="crm-info">WhatsApp indisponível: confira o telefone com DDD no relatório.</p>';
 }
 
 function dueLabel(r,today=crmToday()){
@@ -892,11 +892,11 @@ function goalFields(g={}){return '<label>Bronze<input name="bronze" type="number
 function drawAdmin(){
  const root=document.getElementById('admin-body'),users=adminData.users;
  root.querySelectorAll('[data-admin-section]').forEach(e=>{if(e.hasAttribute('open'))adminExpanded.add(e.dataset.adminSection);else adminExpanded.delete(e.dataset.adminSection);});
- const accounts='<div class="admin-grid"><section><p class="context">Cada pessoa usa sua própria conta. Administradores veem todos os polos.</p><div class="account-bar"><button class="btn" onclick="editUser()">Novo usuário</button><button class="btn btn-gh" onclick="loadAdmin()">Atualizar</button></div>'+users.map((u,i)=>'<div class="account-bar"><span><strong>'+esc(u.name)+'</strong><br>'+esc(u.email)+'<br>'+esc((u.role==='admin'?'Administrador':'Colaborador')+' · '+(u.active?'Ativo':'Desativado')+(u.must_change_password?' · Deve trocar senha':''))+'</span><button class="btn btn-gh btn-sm" onclick="editUser('+i+')" '+(u.id===currentProfile.id?'disabled':'')+'>Editar</button><button class="btn btn-gh btn-sm" onclick="resetUser('+i+')" '+(u.id===currentProfile.id||!u.active?'disabled':'')+'>Nova senha provisória</button><button class="btn btn-gh btn-sm delete-access" onclick="confirmDeleteUser('+i+')" '+(u.id===currentProfile.id?'disabled':'')+'>Excluir acesso</button></div>').join('')+'</section><section id="admin-editor"><p>Selecione Novo usuário ou Editar.</p></section></div>';
+ const accounts='<div class="admin-grid"><section><p class="context">Cada pessoa usa sua própria conta. Administradores veem todos os polos.</p><div class="account-bar"><button class="btn" onclick="editUser()">Novo usuário</button><button class="btn btn-gh" onclick="loadAdmin()">Atualizar</button></div>'+users.map((u,i)=>'<div class="account-bar"><span><strong>'+esc(u.name)+'</strong><br>'+esc(u.email)+'<br>'+esc((u.role==='admin'?'Administrador':'Colaborador')+', '+(u.active?'ativo':'desativado')+(u.must_change_password?', precisa trocar a senha':''))+'</span><button class="btn btn-gh btn-sm" onclick="editUser('+i+')" '+(u.id===currentProfile.id?'disabled':'')+'>Editar</button><button class="btn btn-gh btn-sm" onclick="resetUser('+i+')" '+(u.id===currentProfile.id||!u.active?'disabled':'')+'>Nova senha provisória</button><button class="btn btn-gh btn-sm delete-access" onclick="confirmDeleteUser('+i+')" '+(u.id===currentProfile.id?'disabled':'')+'>Excluir acesso</button></div>').join('')+'</section><section id="admin-editor"><p>Selecione Novo usuário ou Editar.</p></section></div>';
  const goals='<p class="context">A meta geral soma os polos. Ouro mantém a meta atual; bronze e prata são opcionais e devem ficar em ordem crescente.</p><button class="btn" onclick="editNewPolo()">Adicionar polo</button><div id="new-polo-editor"></div>'+snapshot.polos.map(p=>{const g=snapshot.goals.find(g=>g.polo_id===p.id)||{version:0,target:0};return '<form class="admin-goal" onsubmit="saveGoal(event,\''+esc(p.id)+'\','+g.version+')"><strong>'+esc(p.short_name)+'</strong>'+goalFields(g)+'<button class="btn btn-gh">Salvar metas</button></form>';}).join('');
- const imports=adminData.imports.map(b=>'<p class="context">'+esc(b.imported_at)+' · '+esc(b.campaign_id)+' · '+b.result.rows+' linhas · '+b.result.new+' novos · '+b.result.became_paid+' passaram a pagos · '+b.result.missing+' ausentes</p>').join('')||'<p>Nenhuma importação.</p>';
- const audit=adminData.audit.map(a=>'<p class="context">'+esc(a.created_at)+' · '+esc(users.find(u=>u.id===a.actor_id)?.name||a.actor_id)+' · '+esc(a.action)+' · '+esc(a.target_id)+'</p>').join('')+'<button class="btn btn-gh" onclick="backupData()">Baixar backup dos dados e históricos</button><p class="context">Guarde em local privado. O backup contém dados pessoais; não o envie ao GitHub.</p>';
- root.innerHTML=adminSection('accounts','Acessos · '+users.length,accounts)+adminSection('goals','Polos e metas · '+esc(snapshot.campaign.name),goals)+adminSection('imports','Últimas 10 importações',imports)+adminSection('audit','Últimas 50 ações administrativas',audit);
+ const imports=adminData.imports.map(b=>'<p class="context">'+esc(b.imported_at)+', '+esc(b.campaign_id)+', '+b.result.rows+' linhas, '+b.result.new+' novos, '+b.result.became_paid+' passaram a pagos, '+b.result.missing+' ausentes</p>').join('')||'<p>Nenhuma importação.</p>';
+ const audit=adminData.audit.map(a=>'<p class="context">'+esc(histWhen(a.created_at))+', '+esc(users.find(u=>u.id===a.actor_id)?.name||a.actor_id)+': '+esc(a.action)+' em '+esc(a.target_id)+'</p>').join('')+'<button class="btn btn-gh" onclick="backupData()">Baixar backup dos dados e históricos</button><p class="context">Guarde em local privado. O backup contém dados pessoais; não o envie ao GitHub.</p>';
+ root.innerHTML=adminSection('accounts','Acessos ('+users.length+')',accounts)+adminSection('goals','Polos e metas da '+esc(snapshot.campaign.name),goals)+adminSection('imports','Últimas 10 importações',imports)+adminSection('audit','Últimas 50 ações administrativas',audit);
 }
 function readGoalFields(form){const f=new FormData(form);const number=k=>f.get(k)===''?null:Number(f.get(k));const bronze=number('bronze'),silver=number('silver'),gold=number('gold');if(gold===null||![gold,bronze,silver].filter(x=>x!==null).every(x=>Number.isInteger(x)&&x>=0&&x<=1000000)||(bronze!==null&&(bronze<1||bronze>gold))||(silver!==null&&(silver<1||silver>gold))||(bronze!==null&&silver!==null&&bronze>silver))throw Error('Confira as metas: bronze até prata, prata até ouro.');return {p_bronze:bronze,p_silver:silver,p_gold:gold};}
 function editNewPolo(){
@@ -906,7 +906,7 @@ function editNewPolo(){
 
 function editUser(index){
  const u=index===undefined?null:adminData.users[index],assigned=adminData.memberships.filter(m=>m.user_id===u?.id).map(m=>m.polo_id);
- document.getElementById('admin-editor').innerHTML='<h3>'+(u?'Editar conta':'Cadastrar conta')+'</h3><form id="user-form"><label>Nome<input name="name" maxlength="120" value="'+esc(u?.name||'')+'" required></label><label>E-mail<input name="email" type="email" value="'+esc(u?.email||'')+'" '+(u?'disabled':'required')+'></label><label>Perfil<select name="role"><option value="collaborator">Colaborador</option><option value="admin" '+(u?.role==='admin'?'selected':'')+'>Administrador · todos os polos</option></select></label><p class="context">Selecione os polos do colaborador. Administradores têm acesso a todos.</p><div class="admin-polos">'+snapshot.polos.map(p=>'<label><input type="checkbox" name="polos" value="'+esc(p.id)+'" '+(assigned.includes(p.id)?'checked':'')+'> '+esc(p.short_name)+'</label>').join('')+'</div>'+(u?'<label><input type="checkbox" name="active" '+(u.active?'checked':'')+'> Conta ativa</label>':'')+'<button class="btn">'+(u?'Salvar alterações':'Criar e gerar senha provisória')+'</button></form>';
+ document.getElementById('admin-editor').innerHTML='<h3>'+(u?'Editar conta':'Cadastrar conta')+'</h3><form id="user-form"><label>Nome<input name="name" maxlength="120" value="'+esc(u?.name||'')+'" required></label><label>E-mail<input name="email" type="email" value="'+esc(u?.email||'')+'" '+(u?'disabled':'required')+'></label><label>Perfil<select name="role"><option value="collaborator">Colaborador</option><option value="admin" '+(u?.role==='admin'?'selected':'')+'>Administrador (todos os polos)</option></select></label><p class="context">Selecione os polos do colaborador. Administradores têm acesso a todos.</p><div class="admin-polos">'+snapshot.polos.map(p=>'<label><input type="checkbox" name="polos" value="'+esc(p.id)+'" '+(assigned.includes(p.id)?'checked':'')+'> '+esc(p.short_name)+'</label>').join('')+'</div>'+(u?'<label><input type="checkbox" name="active" '+(u.active?'checked':'')+'> Conta ativa</label>':'')+'<button class="btn">'+(u?'Salvar alterações':'Criar e gerar senha provisória')+'</button></form>';
  document.getElementById('user-form').onsubmit=async e=>{e.preventDefault();const form=e.currentTarget,f=new FormData(form);await adminAction(async()=>{const b={action:u?'edit':'create',id:u?.id,version:u?.version,name:f.get('name'),email:f.get('email'),role:f.get('role'),polos:f.getAll('polos'),active:f.has('active')};const result=await edge('manage-users',b);await loadAdmin();showTemporary(result);adminMsg('Cadastro salvo.');});};
 }
 function showTemporary(r){if(!r.temporary_password)return;const e=document.getElementById('admin-secret');e.hidden=false;e.textContent='Acesso criado para '+r.email+'\nSenha provisória: '+r.temporary_password+'\nExpira em 24 horas. Copie e entregue de forma privada à pessoa. Ao fechar este painel, a senha deixa de ser exibida.';}
@@ -937,7 +937,7 @@ function renderWorkspace(data){
  const one=data.length===1,restricted=snapshot.polos.length===1&&currentProfile.role!=='admin';
  document.getElementById('content').classList.toggle('single-polo',one);
  document.getElementById('f-polo').hidden=restricted;document.getElementById('f-regiao').hidden=restricted;for(const id of ['f-polo','f-regiao']){const label=document.getElementById(id).previousElementSibling;if(label?.classList.contains('fl'))label.hidden=restricted;}
- if(restricted)document.getElementById('session-label').textContent=currentProfile.name+' · Polo '+snapshot.polos[0].name;
+ if(restricted)document.getElementById('session-label').textContent=currentProfile.name+', polo '+snapshot.polos[0].name;
  renderPostSale();
 }
 const postSaleColumns=[['welcome_done','RECEPÇÃO CONCLUÍDA'],['welcome','RECEPÇÃO PENDENTE'],['today','RETORNOS HOJE'],['late','RETORNOS VENCIDOS'],['promise_today','PROMESSAS HOJE'],['promise','PROMESSAS VENCIDAS']];
@@ -972,7 +972,7 @@ function renderPostSale(){
 
 }
 function openQueue(key){openCRM('ativos',true);$c('priority').value=key;filterCRM();}
-function compactLabels(r){let parts=[];if(Core.academicNote(r))parts.push('Indicação de nota');if(r._credit===true)parts.push('Aproveitamento');return (parts.length?'<small class="academic-line">'+esc(parts.join(' · '))+'</small>':'')+'<small class="academic-line last-access">Último acesso: '+esc(r._lastAccess?displayDate(r._lastAccess):'não informado no relatório')+'</small>'+dueLabel(r);}
+function compactLabels(r){let parts=[];if(Core.academicNote(r))parts.push('Indicação de nota');if(r._credit===true)parts.push('Aproveitamento');return (parts.length?'<small class="academic-line">'+esc(parts.join(', '))+'</small>':'')+'<small class="academic-line last-access">Último acesso: '+esc(r._lastAccess?displayDate(r._lastAccess):'não informado no relatório')+'</small>'+dueLabel(r);}
 function crmView(key){if(crm.edit){cancelEditCRM();if(crm.edit)return;}if(key!=='cancel'&&$c('status').value==='Cancelado')$c('status').value='';$c('payment').value=key==='welcome'?'ativos':key;$c('priority').value=key==='welcome'?'welcome':'';['academic','credit','due'].forEach(id=>$c(id).value='');filterCRM();}
 function resetCRMFilters(){['search','status','priority','academic','credit','due','promise-month','promise-state'].forEach(id=>$c(id).value='');$c('polo').value='TODOS';$c('period').value='all';$c('payment').value='total';$c('order').value='priority';filterCRM();}
 function syncCRMView(){const key=$c('priority').value==='welcome'?'welcome':$c('payment').value;document.querySelectorAll('[data-view]').forEach(e=>e.setAttribute('aria-pressed',String(e.dataset.view===key)));const n=['academic','credit','due','priority','promise-month','promise-state'].filter(id=>$c(id).value).length;$c('filter-count').textContent=n?'('+n+' ativos)':'';$c('polo').parentElement.hidden=snapshot.polos.length===1;$c('quick').hidden=$c('payment').value!=='naoPaga';document.querySelectorAll('[data-quick]').forEach(e=>e.setAttribute('aria-pressed',String($c(e.dataset.quick).value===e.dataset.value)));}
@@ -989,12 +989,12 @@ openModal=function(type,title){
  const color={total:'var(--bl)',ativos:'var(--g)',paga:'var(--y)',naoPaga:'var(--r)',cancel:'var(--r)',faltam:'var(--o)',conv:'var(--g)'}[type]||'var(--y)';
  const labels={total:'Matrículas geradas',ativos:'Matrículas ativas',paga:'1ª mensalidade paga',naoPaga:'Ativos sem pagamento',cancel:'Cancelamentos',conv:'Conversão dos ativos',meta:'Progresso da meta',faltam:'Faltam para meta',metaT:'Metas por polo',polosPag:'Polos com pagamentos',destaque:'Atingimento por polo'};
  document.getElementById('mtitle').textContent=labels[type]||title;document.getElementById('mbox').className='mbox';
- const desc=operational.includes(type)||['conv','polosPag'].includes(type)?periodLabel()+' · '+(filterMode()==='events'?'Movimentação':'Matrículas do período'):'Acumulado da campanha';
- document.getElementById('mbody').innerHTML='<p class="context">'+esc(desc)+'</p>'+data.map((d,i)=>{if(type==='polosPag'&&!d.paga)return '';let val=operational.includes(type)?d[type]:type==='conv'?(d.ativos?Math.round(d.activePaid/d.ativos*100):0)+'% · '+d.activePaid+'/'+d.ativos:type==='metaT'?d.meta:type==='faltam'?Math.max(0,d.meta-d.paga):type==='polosPag'?d.paga:(d.meta?Math.round(d.paga/d.meta*100):0)+'% · '+d.paga+'/'+d.meta;const pct=['meta','conv','destaque'].includes(type)?Math.min(numeric(d),100):Math.round(numeric(d)/max*100);return '<div class="mrow detail-row"><div class="detail-info"><div class="mname">'+esc(cap(d.polo))+'</div><div class="mprog"><div class="mpb"><div class="mpf" style="width:'+pct+'%;background:'+color+'"></div></div></div></div><div class="mval" style="color:'+color+'">'+esc(val)+'</div>'+(operational.includes(type)?'<button class="btn btn-gh btn-sm" onclick="detailStudents(\''+type+'\','+i+')">Ver alunos</button>':'')+'</div>' ;}).join('');document.getElementById('modal').style.display='flex';
+ const desc=operational.includes(type)||['conv','polosPag'].includes(type)?periodLabel()+', '+(filterMode()==='events'?'Movimentação':'Matrículas do período'):'Acumulado da campanha';
+ document.getElementById('mbody').innerHTML='<p class="context">'+esc(desc)+'</p>'+data.map((d,i)=>{if(type==='polosPag'&&!d.paga)return '';let val=operational.includes(type)?d[type]:type==='conv'?(d.ativos?Math.round(d.activePaid/d.ativos*100):0)+'% ('+d.activePaid+' de '+d.ativos+')':type==='metaT'?d.meta:type==='faltam'?Math.max(0,d.meta-d.paga):type==='polosPag'?d.paga:(d.meta?Math.round(d.paga/d.meta*100):0)+'% ('+d.paga+' de '+d.meta+')';const pct=['meta','conv','destaque'].includes(type)?Math.min(numeric(d),100):Math.round(numeric(d)/max*100);return '<div class="mrow detail-row"><div class="detail-info"><div class="mname">'+esc(cap(d.polo))+'</div><div class="mprog"><div class="mpb"><div class="mpf" style="width:'+pct+'%;background:'+color+'"></div></div></div></div><div class="mval" style="color:'+color+'">'+esc(val)+'</div>'+(operational.includes(type)?'<button class="btn btn-gh btn-sm" onclick="detailStudents(\''+type+'\','+i+')">Ver alunos</button>':'')+'</div>' ;}).join('');document.getElementById('modal').style.display='flex';
 };
 function detailStudents(type,index){const polo=detailPolos[index];closeModal();openCRM(type);$c('polo').value=polo;filterCRM();}
 
-function displayDate(d){return d?d.split('-').reverse().join('/'):'—';}
+function displayDate(d){return d?d.split('-').reverse().join('/'):'sem data';}
 function quickFilter(id,value){$c(id).value=$c(id).value===value?'':value;filterCRM();}
 
 function crmJump(end){
@@ -1041,8 +1041,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDashb
 // ══════ HISTÓRICO DE ATENDIMENTOS (linha do tempo) ══════
 const HIST_FIELDS=[['status','Situação'],['welcome','Recepção'],['outcome','Resultado do contato'],['promised','Pagamento prometido'],['lastContact','Último contato'],['nextContact','Próximo retorno']];
 function histWhen(v){if(!v)return 'Data não informada';const d=new Date(v);if(isNaN(d))return String(v);return d.toLocaleString('pt-BR',{timeZone:dashboardSession?.zone||'America/Rio_Branco',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-function histValue(k,v){if(!v)return '—';if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v.slice(8,10)+'/'+v.slice(5,7)+'/'+v.slice(0,4);return v;}
-function lastNotePreview(history){const e=history.find(h=>h.state&&h.state.notes&&h.state.notes.trim());if(!e)return '';return '<div class="hist-preview"><span>Última observação · '+esc(histWhen(e.state.updatedAt))+' · '+esc(e.state.author||'')+'</span><p>'+esc(e.state.notes)+'</p>'+(history.length>1?'<a href="#crm-hist" onclick="document.getElementById(\'crm-hist\').scrollIntoView({behavior:\'smooth\'});return false">Ver histórico completo ('+history.length+')</a>':'')+'</div>';}
+function histValue(k,v){if(!v)return 'não informado';if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v.slice(8,10)+'/'+v.slice(5,7)+'/'+v.slice(0,4);return v;}
+function lastNotePreview(history){const e=history.find(h=>h.state&&h.state.notes&&h.state.notes.trim());if(!e)return '';return '<div class="hist-preview"><span>Última observação, '+esc(histWhen(e.state.updatedAt))+', por '+esc(e.state.author||'colaborador')+'</span><p>'+esc(e.state.notes)+'</p>'+(history.length>1?'<a href="#crm-hist" onclick="document.getElementById(\'crm-hist\').scrollIntoView({behavior:\'smooth\'});return false">Ver histórico completo ('+history.length+')</a>':'')+'</div>';}
 function historyHTML(history){
  if(!history.length)return '<section class="hist" id="crm-hist"><h4>Histórico de atendimentos</h4><p class="hist-empty">Nenhum atendimento registrado ainda. O primeiro que você salvar aparece aqui.</p></section>';
  return '<section class="hist" id="crm-hist"><h4>Histórico de atendimentos <span class="hist-count">'+history.length+'</span></h4><ol class="hist-list">'+history.map((e,i)=>{
@@ -1060,3 +1060,13 @@ Core.setExempt(r=>typeof crmState==='function'&&crmState(r).status==='Aluno ProU
 // Esc fecha só a ficha do aluno; a lista continua aberta
 (function(){const d=document.getElementById('crm-dialog');if(!d)return;d.addEventListener('cancel',e=>{const ed=$c('editor');if(ed&&!ed.hidden){e.preventDefault();cancelEditCRM();}});
  d.addEventListener('keydown',e=>{const ed=$c('editor');if(e.key==='Escape'&&ed&&!ed.hidden){e.preventDefault();e.stopPropagation();cancelEditCRM();}},true);})();
+
+// ══════ FICHA DO ALUNO EM BLOCOS ══════
+function fichaDados(r){
+ const item=(l,v)=>'<div class="ficha-item"><span>'+l+'</span><strong>'+esc(v||'não informado')+'</strong></div>';
+ const situacao=(r._missing?'Ausente do relatório. ':'')+(Core.cancelled(r)?'Cancelado no relatório':crmState(r).status==='Cancelado'?'Cancelado no acompanhamento':Core.paid(r)?'Pagou a 1ª mensalidade':'Ainda não pagou a 1ª mensalidade');
+ return '<div class="ficha-situacao'+(Core.paid(r)?' ficha-pago':'')+'">'+esc(situacao)+'</div>'
+  +'<h4 class="ficha-secao">Dados do aluno</h4><div class="ficha-grid">'+item('Matrícula',r.CODIGO_ALUNO)+item('Inscrição',r._key)+item('Entrou em',displayDate(Core.dateOnly(r.DATA_MATRICULA)))+item('Pagou em',r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA?displayDate(Core.dateOnly(r.DATA_PRIMEIRA_MENSALIDADE_COBRADA_PAGA)):'ainda não pagou')+(r.DATA_CANCELAMENTO?item('Cancelou em',displayDate(Core.dateOnly(r.DATA_CANCELAMENTO))):'')+'</div>'
+  +'<h4 class="ficha-secao">Contato</h4><div class="ficha-grid">'+item('Telefone',r.CELULAR||r.TELEFONE)+item('E-mail',r.EMAIL)+'</div>'+whatsappContact(r)
+  +'<p class="ficha-autor">Este atendimento fica registrado em nome de '+esc(dashboardSession.email)+'.</p>';
+}

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap" rel="stylesheet">
-<title>Calouros · Rede AC Centro · UNIASSELVI</title>
+<title>Calouros da Rede AC Centro</title>
 <script src="../assets/vendor/chart.umd.js"></script>
 <script src="../assets/vendor/xlsx.full.min.js"></script>
 <script src="../assets/vendor/supabase.js"></script>
@@ -392,22 +392,22 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 
 <link rel="stylesheet" href="../assets/release-a2055ce4dba0.css">
-<link rel="stylesheet" href="../assets/marca.css">
+<link rel="stylesheet" href="../assets/marca.css?v=2">
 </head>
-<body><section id="auth-screen"><div class="auth-card"><h1>UNIASSELVI · Rede AC Centro</h1><p>Acompanhamento de calouros</p>
+<body><section id="auth-screen"><div class="auth-card"><h1>Rede AC Centro e UNIASSELVI</h1><p>Acompanhamento de calouros</p>
 <form id="login-form" onsubmit="login(event)"><label>E-mail corporativo<input id="login-email" type="email" autocomplete="username" required></label><label>Senha do dashboard<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit" class="btn">Entrar</button><p>Esqueceu a senha? Solicite uma senha provisória ao administrador.</p></form>
 <form id="password-form" hidden onsubmit="changePassword(event)"><label>Senha atual ou provisória<input id="current-password" type="password" autocomplete="current-password" required></label><label>Nova senha (mínimo 12 caracteres)<input id="new-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required></label><label>Repita a nova senha<input id="confirm-password" type="password" minlength="12" autocomplete="new-password" required></label><button id="password-submit" class="btn">Salvar nova senha</button><button type="button" class="btn btn-gh" onclick="logout()">Sair</button></form><p id="auth-message" role="status" aria-live="polite"></p></div></section><main id="app-shell" hidden inert>
 <div id="toast-c"></div>
-<div class="wm">BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ &nbsp;·&nbsp; BY: ARISSON DINIZ</div>
+
 
 <!-- HEADER -->
 <div class="hdr">
   <div class="logo-wrap">
     <div class="marcas" role="img" aria-label="Rede AC Centro de Ensino e UNIASSELVI"><img class="m-rede" src="../assets/marca/rede-ac-centro.svg" alt=""><span class="divisa"></span><img class="m-uni" src="../assets/marca/uniasselvi-horizontal.svg" alt=""></div>
     <div><div class="brand">Rede AC Centro de Ensino</div>
-    <div class="brand-sub">Acompanhamento de Calouros · 1ª Mensalidade</div></div>
+    <div class="brand-sub">Acompanhamento de calouros na 1ª mensalidade</div></div>
   </div>
-  <div class="clock-c"><div id="ck-t">00:00:00</div><div id="ck-d">—</div></div>
+  <div class="clock-c"><div id="ck-t">00:00:00</div><div id="ck-d"></div></div>
   <div class="hdr-r">
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn"> Dark</button>
     <div class="live-wrap"><div class="live"></div><div class="live-tx">RELATÓRIO</div></div>
@@ -431,8 +431,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <div><div class="hero-title"> Painel de Calouros</div>
     <div class="hero-polo" id="hero-polo"></div><div class="hero-sub" id="hero-sub">Monitoramento em tempo real</div></div>
     <div class="hero-actions">
-      <a href="https://arissondiniz.github.io/DASHSREDEAC/" class="btn btn-gh" style="text-decoration:none">← Voltar ao menu</a>
-      <button class="btn btn-gh" onclick="refreshData(event)">↻ Atualizar dados</button>
+      <a href="https://arissondiniz.github.io/DASHSREDEAC/" class="btn btn-gh" style="text-decoration:none">Voltar ao menu</a>
+      <button class="btn btn-gh" onclick="refreshData(event)">Atualizar dados</button>
     </div>
   </div>
   <div class="hero-stats" id="hero-st"></div>
@@ -446,9 +446,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   <label>Campanha <select id="f-campaign" onchange="fetchData()"></select></label><span class="fl"> Região</span>
   <select id="f-regiao" onchange="onRegiaoChange()">
     <option value="TODOS">Todas as regiões</option>
-    <option value="AC">Acre · AC</option>
-    <option value="RO">Rondônia · RO</option>
-    <option value="AM">Amazonas · AM</option>
+    <option value="AC">Acre</option>
+    <option value="RO">Rondônia</option>
+    <option value="AM">Amazonas</option>
   </select>
   <div class="divv"></div>
   <span class="fl"> Polo</span>
@@ -483,11 +483,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   <div class="kg" id="kg2"></div></div>
 
   <!-- CORRIDA PARA META -->
-  <div class="sh"><div class="st"><div class="st-dot"></div>Visão por polo · corrida para a meta</div><div class="sl"></div></div>
+  <div class="sh"><div class="st"><div class="st-dot"></div>Corrida para a meta por polo</div><div class="sl"></div></div>
   <div class="goal-only">
     <div class="card" id="card-meta">
       <button class="card-exp" onclick="expandMetaBars()"> Expandir</button>
-      <div class="ct"><div class="ctd"></div>Progresso da meta · linha de chegada por polo</div>
+      <div class="ct"><div class="ctd"></div>Progresso da meta por polo</div>
       <p class="context" id="campaign-deadline"></p><div class="meta-bars" id="meta-bars"></div>
     </div>
 
@@ -498,9 +498,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   <div class="sh"><div class="st"><div class="st-dot"></div>Rankings</div><div class="sl"></div></div>
   <div class="cr2b">
     <div class="card" id="rank-card">
-      <div class="ct"><div class="ctd"></div> Colaboradores · mais pagamentos confirmados</div>
+      <div class="ct"><div class="ctd"></div> Colaboradores com mais pagamentos confirmados</div>
 <div class="rank-toolbar">      <button class="rmore-btn" id="rank-more-btn" onclick="toggleRankMore()" style="display:none">
-        <span id="rmi">▼</span><span id="rmtx">Ver mais</span>
+        <span id="rmi"></span><span id="rmtx">Ver mais</span>
       </button><button class="btn btn-gh btn-sm" onclick="rankJump(false)">Início</button><button class="btn btn-gh btn-sm" onclick="rankJump(true)">Final</button></div><div class="rank-scroll" id="rank-scroll">
       <div class="rank-list" id="rank-top"></div>
       <div class="rmore-hidden" id="rank-rest"></div></div>
@@ -513,13 +513,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   </div>
 
   <!-- TABELA -->
-  <div class="sh"><div class="st"><div class="st-dot"></div>Ranking de polos · desempenho na meta</div><div class="sl"></div></div>
+  <div class="sh"><div class="st"><div class="st-dot"></div>Ranking de polos pela meta</div><div class="sl"></div></div>
   <div class="card" style="margin-bottom:10px;padding:0">
     <div class="tw"><table class="pt" id="polo-table"></table></div>
   </div>
 </div>
 
-<div class="ftr">Dashboard desenvolvido para <span>Rede AC Centro de Ensino · Uniasselvi</span> &nbsp;·&nbsp; by: <span>Arisson Diniz</span></div>
+<div class="ftr">Painel da Rede AC Centro de Ensino, polo parceiro UNIASSELVI. Feito por <span>Arisson Diniz</span>.</div>
 </div>
 
 </main><dialog id="crm-dialog" aria-labelledby="crm-title">
@@ -567,5 +567,5 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 
 
-<script src="../assets/painel-marca-1.js"></script>
+<script src="../assets/painel-marca-1.js?v=2"></script>
 </body></html>
