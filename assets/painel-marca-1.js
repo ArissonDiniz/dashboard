@@ -398,7 +398,7 @@ function renderMetaBars(data){
   const marcas=tiers.map(t=>'<span class="corrida-marca'+(d.paga>=t.target?' ok':'')+'" style="left:'+pos(t.target)+'%"><b>'+t.target+'</b></span>').join('');
   const chips=tiers.map(t=>{const ok=d.paga>=t.target;return '<li class="corrida-chip'+(ok?' ok':'')+'" style="--chip:'+t.color+'"><span class="corrida-bolinha"></span><span><strong>'+t.label+' ('+t.target+')</strong><br>'+(ok?'Batida':(t.target-d.paga===1?'Falta 1':'Faltam '+(t.target-d.paga)))+'</span></li>';}).join('');
   return '<div class="corrida-item"><div class="corrida-topo"><span class="corrida-polo">'+esc(cap(d.polo))+'</span>'+selo+'<span class="corrida-num"><strong>'+d.paga+'</strong> de '+d.meta+' ('+Math.round(d.paga/d.meta*100)+'% do ouro)</span></div>'
-   +'<div class="corrida-pista" role="img" aria-label="'+esc(cap(d.polo))+': '+d.paga+' pagamentos. '+(best?'Bateu a meta '+best.label.toLowerCase()+'.':'Ainda sem medalha.')+'">'+zonas+'<span class="corrida-feito" style="width:'+pos(d.paga)+'%"></span>'+marcas+'</div>'
+   +'<div class="corrida-pista" role="img" aria-label="'+esc(cap(d.polo))+': '+d.paga+' pagamentos. '+(best?'Bateu a meta '+best.label.toLowerCase()+'.':'Ainda sem medalha.')+'">'+zonas+'<span class="corrida-feito" style="width:'+pos(d.paga)+'%;background:linear-gradient(90deg,'+tiers.map((t,k)=>{const s=k?pos(tiers[k-1].target):0,e=t===tiers[tiers.length-1]?100:pos(t.target);return t.color+' '+(s/Math.max(pos(d.paga),.01)*100)+'%,'+t.color+' '+(e/Math.max(pos(d.paga),.01)*100)+'%';}).join(',')+')"></span>'+marcas+'</div>'
    +'<ul class="corrida-chips">'+chips+'</ul><p class="corrida-proximo">'+proximo+'</p></div>';
  }).join('');
 }
