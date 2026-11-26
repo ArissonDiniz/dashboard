@@ -649,7 +649,7 @@ function renderHero(data){
  const pg=sum(data,'paga'),meta=sum(data,'meta'),po=document.getElementById('f-polo').value;
  const visiblePolos=data.map(d=>cap(d.polo));document.getElementById('hero-polo').textContent=po!=='TODOS'?'Polo '+cap(po):visiblePolos.length===1?'Polo '+visiblePolos[0]:currentProfile?.role==='admin'?'Visão da rede':'Polos: '+visiblePolos.join(', ');
  document.getElementById('hero-sub').textContent=(snapshot?.campaign.name||'Campanha')+', '+(po==='TODOS'?'polos autorizados':cap(po));
- document.getElementById('hero-st').innerHTML=[{v:pg+' / '+meta,l:'Pagamentos na meta'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado (horário do Acre)'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
+ document.getElementById('hero-st').innerHTML=[{v:pg+' / '+meta,l:'Pagamentos na meta'},{v:String(Math.max(0,meta-pg)),l:meta-pg>0?'Faltam para a meta ouro':'Meta ouro batida'},{v:snapshot.last_synced_at?new Date(snapshot.last_synced_at).toLocaleString('pt-BR',{timeZone:dashboardSession.zone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Sem importação',l:'Relatório atualizado (horário do Acre)'}].map(s=>`<div class="hs"><div class="hs-v">${esc(s.v)}</div><div class="hs-l">${esc(s.l)}</div></div>`).join('');
 }
 function renderKPIs(data,acc){
  const tot=sum(data,'total'),pg=sum(data,'paga'),at=sum(data,'ativos'),np=sum(data,'naoPaga'),ca=sum(data,'cancel'),cp=sum(data,'cohortPaid'),mt=sum(acc,'meta'),ap=sum(acc,'paga');
@@ -658,7 +658,7 @@ function renderKPIs(data,acc){
  const k=(l,v,s,ic,c,mid,b=null)=>({l,v,s,ic,c,mid,b});
  const first=[k('Matrículas geradas',tot,'no período','','kb','total'),k('Matrículas ativas',at,'dos matriculados no período','','kg2c','ativos'),k('1ª mensalidade paga',pg,'inclui cancelados pagos','','ky','paga'),k('Ativos sem pagamento',np,'sem contar ProUni ou bolsa 100%','','kr','naoPaga'),k('Progresso da meta',progress+'%',ap+' de '+mt+' no acumulado','','ko','meta',progress),k(cohort?'Cancelados das entradas':'Cancelamentos no período',ca,cohort?'dos matriculados no período':'pela data do cancelamento','','kr','cancel')];
  const second=[k('Faltam para meta',Math.max(0,mt-ap),'pagamentos no acumulado','','ko','faltam'),k('Conversão das matrículas',ratio+'%',cp+' pagaram de '+tot+' matriculados','','kg2c','conv',ratio),k('Meta da campanha',mt,'soma dos polos selecionados','','kw','metaT'),k('Polos com pagamentos',data.filter(d=>d.paga>0).length,'de '+data.length+' polos autorizados','','kp','polosPag'),k('Polo destaque',best?cap(best.polo):'Nenhum ainda','por atingimento acumulado','','ky','destaque')];
- const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">Ver detalhes</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first);render('kg2',second.filter(x=>['faltam','conv'].includes(x.mid)));
+ const render=(id,items)=>document.getElementById(id).innerHTML=items.map((x,i)=>`<div class="kpi ${x.c}" style="animation-delay:${i*.05}s" tabindex="0" role="button" aria-label="${esc(x.l)}" data-mid="${x.mid}" data-ml="${esc(x.l)}"><div class="kpi-top"><div class="kpi-ic">${metricIcon(x.mid)}</div><span class="kpi-det">Ver detalhes</span></div><div class="kpi-l">${esc(x.l)}</div><div class="kpi-v" style="${typeof x.v==='string'&&x.v.length>7?'font-size:18px':''}">${esc(x.v)}</div><div class="kpi-s">${esc(x.s)}</div>${x.b!==null?`<div class="kpi-bw"><div class="kpi-bf" style="width:${Math.min(x.b,100)}%"></div></div>`:''}</div>`).join('');render('kg1',first.filter(x=>x.mid!=='meta').concat(second.filter(x=>x.mid==='conv')));render('kg2',[]);
 }
 function statusParts(){const list=rawRows.filter(r=>scope(r)&&noPeriodoEntrada(r));return [list.filter(r=>!Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>!Core.cancelled(r)&&!Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&Core.paid(r)).length,list.filter(r=>Core.cancelled(r)&&!Core.paid(r)).length];}
 function getColabs(rows){
@@ -788,7 +788,7 @@ function drawCRM(resetEditor=true){
 }
 async function editCRM(index){
   if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;
-  const r=crm.visible[index];crm.edit=r;crm.dirty=false;crm.requestId=null;crm.requestBody=null;
+  const r=crm.visible[index];crm.edit=r;crm.lastIndex=index;crm.dirty=false;crm.requestId=null;crm.requestBody=null;
   const token=++crm.historyToken;messageCRM('Carregando histórico...');$c('editor').hidden=true;
   try{const history=await rpc('getHistory',r._key);if(token!==crm.historyToken||!crm.open)return;
     if(history.length)crmStates[r._key]=history[0].state;else delete crmStates[r._key];
@@ -799,7 +799,7 @@ function drawEditor(r,history){
   const s=crmState(r);crm.editVersion=s.version;
   $c('editor').hidden=false;
   $c('editor').innerHTML='<div class="ficha-topo"><button class="btn btn-gh drawer-close" onclick="cancelEditCRM()">Fechar ficha (Esc)</button></div><h3 tabindex="-1">'+esc(r.NOME)+'</h3>'+studentLabels(r)+fichaDados(r)+
-    lastNotePreview(history)+'<h4 class="ficha-secao">Registrar atendimento</h4><div id="crm-editor-message" role="status" aria-live="polite"></div><form id="crm-form"><div class="crm-bar crm-status-bar"><label class="crm-status-field">Situação do aluno<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div><div class="crm-bar"><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div>'+followupFields(s)+'<label>Observações (atualize a cada atendimento)<textarea id="crm-notes" maxlength="6000" placeholder="O que foi conversado, combinado ou descoberto sobre o aluno">'+esc(s.notes)+'</textarea></label><div class="crm-bar crm-save-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar</button></div></form><div id="crm-conflict"></div>'+historyHTML(history);
+    lastNotePreview(history)+'<h4 class="ficha-secao">Registrar atendimento</h4>'+botoesRapidos()+'<div id="crm-editor-message" role="status" aria-live="polite"></div><form id="crm-form"><div class="crm-bar crm-status-bar"><label class="crm-status-field">Situação do aluno<select id="crm-edit-status">'+Core.statuses.map(v=>'<option'+(v===s.status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div><div class="crm-bar"><label>Último contato<input type="date" id="crm-last" max="'+crmToday()+'" value="'+esc(s.lastContact)+'"></label><label>Próximo contato<input type="date" id="crm-next" value="'+esc(s.nextContact)+'"></label></div>'+followupFields(s)+'<label>Observações (atualize a cada atendimento)<textarea id="crm-notes" maxlength="6000" placeholder="O que foi conversado, combinado ou descoberto sobre o aluno">'+esc(s.notes)+'</textarea></label><div class="crm-bar crm-save-bar"><button type="submit" id="crm-save" class="btn">Salvar atendimento</button><button type="button" class="btn btn-gh" onclick="cancelEditCRM()">Fechar</button></div></form><div id="crm-conflict"></div>'+historyHTML(history);
   $c('form').addEventListener('input',()=>{crm.dirty=true;});
   $c('form').addEventListener('submit',e=>{e.preventDefault();saveCRM();});
   $c('editor').scrollTop=0;$c('editor').querySelector('h3').focus();
@@ -819,8 +819,8 @@ async function saveCRM(){
       messageCRM('Conflito detectado. Nenhuma alteração sua foi gravada.');
     }else{
       crmStates[crm.edit._key]=result.state;crm.editVersion=result.state.version;crm.dirty=false;crm.requestBody=null;if(typeof acceptLocalFollowup==='function')acceptLocalFollowup();
-      $c('conflict').innerHTML='';drawCRM(false);renderAll();const savedName=crm.edit.NOME;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('editor').hidden=true;
-      messageCRM('Atendimento de '+savedName+' salvo e compartilhado com a equipe.');
+      $c('conflict').innerHTML='';drawCRM(false);renderAll();const savedName=crm.edit.NOME,savedKey=crm.edit._key;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('editor').hidden=true;
+      messageCRM('Atendimento de '+savedName+' salvo e compartilhado com a equipe.');proximoAluno(savedKey);
     }
   }catch(e){messageCRM('Não foi possível confirmar o salvamento: '+e.message+' Seu rascunho foi mantido. Tente salvar novamente.');}
   finally{crm.saving=false;if($c('form'))$c('form').querySelectorAll('input,select,textarea,button').forEach(e=>e.disabled=false);}
@@ -1023,6 +1023,8 @@ function renderUpdateNotice(){
  if(updateNotice.newData)messages.push('Há atualizações disponíveis. Clique em Atualizar dados para carregar a versão mais recente.');
  if(freshness==='stale')messages.push('O relatório está há mais de '+hours+' horas sem sincronizar. '+(currentProfile?.role==='admin'?'Sincronize a nova extração pelo Sheets.':'Solicite uma nova sincronização ao administrador.'));
  if(freshness==='missing')messages.push('Ainda não há relatório sincronizado para esta campanha.');
+ const ausentes=(typeof missingRows!=='undefined'?missingRows:[]).filter(r=>scope(r)).length,base=ausentes+rawRows.filter(r=>scope(r)).length;
+ if(ausentes&&base&&ausentes/base>=0.1)messages.push('Atenção: '+ausentes+' alunos desta campanha não vieram no último relatório e estão escondidos dos números. Se isso não era esperado, baixe o relatório completo no sistema e sincronize de novo.');
  if(updateNotice.error)messages.push('Não foi possível verificar novas atualizações. Confira sua conexão e tente novamente.');
  for(const id of ['update-notice','crm-update-notice']){const e=document.getElementById(id);if(!e)continue;e.hidden=!messages.length;e.innerHTML=messages.length?'<div>'+messages.map(m=>'<p>'+esc(m)+'</p>').join('')+'</div>'+(updateNotice.newData?'<button class="btn btn-gh" onclick="fetchData()">Atualizar dados</button>':'')+(updateNotice.error?'<button class="btn btn-gh" onclick="checkDashboardUpdates(true)">Verificar novamente</button>':''):'';}
 }
@@ -1070,3 +1072,54 @@ function fichaDados(r){
   +'<h4 class="ficha-secao">Contato</h4><div class="ficha-grid">'+item('Telefone',r.CELULAR||r.TELEFONE)+item('E-mail',r.EMAIL)+'</div>'+whatsappContact(r)
   +'<p class="ficha-autor">Este atendimento fica registrado em nome de '+esc(dashboardSession.email)+'.</p>';
 }
+
+// ══════ V2: MEU DIA, ATENDIMENTO RÁPIDO, PRÓXIMO ALUNO E WHATSAPP ══════
+const MEU_DIA=[['late','Retornos atrasados','urgente'],['promise','Promessas vencidas','urgente'],['today','Retornos de hoje',''],['promise_today','Promessas para hoje',''],['welcome','Recepção pendente','']];
+function renderMeuDia(){
+ const el=document.getElementById('crm-meudia');if(!el||!crm.open)return;
+ const t=crmToday(),polo=$c('polo').value,ativo=$c('priority').value;
+ const rows=rawRows.filter(r=>scope(r)&&!r._missing&&!crmCancelled(r)&&(polo==='TODOS'||getPoloKey(r)===polo));
+ const itens=MEU_DIA.map(([k,l,u])=>{const n=rows.filter(r=>postSaleMatch(r,k,t)).length;return '<button type="button" class="meudia-item'+(u&&n?' meudia-urgente':'')+(ativo===k?' meudia-ativo':'')+'" '+(n?'':'disabled')+' onclick="abrirMeuDia(\''+k+'\')"><strong>'+n+'</strong><span>'+l+'</span></button>';}).join('');
+ el.innerHTML='<div class="meudia-topo"><h3>Meu dia</h3><p>Comece pelos atrasados. Clique num quadro para ver só esses alunos.</p>'+(ativo?'<button type="button" class="btn btn-gh btn-sm" onclick="abrirMeuDia(\'\')">Ver todos os alunos</button>':'')+'</div><div class="meudia-grade">'+itens+'</div>';
+}
+function abrirMeuDia(key){
+ if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;
+ const polo=$c('polo').value;crm.dirty=false;crm.edit=null;$c('editor').hidden=true;
+ openCRM(key?'ativos':'total',true);$c('polo').value=polo;$c('priority').value=key;filterCRM();
+}
+const _drawCRMv1=drawCRM;drawCRM=function(...a){_drawCRMv1.apply(this,a);renderMeuDia();};
+
+function proximoAluno(savedKey){
+ const pos=crm.visible.findIndex(x=>x._key===savedKey),next=pos>=0?pos+1:(crm.lastIndex||0);
+ const box=$c('message');if(!box||next>=crm.visible.length)return;
+ const r=crm.visible[next],b=document.createElement('button');
+ b.type='button';b.className='btn proximo-aluno';b.textContent='Atender o próximo: '+r.NOME;b.onclick=()=>editCRM(next);
+ box.append(' ',b);
+}
+
+function preencherRapido(tipo){
+ const hoje=crmToday(),amanha=Core.plus(hoje,1),set=(id,v)=>{const e=$c(id);if(e){e.value=v;}};
+ set('last',hoje);set('event','contact');
+ if(tipo==='naoAtendeu'){if($c('welcome').value==='Pendente')set('welcome','Tentativa sem resposta');set('outcome','Sem resposta');set('edit-status','Aguardando retorno');set('next',amanha);}
+ if(tipo==='conversou'){set('welcome','Concluído');set('outcome','Conversou');set('edit-status','Contatado');}
+ if(tipo==='prometeu'){set('welcome','Concluído');set('outcome','Prometeu pagamento');set('edit-status','Aguardando retorno');$c('promised').focus();}
+ if(tipo==='suporte'){set('welcome','Concluído');set('outcome','Precisa de suporte');set('edit-status','Retornar depois');set('next',amanha);}
+ crm.dirty=true;messageCRM('Campos preenchidos. Confira, escreva a observação e salve.');$c('notes').focus();
+}
+function botoesRapidos(){
+ return '<div class="rapido"><span>Atendimento rápido</span><div class="rapido-botoes"><button type="button" class="btn btn-gh" onclick="preencherRapido(\'naoAtendeu\')">Liguei e não atendeu</button><button type="button" class="btn btn-gh" onclick="preencherRapido(\'conversou\')">Conversei com o aluno</button><button type="button" class="btn btn-gh" onclick="preencherRapido(\'prometeu\')">Prometeu pagar</button><button type="button" class="btn btn-gh" onclick="preencherRapido(\'suporte\')">Precisa de suporte</button></div></div>';
+}
+
+function mensagemWhatsApp(r){
+ const nome=String(r.NOME||'').trim().split(/\s+/)[0]||'tudo bem';
+ const aluno=nome.charAt(0).toUpperCase()+nome.slice(1).toLowerCase();
+ const colab=String(currentProfile?.name||'').trim().split(/\s+/)[0]||'equipe';
+ const polo=cap(getPoloKey(r)||'');
+ const pago=Core.paid(r);
+ return 'Oi, '+aluno+'! Aqui é '+colab+', do polo UNIASSELVI '+polo+'. '+(pago?'Passando para saber como estão as primeiras aulas e se você conseguiu acessar tudo certinho. Qualquer dúvida, é só me chamar por aqui.':'Vi que a sua primeira mensalidade ainda está em aberto. Quer que eu te mande o boleto ou te ajude com alguma dúvida? Estou por aqui.');
+}
+whatsappContact=function(r){
+ const n=whatsappNumber(r.CELULAR)||whatsappNumber(r.TELEFONE);
+ if(!n)return '<p class="crm-info">WhatsApp indisponível: confira o telefone com DDD no relatório.</p>';
+ return '<a class="btn whatsapp-contact" href="https://wa.me/'+n+'?text='+encodeURIComponent(mensagemWhatsApp(r))+'" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Chamar no WhatsApp com mensagem pronta</a>';
+};
