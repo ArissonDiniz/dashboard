@@ -115,3 +115,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--preto)!important;box-
   .marcas{gap:10px;padding:6px 10px}.marcas .m-rede{height:36px}.marcas .m-uni{height:15px}
   .brand-sub{display:none}
 }
+
+/* Restos do tema antigo: sem brilho e sem barra lateral colorida */
+.st-dot{background:var(--amarelo)!important;box-shadow:none!important;border:1px solid var(--preto)}
+.spin{box-shadow:none!important;border-color:var(--br2)!important;border-top-color:var(--preto)!important}
+.update-notice,#crm-editor-message:not(:empty){border:1px solid var(--br2)!important;border-radius:10px!important;background:#FFFBE0!important}
+.kpi,.mb-item,.queue-item,.post-sale-tile,.crm-conflict{border-left-width:1px!important}
+*{box-shadow:none}
+.btn:focus-visible{box-shadow:0 0 0 3px var(--yd)!important}
