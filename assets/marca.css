@@ -529,3 +529,5 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .adm-modo input{accent-color:#231F20;margin:0!important;min-height:0!important}
 .meta-unica [data-admin-section="goals"] form label:has(input[name="bronze"]),.meta-unica [data-admin-section="goals"] form label:has(input[name="silver"]){display:none!important}
 .meta-unica [data-admin-section="goals"] form{grid-template-columns:minmax(160px,1.4fr) minmax(120px,1fr) auto!important}
+.adm-modo label{white-space:nowrap}
+[data-admin-section="goals"] .admin-section-body>p.context{display:none!important}
