@@ -233,3 +233,8 @@ summary{font-size:13.5px!important}
 .ficha-item strong{display:block;font-size:15px;overflow-wrap:anywhere}
 .whatsapp-contact{display:flex!important;justify-content:center;margin-top:10px;font-size:16px!important;min-height:48px;align-items:center}
 .ficha-autor{margin:10px 0 0;font-size:13px}
+
+/* Correções de contraste e do topo */
+.hero .hero-polo{background:var(--amarelo)!important;color:var(--preto)!important}
+#ck-d{display:none}
+.kpi-ic{width:44px!important;height:44px!important;border-radius:12px!important}
