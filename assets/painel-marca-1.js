@@ -1214,3 +1214,29 @@ renderKPIs=function(data,acc){
  };
  document.querySelectorAll('#kg1 .kpi').forEach(k=>{const id=k.dataset.mid;if(extra[id]){k.querySelector('.kpi-bw')?.remove();k.insertAdjacentHTML('beforeend','<div class="kx">'+(id==='conv'?barra([[pc(cp,tot),'#00A6A6']]):'')+extra[id]+'</div>');}});
 };
+
+// ══════ SITUAÇÃO DE CADA POLO EM CARTÕES (substitui a tabela) ══════
+const _renderTableV3=renderTable;
+renderTable=function(data){
+ _renderTableV3(data);
+ const tab=document.getElementById('polo-table');if(!tab)return;tab.hidden=true;
+ let box=document.getElementById('polos-cartoes');if(!box){box=document.createElement('div');box.id='polos-cartoes';box.className='polos-cartoes';tab.parentElement.insertBefore(box,tab);}
+ const t=crmToday(),pc=(a,b)=>b?Math.round(a/b*100):0;
+ const cards=data.filter(d=>d.total>0).map(d=>{
+  const idx=snapshot.polos.findIndex(p=>p.short_name===d.polo);
+  const rows=rawRows.filter(r=>scope(r)&&!r._missing&&!crmCancelled(r)&&getPoloKey(r)===d.polo);
+  const n=k=>rows.filter(r=>postSaleMatch(r,k,t)).length;
+  const tarefas=[['late','retornos atrasados',n('late'),true],['promise','promessas vencidas',n('promise'),true],['welcome','recepções pendentes',n('welcome'),false]];
+  return {d,idx,tarefas,peso:tarefas[0][2]*2+tarefas[1][2]*2+tarefas[2][2]+d.naoPaga*2};
+ }).sort((a,b)=>b.peso-a.peso);
+ box.innerHTML=cards.map(({d,idx,tarefas})=>{
+  const pend=tarefas.filter(x=>x[2]>0);
+  return '<article class="pc">'
+   +'<header class="pc-topo"><h3>'+esc(cap(d.polo))+'</h3><span class="pc-reg">'+esc(d.reg)+'</span></header>'
+   +'<p class="pc-resumo"><strong>'+d.total+'</strong> matrículas, <strong>'+d.paga+'</strong> pagaram ('+pc(d.cohortPaid,d.total)+'%)</p>'
+   +'<div class="pc-barra"><span style="width:'+pc(d.cohortPaid,d.total)+'%"></span></div>'
+   +'<div class="pc-tags">'+(d.naoPaga?'<span class="sit-chip sit-alerta-leve">'+d.naoPaga+' sem pagamento</span>':'<span class="sit-chip sit-ok">Todos os ativos pagaram</span>')+'<span class="sit-chip sit-neutro">'+d.cancel+' cancelados</span></div>'
+   +'<div class="pc-fazer"><span class="pc-fazer-t">Para fazer</span>'+(pend.length?pend.map(([k,l,v,u])=>'<button type="button" class="pc-acao'+(u?' pc-urgente':'')+'" onclick="openPostSale(\''+k+'\','+idx+')"><strong>'+v+'</strong> '+l+'</button>').join(''):'<span class="pc-ok">Nada pendente</span>')+'</div>'
+   +'</article>';
+ }).join('');
+};

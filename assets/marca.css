@@ -455,3 +455,22 @@ summary{font-size:13.5px!important}
 .kx-item strong{display:inline!important;font-size:16px!important}
 .kx-item span{font-size:14px!important}
 .indicator-grid{gap:14px!important}
+
+/* Situação de cada polo em cartões */
+.polos-cartoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pc{background:var(--branco);border:1px solid var(--br);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.pc-topo{display:flex;align-items:center;gap:8px}
+.pc-topo h3{margin:0;font-size:18px;font-weight:700}
+.pc-reg{font-size:12px;font-weight:700;border:1px solid var(--br2);border-radius:6px;padding:1px 6px}
+.pc-resumo{margin:0;font-size:15px}
+.pc-barra{height:6px;border-radius:3px;background:#ECECE8;overflow:hidden}
+.pc-barra span{display:block;height:100%;background:var(--verde)}
+.pc-tags{display:flex;flex-wrap:wrap;gap:6px}
+.pc-fazer{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--br)}
+.pc-fazer-t{width:100%;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.pc-acao{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:4px 12px;border-radius:8px;border:1.5px solid var(--preto);background:var(--branco);color:var(--preto);font:inherit;font-size:14px;cursor:pointer}
+.pc-acao strong{font-size:16px}
+.pc-acao:hover{background:var(--amarelo)}
+.pc-urgente{border-color:var(--r);color:var(--r)}
+.pc-urgente:hover{background:#FBECEB}
+.pc-ok{font-size:14px;font-weight:600}
