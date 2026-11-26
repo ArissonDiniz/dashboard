@@ -544,3 +544,6 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 #admin-dialog .adm-modo input{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;margin:0!important;padding:0!important;pointer-events:none}
 #admin-dialog .adm-modo label:has(input:focus-visible){outline:3px solid var(--verde);outline-offset:2px}
 #admin-dialog .adm-modo .adm-grupo{display:inline-flex}
+.hero-actions{align-items:center}
+.auto-nota{font-size:14px;color:var(--preto);margin-right:6px}
+@media (max-width:700px){.auto-nota{width:100%;margin:0 0 6px}}

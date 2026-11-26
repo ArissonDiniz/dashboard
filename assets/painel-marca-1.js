@@ -1301,3 +1301,16 @@ drawAdmin=function(){
 };
 // agrupa as duas opções num só botão
 const _drawAdminV5=drawAdmin;drawAdmin=function(){_drawAdminV5();const m=document.querySelector('#admin-dialog .adm-modo');if(m&&!m.querySelector('.adm-grupo')){const g=document.createElement('div');g.className='adm-grupo';m.querySelectorAll('label').forEach(l=>g.appendChild(l));m.appendChild(g);}};
+
+// ══════ SEM BOTÃO "ATUALIZAR DADOS" NO TOPO: o painel se atualiza sozinho ══════
+function marcarConferencia(){
+ const acoes=document.querySelector('.hero-actions');if(!acoes)return;
+ [...acoes.querySelectorAll('button')].forEach(b=>{if(/Atualizar dados/.test(b.textContent))b.hidden=true;});
+ let n=document.getElementById('auto-nota');if(!n){n=document.createElement('span');n.id='auto-nota';n.className='auto-nota';acoes.prepend(n);}
+ const h=new Date().toLocaleTimeString('pt-BR',{timeZone:dashboardSession?.zone||'America/Rio_Branco',hour:'2-digit',minute:'2-digit'});
+ n.textContent='Atualiza sozinho. Última conferência às '+h;
+}
+const _checkUpdatesV4=checkDashboardUpdates;
+checkDashboardUpdates=async function(force=false){await _checkUpdatesV4(force);marcarConferencia();};
+const _fetchDataV4=fetchData;
+fetchData=async function(...a){await _fetchDataV4.apply(this,a);marcarConferencia();};
