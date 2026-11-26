@@ -785,7 +785,7 @@ function drawCRM(resetEditor=true){
   $c('page').textContent='Página '+(crm.page+1)+' de '+pages;
   $c('rows').innerHTML=crm.visible.slice(crm.page*50,crm.page*50+50).map((r,i)=>{
     const s=crmState(r),due=Core.due(s,today),label=due==='late'?' (atrasado)':due==='today'?' (hoje)':'';
-    return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+esc(paymentLabel(r))+compactLabels(r)+contactTag(s)+(s.promised?'<small class="academic-line">Promessa: '+esc(displayDate(s.promised))+'</small>':'')+'</td><td>'+esc(displayDate(s.lastContact))+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc(displayDate(s.nextContact)+label)+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender</button></td></tr>';
+    return '<tr><td><strong>'+esc(r.NOME)+'</strong><br>'+esc(r.CODIGO_ALUNO||r._key)+'</td><td>'+esc(r.NOME_DO_CURSO)+'<br>'+esc(r.NOME_DO_POLO)+'</td><td>'+situacaoCelula(r,s,today)+'</td><td>'+esc(displayDate(s.lastContact))+'</td><td style="color:'+(due==='late'?'var(--r)':due==='today'?'var(--o)':'inherit')+'">'+esc(displayDate(s.nextContact)+label)+'</td><td><button class="btn btn-sm btn-gh" onclick="editCRM('+ (crm.page*50+i)+')">Atender</button></td></tr>';
   }).join('')||'<tr><td colspan="6">Nenhum aluno encontrado com estes filtros.</td></tr>';
   if(resetEditor&&!crm.edit)$c('editor').hidden=true;
 }
@@ -1174,3 +1174,23 @@ checkDashboardUpdates=async function(force=false){
  await _checkUpdatesV2(force);
  if(updateNotice.newData&&!dataBusy&&!crm.saving&&!crm.dirty&&!crm.edit){updateNotice.newData=false;await fetchData();}
 };
+// ══════ SITUAÇÃO DO ALUNO NA LISTA: etiquetas numa linha e detalhes embaixo ══════
+function situacaoCelula(r,s,today){
+ const chip=(txt,cls)=>'<span class="sit-chip '+cls+'">'+esc(txt)+'</span>';
+ const curta=d=>{const x=displayDate(d);return x.length===10?x.slice(0,5):x;};
+ const chips=[];
+ if(r._missing)chips.push(chip('Fora do relatório','sit-neutro'));
+ if(Core.cancelled(r))chips.push(chip('Cancelado','sit-neutro'));
+ else if(Core.paid(r))chips.push(chip('Pagou','sit-ok'));
+ else if(Core.exempt(r))chips.push(chip('ProUni ou bolsa 100%','sit-bolsa'));
+ else chips.push(chip('Não pagou','sit-alerta'));
+ const ds=Core.dueState(r,today),dd=Core.expectedDue(r);
+ if(ds==='overdue')chips.push(chip('Venceu '+curta(dd),'sit-alerta-leve'));
+ else if(ds==='today')chips.push(chip('Vence hoje','sit-atencao'));
+ else if(ds==='future')chips.push(chip('Vence '+curta(dd),'sit-neutro'));
+ if(s.promised&&!Core.paid(r))chips.push(chip('Prometeu pagar '+curta(s.promised),s.promised<today?'sit-alerta-leve':'sit-atencao'));
+ const det=['Último acesso: '+(r._lastAccess?displayDate(r._lastAccess):'sem registro')];
+ if(Core.academicNote(r))det.push('tem nota lançada');if(r._credit===true)det.push('tem aproveitamento');
+ if(r._extra?.aceita_whats==='N')det.push('não aceita WhatsApp');
+ return '<div class="sit"><div class="sit-chips">'+chips.join('')+contactTag(s)+'</div><div class="sit-det">'+esc(det.join(', '))+'</div></div>';
+}

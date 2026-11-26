@@ -387,3 +387,20 @@ summary{font-size:13.5px!important}
 .account-bar .btn-y{box-shadow:0 2px 0 var(--preto)!important;border:1.5px solid var(--preto)!important}
 .account-bar .btn-y:hover{transform:translateY(-1px)}
 .account-bar .btn-gh{min-height:44px}
+
+/* Situação na lista: etiquetas numa linha, detalhes embaixo */
+.sit{display:flex;flex-direction:column;gap:6px;min-width:220px}
+.sit-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sit-chips .crm-tag{margin:0!important;display:inline-flex!important}
+.sit-chip{display:inline-flex;align-items:center;min-height:26px;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1.5px solid transparent;white-space:nowrap}
+.sit-ok{background:#E3F6F6;border-color:var(--verde);color:var(--preto)}
+.sit-alerta{background:var(--r);color:var(--branco)}
+.sit-alerta-leve{background:#FBECEB;border-color:var(--r);color:var(--r)}
+.sit-atencao{background:#FFFBE0;border-color:var(--amarelo);color:var(--preto)}
+.sit-bolsa{background:var(--verde);color:var(--branco)}
+.sit-neutro{background:#F1F1EF;border-color:var(--br2);color:var(--preto)}
+.sit-det{font-size:13px;color:var(--preto)}
+/* Botões com texto sempre centralizado */
+.btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:6px}
+#crm-dialog .pt tbody td:nth-child(1) strong{font-size:16px}
+#crm-dialog .pt tbody td{font-size:14px}
