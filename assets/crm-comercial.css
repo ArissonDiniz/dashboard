@@ -219,7 +219,7 @@
 .cm-sits button{font:inherit;font-size:15px;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1.5px solid var(--br2);background:var(--branco);color:var(--preto);cursor:pointer}
 .cm-sits button small{display:block;font-size:12.5px;color:var(--cinza)}
 .cm-sits button:hover{border-color:var(--preto)}
-.cm-sits button[aria-pressed=true]{border-color:var(--preto);background:#FFFBE0;box-shadow:inset 4px 0 0 var(--amarelo)}
+.cm-sits button[aria-pressed=true]{border-color:var(--preto);background:#FFFBE0;font-weight:600}
 .cm-sits button:focus-visible{outline:3px solid var(--amarelo);outline-offset:2px}
 .cm-main{background:var(--branco);border:1.5px solid var(--br2);border-radius:14px;padding:18px}
 .cm-versao{border-top:1px solid var(--br2);padding:14px 0}
