@@ -586,7 +586,7 @@ function toLegacy(s){const p=snapshot.polos.find(p=>p.id===s.polo_id);return {
 function stateFromDB(s){return s?{welcome:s.welcome_status||'Pendente',outcome:s.contact_outcome||'Não informado',promised:s.promised_payment_on||'',event:'record_update',status:s.status,notes:s.notes,lastContact:s.last_contact||'',nextContact:s.next_contact||'',author:s.author_name,updatedAt:s.updated_at,version:s.version}:Core.empty();}
 async function fetchData(){
  if(dataBusy||typeof crm!=='undefined'&&crm.saving)return;
- if(typeof crm!=='undefined'&&crm.dirty&&!confirm('Descartar alterações não salvas e atualizar?')){document.getElementById('f-campaign').value=snapshot.campaign.id;return;}
+ if(typeof crm!=='undefined'&&crm.dirty&&!(await caixa('Descartar alterações não salvas e atualizar?',{titulo:'Alterações não salvas',ok:'Descartar',cancelar:'Continuar editando',perigo:true}))){document.getElementById('f-campaign').value=snapshot.campaign.id;return;}
  const epoch=authEpoch;dataBusy=true;document.getElementById('crm-dialog').inert=true;showLoading();
  try{
  const campaign=document.getElementById('f-campaign').value||APP_CONFIG.campaign;
@@ -755,7 +755,7 @@ function openCRM(tipo,all=false){
   $c('polo').innerHTML='<option value="TODOS">Todos dentro do filtro principal</option>'+polos.map(p=>'<option value="'+esc(p)+'">'+esc(cap(p))+'</option>').join('');
   drawCRM();if(!$c('dialog').open)$c('dialog').showModal();
 }
-function closeCRM(){if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;crm.open=false;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('dialog').close();}
+async function closeCRM(){if(crm.saving)return;if(crm.dirty&&!(await caixa('Descartar alterações não salvas?',{titulo:'Alterações não salvas',ok:'Descartar',cancelar:'Continuar editando',perigo:true})))return;crm.open=false;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('dialog').close();}
 $c('dialog').addEventListener('cancel',e=>{e.preventDefault();closeCRM();});
 window.addEventListener('beforeunload',e=>{if(crm.dirty){e.preventDefault();e.returnValue='';}});
 function filterCRM(){crm.page=0;drawCRM(false);}
@@ -797,7 +797,7 @@ function drawCRM(resetEditor=true){
   if(resetEditor&&!crm.edit)$c('editor').hidden=true;
 }
 async function editCRM(index){
-  if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;
+  if(crm.saving)return;if(crm.dirty&&!(await caixa('Descartar alterações não salvas?',{titulo:'Alterações não salvas',ok:'Descartar',cancelar:'Continuar editando',perigo:true})))return;
   const r=crm.visible[index];crm.edit=r;crm.lastIndex=index;crm.dirty=false;crm.requestId=null;crm.requestBody=null;
   const token=++crm.historyToken;messageCRM('Carregando histórico...');$c('editor').hidden=true;
   try{const history=await rpc('getHistory',r._key);if(token!==crm.historyToken||!crm.open)return;
@@ -814,7 +814,7 @@ function drawEditor(r,history){
   $c('form').addEventListener('submit',e=>{e.preventDefault();saveCRM();});
   $c('editor').scrollTop=0;$c('editor').querySelector('h3').focus();
 }
-function cancelEditCRM(){if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('editor').hidden=true;messageCRM('');}
+async function cancelEditCRM(){if(crm.saving)return;if(crm.dirty&&!(await caixa('Descartar alterações não salvas?',{titulo:'Alterações não salvas',ok:'Descartar',cancelar:'Continuar editando',perigo:true})))return;crm.dirty=false;crm.edit=null;crm.historyToken++;$c('editor').hidden=true;messageCRM('');}
 async function saveCRM(){
   if(crm.saving||!crm.edit)return;
   let draft;try{draft=Core.draft({status:$c('edit-status').value,notes:$c('notes').value,lastContact:$c('last').value,nextContact:$c('next').value,welcome:$c('welcome').value,outcome:$c('outcome').value,promised:$c('promised').value,event:$c('event').value},crmToday());if(draft.outcome==='Prometeu pagamento'&&!draft.promised)throw Error('Informe a data prometida de pagamento.');if(draft.event==='contact'&&!draft.lastContact)throw Error('Informe a data do contato');}catch(e){messageCRM(e.message);return;}
@@ -921,7 +921,7 @@ function editUser(index){
 }
 function showTemporary(r){if(!r.temporary_password)return;const e=document.getElementById('admin-secret');e.hidden=false;e.textContent='Acesso criado para '+r.email+'\nSenha provisória: '+r.temporary_password+'\nExpira em 24 horas. Copie e entregue de forma privada à pessoa. Ao fechar este painel, a senha deixa de ser exibida.';}
 async function adminAction(fn){if(adminBusy)return;adminBusy=true;document.getElementById('admin-body').inert=true;adminMsg('Salvando...');try{await fn();}catch(e){adminMsg(e.message);}finally{adminBusy=false;document.getElementById('admin-body').inert=false;}}
-async function resetUser(i){const u=adminData.users[i];if(!confirm('Gerar nova senha provisória para '+u.name+'? O acesso atual será bloqueado até a troca.'))return;await adminAction(async()=>{const r=await edge('manage-users',{action:'reset',id:u.id});await loadAdmin();showTemporary(r);adminMsg('Senha provisória gerada.');});}
+async function resetUser(i){const u=adminData.users[i];if(!(await caixa('Gerar nova senha provisória para '+u.name+'? O acesso atual será bloqueado até a troca.',{titulo:'Nova senha provisória',ok:'Gerar senha'})))return;await adminAction(async()=>{const r=await edge('manage-users',{action:'reset',id:u.id});await loadAdmin();showTemporary(r);adminMsg('Senha provisória gerada.');});}
 async function saveGoal(e,polo,version){e.preventDefault();const form=e.currentTarget;await adminAction(async()=>{const {error}=await db.rpc('save_goal_tiers',{p_campaign:snapshot.campaign.id,p_polo:polo,p_version:version,...readGoalFields(form)});if(error)throw error;await fetchData();if(!snapshot)throw Error('Metas salvas. Entre novamente para atualizar a tela.');await loadAdmin();adminMsg('Metas salvas. Os demais usuários verão os valores ao atualizar os dados.');});}
 async function allRows(table){let result=[],offset=0;for(;;){let q=db.from(table).select('*');const orders={students:['campaign_id','inscription_id'],followups:['campaign_id','inscription_id'],goals:['campaign_id','polo_id'],user_polos:['user_id','polo_id']};for(const col of orders[table]||['id'])q=q.order(col);const {data,error}=await q.range(offset,offset+499);if(error)throw error;result.push(...data);if(data.length<500)return result;offset+=500;}}
 async function backupData(){await adminAction(async()=>{const data={format:'uniasselvi-backup-v1',exported_at:new Date().toISOString()};for(const table of ['campaigns','polos','goals','students','followups','contact_history','profiles','user_polos','import_batches','admin_audit'])data[table]=await allRows(table);data.profiles.forEach(p=>{delete p.password_op;delete p.password_op_at;});const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.href=url;a.download='backup-dashboard-'+localToday()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);adminMsg('Backup baixado. Contas de autenticação e senhas não fazem parte deste arquivo.');});}
@@ -966,9 +966,9 @@ function postSaleMatch(r,key,today){
  if(key==='promise_pending')return !Core.paid(r)&&!!s.promised;
  return false;
 }
-function openPostSale(key,index){
+async function openPostSale(key,index){
  if(dataBusy||crm.saving)return;
- if(crm.dirty&&!confirm('Descartar alterações não salvas e abrir esta lista?'))return;
+ if(crm.dirty&&!(await caixa('Descartar alterações não salvas e abrir esta lista?',{titulo:'Alterações não salvas',ok:'Descartar',cancelar:'Continuar editando',perigo:true})))return;
  crm.dirty=false;crm.edit=null;openCRM('ativos',true);
  $c('polo').value=index<0?'TODOS':snapshot.polos[index].short_name;
  $c('priority').value=key;filterCRM();
@@ -1093,8 +1093,8 @@ function renderMeuDia(){
  const itens=MEU_DIA.map(([k,l,u])=>{const n=rows.filter(r=>postSaleMatch(r,k,t)).length;return '<button type="button" class="meudia-item'+(u&&n?' meudia-urgente':'')+(ativo===k?' meudia-ativo':'')+'" '+(n?'':'disabled')+' onclick="abrirMeuDia(\''+k+'\')"><strong>'+n+'</strong><span>'+l+'</span></button>';}).join('');
  el.innerHTML='<div class="meudia-topo"><h3>Meu dia</h3><p>Comece pelos atrasados. Clique num quadro para ver só esses alunos.</p>'+(ativo?'<button type="button" class="btn btn-gh btn-sm" onclick="abrirMeuDia(\'\')">Ver todos os alunos</button>':'')+'</div><div class="meudia-grade">'+itens+'</div>';
 }
-function abrirMeuDia(key){
- if(crm.saving)return;if(crm.dirty&&!confirm('Descartar alterações não salvas?'))return;
+async function abrirMeuDia(key){
+ if(crm.saving)return;if(crm.dirty&&!(await caixa('Descartar alterações não salvas?',{titulo:'Alterações não salvas',ok:'Descartar',cancelar:'Continuar editando',perigo:true})))return;
  const polo=$c('polo').value;crm.dirty=false;crm.edit=null;$c('editor').hidden=true;
  openCRM(key?'ativos':'total',true);$c('polo').value=polo;$c('priority').value=key;filterCRM();
 }

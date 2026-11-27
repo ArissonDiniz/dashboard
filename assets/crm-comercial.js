@@ -45,6 +45,10 @@ function prioridade(r){
 function inView(r,v){
   if(v==='inscrito'||v==='lead')return r.kind===v&&ativo(r);
   if(v==='quente')return ativo(r)&&quente(r);
+  if(v==='conversa')return ativo(r)&&r.status==='Conversando';
+  if(v==='retorno')return ativo(r)&&!!r.status&&r.status!=='Conversando'&&due(r);
+  if(v==='semcontato')return ativo(r)&&!r.status&&!quente(r);
+  if(v==='fila')return ativo(r)&&(r.status==='Conversando'||!r.status||due(r));
   if(v==='hoje')return ativo(r)&&!!r.status&&(due(r)||r.status==='Conversando');
   if(v==='agenda')return r.status==='Retornar em outra data'&&!closed(r);
   if(v==='conv')return r.status==='Aguardando convalidação';
@@ -105,6 +109,7 @@ async function load(silent){
     const [{data,error},sum]=await Promise.all([db.rpc('crm_list',{p_campaign:cc.campaign}),db.rpc('crm_summary',{p_campaign:cc.campaign})]);
     if(error)throw error;
     cc.sum=sum.data||null;
+    novidades(data||[]);
     cc.rows=data||[];
     if(!cc.started){cc.started=true;if(cc.rows.some(r=>inView(r,'quente')))cc.view='quente';}
     fillSelects();render();if(!silent)msg('');
@@ -119,19 +124,30 @@ function fillSelects(){
   keep('curso',cursos,'Todos os cursos');
 }
 
+// ---------- avisos de inscrito/lead novo ----------
+function novidades(lista){
+  const vistos=cc.vistos;cc.vistos=new Set(lista.map(r=>r.pkey));
+  if(!vistos||cc.vistosCamp!==cc.campaign){cc.vistosCamp=cc.campaign;return;}
+  const novos=lista.filter(r=>!vistos.has(r.pkey)&&quente(r));
+  if(!novos.length)return;
+  const ins=novos.filter(r=>r.kind==='inscrito'),lea=novos.filter(r=>r.kind==='lead');
+  const abrir=r=>()=>{openCC();const go=()=>{const j=cc.rows.findIndex(x=>x.pkey===r.pkey);if(j>=0)ccOpen(j);};cc.loading?setTimeout(go,1500):go();};
+  if(novos.length<=2)novos.forEach(r=>aviso((r.kind==='inscrito'?'Novo inscrito: ':'Novo lead: ')+primeiro(r.name),[curso(r.course),poloNome(r.polo_id)].filter(Boolean).join(' · '),{tipo:'novo',tempo:15000,acao:{label:'Chamar agora',fn:abrir(r)}}));
+  else aviso('Chegaram '+novos.length+' pessoas novas',(ins.length?ins.length+' inscritos':'')+(ins.length&&lea.length?' e ':'')+(lea.length?lea.length+' leads':'')+' para chamar.',{tipo:'novo',tempo:15000,acao:{label:'Ver os novos',fn:()=>{openCC();cc.view='quente';render();}}});
+}
+
 // ---------- tela ----------
 function counts(){
-  const c={};['quente','inscrito','lead','hoje','agenda','conv','fim'].forEach(v=>c[v]=cc.rows.filter(r=>inView(r,v)).length);return c;
+  const c={};['quente','inscrito','lead','hoje','agenda','conv','fim','conversa','retorno','semcontato','fila'].forEach(v=>c[v]=cc.rows.filter(r=>inView(r,v)).length);return c;
 }
 function render(){
   const c=counts();
   document.querySelectorAll('#cc-tabs [data-v]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.v===cc.view);const k=b.querySelector('b');if(k)k.textContent=c[b.dataset.v];});
-  const atrasados=cc.rows.filter(r=>ativo(r)&&r.status&&r.status!=='Conversando'&&due(r)).length;
-  $('meudia').innerHTML='<div class="meudia-topo"><h3>Meu dia</h3><p>Primeiro quem está conversando com você. Depois os novos: quanto antes o contato, maior a chance de matrícula.</p></div>'+placar()+'<div class="meudia-grade">'+
-    card('quente',c.quente,'Novos: chegaram há até 2 dias',c.quente>0)+
-    card('hoje',c.hoje,'Retornos de hoje',atrasados>0)+
-    card('agenda',c.agenda,'Retornos agendados',false)+
-    card('conv',c.conv,'Aguardando convalidação',false)+'</div>';
+  const passos=[['conversa','Responder quem está conversando com você'],['quente','Chamar os novos (chegaram há até 2 dias)'],['retorno','Fazer os retornos marcados para hoje'],['semcontato','Chamar quem ainda não recebeu contato']];
+  const fila=c.fila;
+  $('meudia').innerHTML='<div class="cc-dia"><div class="cc-dia-esq"><h3>Meu dia</h3>'+placar()+
+    (fila?'<button type="button" class="btn cc-comecar" onclick="ccComecar()">Começar atendimento</button><p class="cc-dia-dica">Abre a primeira pessoa da fila. Depois de salvar, a próxima abre sozinha.</p>':'<p class="cc-dia-fim">Tudo em dia! Ninguém esperando contato agora.</p>')+
+    '</div><ol class="cc-passos">'+passos.map((p,n)=>'<li><button type="button" class="cc-passo-item'+(c[p[0]]?'':' cc-feito')+(cc.view===p[0]?' cc-ativo':'')+'" data-v="'+p[0]+'" onclick="ccView(this.dataset.v)"'+(c[p[0]]?'':' disabled')+'><span class="cc-n">'+(n+1)+'</span><span class="cc-t">'+p[1]+'</span><strong>'+(c[p[0]]||'Em dia')+'</strong></button></li>').join('')+'</ol></div>';
   const list=filtered(),pages=Math.max(1,Math.ceil(list.length/PAGE));cc.page=Math.min(cc.page,pages-1);
   const slice=list.slice(cc.page*PAGE,(cc.page+1)*PAGE);
   $('count').textContent=list.length+(list.length===1?' pessoa':' pessoas')+' nesta lista';
@@ -141,9 +157,9 @@ function render(){
 }
 function placar(){
   const s=cc.sum;if(!s)return '';
-  const n=(v,a,b)=>v+' '+(v===1?a:b);
-  return '<p class="cc-placar"><span>Você hoje: <strong>'+n(s.meus_hoje,'contato','contatos')+'</strong></span><span>Equipe hoje: <strong>'+n(s.equipe_hoje,'contato','contatos')+'</strong></span><span>Matrículas que passaram pelo CRM: <strong>'+s.matriculas+'</strong></span></p>';
+  return '<div class="cc-placar"><div><strong>'+s.meus_hoje+'</strong><span>seus contatos hoje</span></div><div><strong>'+s.equipe_hoje+'</strong><span>da equipe hoje</span></div><div><strong>'+s.matriculas+'</strong><span>matrículas pelo CRM</span></div></div>';
 }
+window.ccComecar=function(){cc.view='fila';$('ordem').value='prioridade';cc.page=0;render();const l=filtered();if(l.length)ccOpen(cc.rows.indexOf(l[0]));};
 function card(v,n,t,urg){return '<button type="button" class="meudia-item'+(urg?' meudia-urgente':'')+(cc.view===v?' meudia-ativo':'')+'" onclick="ccView(\''+v+'\')"><strong>'+n+'</strong><span>'+t+'</span></button>';}
 function tag(r){
   if(quente(r))return '<span class="cc-tag cc-hot-tag">'+(dias(r.created)===0?'Chegou hoje':'Novo')+'</span>';
@@ -155,7 +171,7 @@ function tag(r){
 function row(r){
   const i=cc.rows.indexOf(r),d=dias(r.created),cs=curso(r.course);
   const sub=r.kind==='inscrito'?(r.offer||'Inscrito'):(r.origin||'Lead');
-  const wa=r.mobile&&r.accepts_whats!==false?'<a class="btn btn-sm cc-wa" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer" onclick="ccOpened('+i+')" aria-label="Chamar '+esc(primeiro(r.name))+' no WhatsApp">WhatsApp</a>':'';
+  const wa=r.mobile?'<a class="btn btn-sm cc-wa" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer" onclick="ccOpened('+i+')" aria-label="Chamar '+esc(primeiro(r.name))+' no WhatsApp">WhatsApp</a>':'';
   return '<tr'+(quente(r)?' class="cc-hot"':'')+' onclick="if(!event.target.closest(\'a,button\'))ccOpen('+i+')"><td><strong>'+esc(r.name)+'</strong><span class="cc-sub">'+(r.kind==='inscrito'?'Inscrito':'Lead')+' · '+esc(sub)+'</span></td>'+
    '<td>'+(cs?esc(cs):'<span class="cc-muted">Curso não informado</span>')+'<span class="cc-sub">'+esc(poloNome(r.polo_id))+'</span></td>'+
    '<td class="cc-tempo">'+(d===null?'':(d===0?'Hoje':d===1?'Ontem':'Há '+d+' dias'))+'</td>'+
@@ -172,7 +188,6 @@ function passo(r){
 function ficha(r){
   const [t,s,k]=passo(r),i=cc.rows.indexOf(r),cs=curso(r.course);
   const avisos=[];
-  if(r.accepts_whats===false)avisos.push('Marcou que <strong>não aceita WhatsApp</strong>. Prefira ligar.');
   if(r.reinscrito)avisos.push('Já tinha se inscrito antes. Pergunte o que faltou da outra vez.');
   if(r.lead_key)avisos.push('Veio da lista de leads. O histórico de antes continua aqui.');
   if(!r.mobile)avisos.push('Sem celular válido na planilha.');
@@ -187,23 +202,22 @@ function ficha(r){
     ['Polo',poloNome(r.polo_id),''],
     r.created?[r.kind==='inscrito'?'Inscrição em':'Cadastro em',br(r.created)+' ('+(dias(r.created)===0?'hoje':'há '+dias(r.created)+' dias')+')','']:null
   ].filter(Boolean);
-  const wa=r.mobile?(r.accepts_whats!==false?'<a class="btn whatsapp-contact" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer" onclick="ccOpened('+i+')">Chamar no WhatsApp com mensagem pronta</a>':'')+
-    '<div class="cc-contato"><a class="btn btn-gh" href="tel:+55'+r.mobile+'">Ligar</a><button type="button" class="btn btn-gh" onclick="ccCopyMsg()">Copiar mensagem</button>'+(r.accepts_whats===false?'<a class="btn btn-gh" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer">WhatsApp mesmo assim</a>':'')+'</div>'+
+  const wa=r.mobile?'<a class="btn whatsapp-contact" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp com mensagem pronta</a>'+
+    '<div class="cc-contato"><a class="btn btn-gh" href="tel:+55'+r.mobile+'">Ligar</a><button type="button" class="btn btn-gh" onclick="ccCopyMsg()">Copiar mensagem</button></div>'+
     '<details class="cc-preview"><summary>Ver a mensagem</summary><p>'+esc(mensagem(r))+'</p></details>':'';
   const btns=Object.keys(ST).map(s=>'<button type="button" class="cc-opt '+ST[s].cls+'" data-s="'+esc(s)+'" aria-pressed="false" onclick="ccPick(this)">'+esc(s)+'</button>').join('');
   return '<button class="btn btn-gh btn-sm drawer-close" onclick="ccClose()">Fechar ficha</button>'+
    '<h3>'+esc(r.name)+'</h3><p class="cc-kind">'+(r.kind==='inscrito'?'Inscrito':'Lead')+(r.status?' · '+tag(r):'')+'</p>'+
-   '<div class="cc-passo cc-passo-'+k+'"><span>Próximo passo</span><strong>'+esc(t)+'</strong><p>'+esc(s)+'</p></div>'+
-   (avisos.length?'<ul class="cc-avisos">'+avisos.map(a=>'<li>'+a+'</li>').join('')+'</ul>':'')+
-   '<dl class="cc-dados">'+dados.map(d=>'<div><dt>'+esc(d[0])+'</dt><dd>'+esc(d[1])+d[2]+'</dd></div>').join('')+'</dl>'+wa+
-   '<h4>Como foi o contato?</h4><div class="cc-opts" role="group" aria-label="Resultado do contato">'+btns+'</div>'+
-   '<p id="cc-help" class="crm-info" aria-live="polite"></p>'+
-   '<label id="cc-date-wrap" hidden>Retornar em<input id="cc-date" type="date" min="'+today()+'" value="'+addDays(today(),1)+'"></label>'+
-   '<label>Anotação (opcional)<textarea id="cc-note" rows="3" maxlength="1000" placeholder="Ex.: pediu para ligar depois das 18h"></textarea></label>'+
-   '<p id="cc-edit-msg" class="cc-msg" role="status"></p>'+
-   '<div class="cc-salvar"><button id="cc-save" class="btn" onclick="ccSave(true)" disabled>Salvar e abrir o próximo</button><button id="cc-save-close" class="btn btn-gh" onclick="ccSave(false)" disabled>Salvar e fechar</button></div>'+
-   (r.notes?'<p class="crm-info"><strong>Última anotação:</strong> '+esc(r.notes)+'</p>':'')+
-   '<h4>Histórico</h4><div id="cc-hist" class="crm-info">Carregando...</div>';
+   (avisos.length?'<ul class="cc-avisos">'+avisos.map(a=>'<li>'+a+'</li>').join('')+'</ul>':'')+wa+
+   (r.notes?'<p class="cc-ultima"><strong>Última anotação:</strong> '+esc(r.notes)+'</p>':'')+
+   '<div class="cc-resultado"><h4>Como foi o contato?</h4><p class="crm-info">Escolha o resultado e clique em <strong>Salvar</strong> no rodapé.</p>'+
+   '<label class="cc-nota">Anotação (opcional)<textarea id="cc-note" rows="2" maxlength="1000" placeholder="Ex.: pediu para ligar depois das 18h"></textarea></label>'+
+   '<div class="cc-opts" role="group" aria-label="Resultado do contato">'+btns+'</div>'+
+   '<div id="cc-date-wrap" class="cc-data" hidden><label>Retornar em<input id="cc-date" type="date" min="'+today()+'" value="'+addDays(today(),1)+'"></label></div>'+
+   '<p id="cc-edit-msg" class="cc-msg" role="status" aria-live="polite"></p></div>'+
+   '<h4>Dados para a matrícula</h4><dl class="cc-dados">'+dados.map(d=>'<div><dt>'+esc(d[0])+'</dt><dd>'+esc(d[1])+d[2]+'</dd></div>').join('')+'</dl>'+
+   '<h4>Histórico</h4><div id="cc-hist" class="crm-info">Carregando...</div>'+
+   '<div class="cc-rodape"><p id="cc-escolha">Escolha como foi o contato</p><button id="cc-save" class="btn" onclick="ccSaveEscolha()" disabled>Salvar e ir para o próximo</button></div>';
 }
 async function hist(r){
   const keys=[r.pkey];if(r.lead_key)keys.push(r.lead_key);
@@ -218,43 +232,57 @@ async function hist(r){
 window.openCC=function(){
   const d=$('dialog');if(!d.open)d.showModal();cc.page=0;load();
 };
-window.closeCC=function(){if(cc.saving)return;if(cc.edit&&!confirmLeave())return;ccCloseEditor();$('dialog').close();};
-function confirmLeave(){const n=document.getElementById('cc-note');const dirty=(n&&n.value.trim())||document.querySelector('.cc-opt[aria-pressed=true]');return !dirty||confirm('Descartar o contato que você não salvou?');}
+window.closeCC=async function(){if(cc.saving)return;if(cc.edit&&!(await confirmLeave()))return;ccCloseEditor();$('dialog').close();};
+async function confirmLeave(){const n=document.getElementById('cc-note');const dirty=(n&&n.value.trim())||document.querySelector('.cc-opt[aria-pressed=true]');return !dirty||await caixa('Você escolheu um resultado ou escreveu uma anotação e ainda não salvou.',{titulo:'Contato não salvo',ok:'Descartar',cancelar:'Voltar para a ficha',perigo:true});}
 function ccCloseEditor(){cc.edit=null;const e=$('editor');e.hidden=true;e.innerHTML='';}
 window.ccView=function(v){cc.view=v;cc.page=0;render();$('rows').closest('.tw').scrollIntoView({block:'start',behavior:'smooth'});};
 window.ccFilter=function(){cc.page=0;render();};
 window.ccReset=function(){['search','polo','curso','sit'].forEach(k=>$(k).value='');$('ordem').value='prioridade';ccFilter();};
 window.ccPage=function(d){cc.page+=d;render();$('rows').closest('.tw').scrollIntoView({block:'start'});};
-window.ccOpen=function(i){
-  const r=cc.rows[i];if(!r)return;if(cc.edit&&cc.edit!==r&&!confirmLeave())return;
+window.ccOpen=async function(i){
+  const r=cc.rows[i];if(!r)return;if(cc.edit&&cc.edit!==r&&!(await confirmLeave()))return;
   cc.edit=r;const e=$('editor');e.innerHTML=ficha(r);e.hidden=false;e.scrollTop=0;e.querySelector('h3').setAttribute('tabindex','-1');e.querySelector('h3').focus();hist(r);
 };
-window.ccClose=function(){if(!confirmLeave())return;ccCloseEditor();};
-window.ccOpened=function(i){/* abriu o WhatsApp: abre a ficha para registrar o resultado */setTimeout(()=>{if(cc.edit!==cc.rows[i])ccOpen(i);},300);};
+window.ccClose=async function(){if(!(await confirmLeave()))return;ccCloseEditor();};
+window.ccOpened=function(i){/* abriu o WhatsApp pela lista: abre a ficha para registrar o resultado */setTimeout(()=>{if(cc.edit!==cc.rows[i])ccOpen(i);},300);};
 window.ccPick=function(b){
+  const s=b.dataset.s;
   document.querySelectorAll('.cc-opt').forEach(x=>x.setAttribute('aria-pressed',x===b));
-  const s=b.dataset.s;$('help').textContent=ST[s].help;$('date-wrap').hidden=s!=='Retornar em outra data';$('save').disabled=false;$('save-close').disabled=false;
-  $('save').textContent=s==='Lista negra'?'Colocar na lista negra e abrir o próximo':'Salvar e abrir o próximo';
+  $('date-wrap').hidden=s!=='Retornar em outra data';if(s==='Retornar em outra data')$('date').focus();
+  $('escolha').innerHTML='Resultado: <strong>'+esc(s)+'</strong>. '+esc(ST[s].help);
+  $('save').disabled=false;$('save').textContent=s==='Lista negra'?'Colocar na lista negra e ir para o próximo':'Salvar e ir para o próximo';
 };
-window.ccSave=async function(irProximo){
-  const r=cc.edit,b=document.querySelector('.cc-opt[aria-pressed=true]');if(!r||!b||cc.saving)return;
-  const s=b.dataset.s,next=s==='Retornar em outra data'?$('date').value:null,note=$('note').value;
+window.ccSave=async function(s){
+  const r=cc.edit;if(!r||cc.saving||!ST[s])return;
+  const next=s==='Retornar em outra data'?$('date').value:null,note=$('note').value;
   if(s==='Retornar em outra data'&&(!next||next<today())){$('edit-msg').textContent='Escolha uma data de hoje em diante.';return;}
-  if(s==='Lista negra'&&!confirm(r.name+' nunca mais vai aparecer no CRM, nem em planilhas novas. Confirmar?'))return;
+  if(s==='Lista negra'&&!(await caixa(r.name+' nunca mais vai aparecer no CRM, nem quando vier em planilha nova.',{titulo:'Colocar na lista negra?',ok:'Colocar na lista negra',perigo:true})))return;
   const lista=filtered(),pos=lista.indexOf(r),prox=lista.slice(pos+1).concat(lista.slice(0,Math.max(pos,0))).find(x=>x!==r);
   const proxKey=prox&&prox.pkey;
-  cc.saving=true;$('save').disabled=true;$('save-close').disabled=true;$('edit-msg').textContent='Salvando...';
+  cc.saving=true;document.querySelectorAll('.cc-opt,#cc-save').forEach(x=>x.disabled=true);$('edit-msg').textContent='Salvando...';
   try{
     const {error}=await db.rpc('crm_save',{p_campaign:cc.campaign,p_pkey:r.pkey,p_status:s,p_next:next,p_note:note,p_version:r.fkey===r.pkey?r.version:0});
     if(error)throw error;
     cc.saving=false;ccCloseEditor();await load(true);msg('Contato de '+primeiro(r.name)+' salvo ('+s.toLowerCase()+').','ok');
-    if(irProximo){const j=cc.rows.findIndex(x=>x.pkey===proxKey);if(j>=0&&inView(cc.rows[j],cc.view))ccOpen(j);else msg('Contato salvo. Essa lista acabou!','ok');}
-  }catch(e){cc.saving=false;$('save').disabled=false;$('save-close').disabled=false;$('edit-msg').textContent='Não salvou: '+e.message;}
+    const j=cc.rows.findIndex(x=>x.pkey===proxKey);
+    if(j>=0&&inView(cc.rows[j],cc.view))ccOpen(j);else msg('Contato de '+primeiro(r.name)+' salvo. Essa lista acabou, parabéns!','ok');
+  }catch(e){cc.saving=false;document.querySelectorAll('.cc-opt,#cc-save').forEach(x=>x.disabled=false);$('edit-msg').textContent='Não salvou: '+e.message;}
 };
+window.ccSaveEscolha=function(){const b=document.querySelector('.cc-opt[aria-pressed=true]');if(b)ccSave(b.dataset.s);};
 window.ccCopyMsg=function(){if(cc.edit)ccCopy(mensagem(cc.edit),'mensagem');};
-window.ccCopy=async function(v,l){try{await navigator.clipboard.writeText(v);msg('Copiado: '+l+'.','ok');}catch{prompt('Copie o '+l+':',v);}};
+window.ccCopy=async function(v,l){try{await navigator.clipboard.writeText(v);msg('Copiado: '+l+'.','ok');}catch{aviso('Não consegui copiar','Selecione e copie: '+v,{tipo:'erro',tempo:15000});}};
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('dialog')?.open){e.preventDefault();if(cc.edit)ccClose();else closeCC();}});
 // atualização automática a cada 2 minutos quando ninguém está editando
-setInterval(()=>{if($('dialog')?.open&&!cc.edit&&!cc.saving&&!document.hidden)load(true);},120000);
+setInterval(()=>{
+  if(document.hidden||cc.saving||typeof currentProfile==='undefined'||!currentProfile||document.getElementById('app-shell')?.hidden)return;
+  if($('dialog')?.open&&!cc.edit)load(true);else silencioso();
+},120000);
+// com o CRM fechado ou com uma ficha aberta: só confere se chegou gente nova, sem mexer na tela
+async function silencioso(){
+  try{const camp=document.getElementById('f-campaign')?.value||APP_CONFIG.campaign;cc.campaign=cc.campaign||camp;
+    const {data,error}=await db.rpc('crm_list',{p_campaign:camp});if(error)return;novidades(data||[]);
+    if(!$('dialog')?.open)cc.rows=data||[];}catch{}
+}
+setTimeout(()=>{if(typeof currentProfile!=='undefined'&&currentProfile)silencioso();},8000);
 })();
