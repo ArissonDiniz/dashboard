@@ -393,6 +393,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 <link rel="stylesheet" href="assets/release-a2055ce4dba0.css">
 <link rel="stylesheet" href="assets/marca.css?v=32">
+<link rel="stylesheet" href="assets/crm-comercial.css?v=8">
 <link rel="stylesheet" href="assets/avisos.css?v=4">
 </head>
 <body><section id="auth-screen"><aside class="auth-marca"><div class="marcas" role="img" aria-label="Rede AC Centro de Ensino e UNIASSELVI"><img class="m-rede" src="assets/marca/rede-ac-centro.svg" alt=""><span class="divisa"></span><img class="m-uni" src="assets/marca/uniasselvi-horizontal.svg" alt=""></div><div><h2>Painel de calouros</h2><p>Matrículas, primeira mensalidade e pós-venda dos polos do Acre, Rondônia e Amazonas.</p></div><small>Rede AC Centro de Ensino, polo parceiro UNIASSELVI</small></aside><div class="auth-card"><h1>Entrar</h1><p>Use o e-mail corporativo e a senha do painel.</p>
@@ -425,7 +426,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   </div>
 </div>
 
-<div class="wrap"><div id="update-notice" class="update-notice" role="status" hidden></div><div class="account-bar"><span id="session-label"></span><button class="btn btn-y btn-sm" onclick="openCRM('total',true)">Acompanhar alunos</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
+<div class="wrap"><div id="update-notice" class="update-notice" role="status" hidden></div><div class="account-bar"><span id="session-label"></span><button class="btn btn-y btn-sm" onclick="openCRM('total',true)">Acompanhar alunos</button><button class="btn btn-y btn-sm cc-open" onclick="openCC()">CRM Comercial</button><button class="btn btn-gh btn-sm" id="admin-button" hidden onclick="openAdmin()">Administração</button><button class="btn btn-gh btn-sm" onclick="showPasswordChange()">Trocar senha</button><button class="btn btn-gh btn-sm" onclick="logout()">Sair</button></div>
 <!-- HERO -->
 <div class="hero" id="hero-sec" style="display:none">
   <div class="hero-top">
@@ -531,6 +532,32 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <div class="tw"><table class="pt"><thead><tr><th>Aluno / matrícula</th><th>Curso / polo</th><th>Situação</th><th>Último contato</th><th>Próximo retorno</th><th>Ação</th></tr></thead><tbody id="crm-rows"></tbody></table></div>
 <div class="crm-bar"><button class="btn btn-gh btn-sm" onclick="crmJump(false)">Início da tela</button><button class="btn btn-gh btn-sm" onclick="crmJump(true)">Final da tela</button><button class="btn btn-gh btn-sm" onclick="crmPage(-1)">Anterior</button><span id="crm-page" class="crm-info"></span><button class="btn btn-gh btn-sm" onclick="crmPage(1)">Próxima</button></div>
 </dialog>
+<dialog id="cc-dialog" aria-labelledby="cc-title">
+<div class="cc-topo"><div><h2 id="cc-title">CRM Comercial</h2><p class="cc-intro">Leads e inscritos que ainda não fizeram matrícula. Quem matricular vai sozinho para o pós-venda.</p></div>
+<div class="cc-topo-acoes"><button class="btn btn-gh" onclick="closeCC()">Fechar</button></div></div>
+<p id="cc-message" class="cc-msg" role="status" aria-live="polite"></p>
+<div id="cc-meudia" class="meudia"></div>
+<nav id="cc-tabs" class="crm-tabs" aria-label="Listas do CRM">
+<button class="btn btn-gh" data-v="quente" onclick="ccView('quente')">Novos<b></b></button><button class="btn btn-gh" data-v="inscrito" onclick="ccView('inscrito')">Inscritos<b></b></button>
+<button class="btn btn-gh" data-v="lead" onclick="ccView('lead')">Leads<b></b></button>
+<button class="btn btn-gh" data-v="hoje" onclick="ccView('hoje')">Retornos de hoje<b></b></button>
+<button class="btn btn-gh" data-v="agenda" onclick="ccView('agenda')">Retornos agendados<b></b></button>
+<button class="btn btn-gh" data-v="conv" onclick="ccView('conv')">Convalidação<b></b></button>
+<button class="btn btn-gh" data-v="fim" onclick="ccView('fim')">Encerrados<b></b></button>
+</nav>
+<div class="cc-filtros">
+<label>Buscar<input id="cc-search" type="search" oninput="ccFilter()" placeholder="Nome, CPF, celular ou código de inscrição"></label>
+<label>Polo<select id="cc-polo" onchange="ccFilter()"></select></label>
+<label>Curso<select id="cc-curso" onchange="ccFilter()"></select></label>
+<label>Situação<select id="cc-sit" onchange="ccFilter()"><option value="">Todas</option><option>Sem contato</option><option>Não atendeu</option><option>Conversando</option><option>Aguardando convalidação</option><option>Retornar em outra data</option><option>Sem interesse no momento</option><option>Número inexistente</option></select></label>
+<label>Ordem<select id="cc-ordem" onchange="ccFilter()"><option value="prioridade">Prioridade</option><option value="recentes">Mais recentes</option><option value="antigos">Mais antigos</option><option value="retorno">Data de retorno</option></select></label>
+<button class="btn btn-gh" onclick="ccReset()">Limpar</button>
+</div>
+<p id="cc-count"></p>
+<div class="tw"><table class="pt"><thead><tr><th>Nome</th><th>Curso e polo</th><th>Chegou</th><th>Situação</th><th><span class="sr-only">Ações</span></th></tr></thead><tbody id="cc-rows"></tbody></table></div>
+<div class="cc-paginas"><button id="cc-prev" class="btn btn-gh btn-sm" onclick="ccPage(-1)">Anterior</button><span id="cc-page"></span><button id="cc-next" class="btn btn-gh btn-sm" onclick="ccPage(1)">Próxima</button></div>
+<aside id="cc-editor" aria-label="Ficha do contato" hidden></aside>
+</dialog>
 <dialog id="admin-dialog" aria-labelledby="admin-title"><div class="account-bar"><h2 id="admin-title">Administração</h2><button class="btn btn-gh" onclick="closeAdmin()">Fechar</button></div><p id="admin-message" role="status"></p><div id="admin-secret" hidden></div><div id="admin-body"></div></dialog>
 
 
@@ -571,4 +598,5 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <script src="assets/avisos.js?v=1"></script>
 <script src="assets/painel-marca-1.js?v=36"></script>
 <script src="assets/envio.js?v=1"></script>
+<script src="assets/crm-comercial.js?v=8"></script>
 </body></html>
