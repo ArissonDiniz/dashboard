@@ -394,7 +394,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <link rel="stylesheet" href="../assets/release-a2055ce4dba0.css">
 <link rel="stylesheet" href="../assets/marca.css?v=32">
 <link rel="stylesheet" href="../assets/avisos.css?v=6">
-<link rel="stylesheet" href="../assets/crm-comercial.css?v=9">
+<link rel="stylesheet" href="../assets/crm-comercial.css?v=10">
 </head>
 <body><section id="auth-screen"><aside class="auth-marca"><div class="marcas" role="img" aria-label="Rede AC Centro de Ensino e UNIASSELVI"><img class="m-rede" src="../assets/marca/rede-ac-centro.svg" alt=""><span class="divisa"></span><img class="m-uni" src="../assets/marca/uniasselvi-horizontal.svg" alt=""></div><div><h2>Painel de calouros</h2><p>Matrículas, primeira mensalidade e pós-venda dos polos do Acre, Rondônia e Amazonas.</p></div><small>Rede AC Centro de Ensino, polo parceiro UNIASSELVI</small></aside><div class="auth-card"><h1>Entrar</h1><p>Use o e-mail corporativo e a senha do painel.</p>
 <form id="login-form" onsubmit="login(event)"><label>E-mail corporativo<input id="login-email" type="email" autocomplete="username" required></label><label>Senha do painel<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit" class="btn">Entrar</button><p class="auth-ajuda">Esqueceu a senha? Peça uma senha provisória ao administrador do painel.</p></form>
@@ -549,7 +549,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <label>Buscar<input id="cc-search" type="search" oninput="ccFilter()" placeholder="Nome, CPF, celular ou código de inscrição"></label>
 <label>Polo<select id="cc-polo" onchange="ccFilter()"></select></label>
 <label>Curso<select id="cc-curso" onchange="ccFilter()"></select></label>
-<label>Situação<select id="cc-sit" onchange="ccFilter()"><option value="">Todas</option><option>Sem contato</option><option>Não atendeu</option><option>Conversando</option><option>Aguardando convalidação</option><option>Retornar em outra data</option><option>Sem interesse no momento</option><option>Número inexistente</option></select></label>
+<label>Situação<select id="cc-sit" onchange="ccFilter()"><option value="">Todas</option><option>Sem contato</option><option value="Não atendeu">Sem resposta</option><option>Conversando</option><option>Aguardando convalidação</option><option>Retornar em outra data</option><option>Sem interesse no momento</option><option>Número inexistente</option></select></label>
 <label>Ordem<select id="cc-ordem" onchange="ccFilter()"><option value="prioridade">Prioridade</option><option value="recentes">Mais recentes</option><option value="antigos">Mais antigos</option><option value="retorno">Data de retorno</option></select></label>
 <button class="btn btn-gh" onclick="ccReset()">Limpar</button>
 </div>
@@ -598,5 +598,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 <script src="../assets/avisos.js?v=1"></script>
 <script src="../assets/painel-marca-1.js?v=46"></script>
 <script src="../assets/envio.js?v=3"></script>
-<script src="../assets/crm-comercial.js?v=10"></script>
+<script src="../assets/crm-mensagens.js?v=1"></script>
+<script src="../assets/crm-comercial.js?v=11"></script>
 </body></html>

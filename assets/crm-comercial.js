@@ -4,7 +4,7 @@
 'use strict';
 const ST={
   'Matrícula feita':{cls:'cc-s-mat',help:'Conta para você. Fica aguardando o relatório do portal confirmar.'},
-  'Não atendeu':{cls:'cc-s-wait',ico:'Não atendeu',help:'Volta para a lista amanhã.'},
+  'Não atendeu':{cls:'cc-s-wait',ico:'Sem resposta',btn:'Mandei mensagem, sem resposta',help:'Volta para a lista amanhã com uma mensagem de nova tentativa.'},
   'Conversando':{cls:'cc-s-talk',ico:'Conversando',help:'Fica no topo da sua lista.'},
   'Aguardando convalidação':{cls:'cc-s-conv',ico:'Aguardando convalidação',help:'Vai para a aba Convalidação.'},
   'Retornar em outra data':{cls:'cc-s-date',ico:'Retornar em outra data',help:'Some da lista e volta na data escolhida.'},
@@ -12,6 +12,8 @@ const ST={
   'Número inexistente':{cls:'cc-s-off',ico:'Número inexistente',help:'Sai da lista.'},
   'Lista negra':{cls:'cc-s-black',ico:'Lista negra',help:'Nunca mais aparece, nem em planilha nova.'}
 };
+// no banco continua 'Não atendeu'; na tela aparece "Sem resposta"
+function rot(s){return s==='Não atendeu'?'Sem resposta':s;}
 const CLOSED=['Sem interesse no momento','Número inexistente','Lista negra'];
 const PAGE=50;
 const cc={rows:[],view:'inscrito',page:0,edit:null,saving:false,loading:false,campaign:null};
@@ -75,31 +77,15 @@ function filtered(){
 }
 
 // ---------- mensagem pronta ----------
-function mensagem(r){
+// versão sugerida: muda a cada contato, para não mandar o mesmo texto duas vezes
+function vSugerida(r){const n=CCMSG.versoes(CCMSG.situacao(r)).length||1;return (r.attempts||0)%n;}
+function mensagem(r,iv){
   const n=primeiro(r.name)||'tudo bem',c=primeiro(currentProfile?.name)||'equipe',p=poloNome(r.polo_id);
   const eu='Aqui é '+c+', do time comercial da UNIASSELVI'+(p?' polo '+p:'')+'.';
-  const cs=curso(r.course),of=String(r.offer||'').toLowerCase(),orig=String(r.origin||'').toLowerCase();
+  const cs=curso(r.course);
   const alvo=r.kind==='inscrito'?'garantir sua vaga'+(cs?' em '+cs:''):'começar sua graduação neste semestre';
-  if(r.status==='Aguardando convalidação')return 'Oi, '+n+'! '+eu+' Passando para saber se você já conseguiu separar o histórico para a análise das disciplinas. Assim que eu receber, já adianto sua matrícula. Qualquer dúvida, estou por aqui!';
-  if(r.status==='Retornar em outra data')return 'Oi, '+n+'! '+eu+' Combinamos de conversar hoje, lembra? Podemos continuar de onde paramos'+(cs?' sobre '+cs:'')+'? Se preferir, me diga o melhor horário.';
-  if(r.status==='Conversando')return 'Oi, '+n+'! '+eu+' Conseguiu pensar no que conversamos? Se quiser, já deixo tudo encaminhado para '+alvo+'. É só me responder por aqui.';
-  if(r.status==='Não atendeu'&&r.attempts>=2)return 'Oi, '+n+'! '+eu+' Esta é minha última tentativa por aqui, para não te incomodar. Se ainda quiser '+alvo+', é só responder esta mensagem que eu te ajudo na hora. Um abraço!';
-  if(r.status==='Não atendeu')return 'Oi, '+n+'! '+eu+' Tentei falar com você, mas acho que não deu certo. Ainda dá tempo de '+alvo+'. Qual é o melhor horário para conversarmos?';
-  if(r.kind==='inscrito'){
-    const oi='Oi, '+n+'! Tudo bem? '+eu+' ';
-    const volta=r.reinscrito?'Que bom ter você de volta! ':'';
-    if(of.includes('segunda'))return oi+volta+'Vi sua inscrição para a segunda graduação'+(cs?' em '+cs:'')+'. Como você já tem diploma, dá para aproveitar disciplinas e se formar mais rápido. Quer que eu te explique como fica no seu caso?';
-    if(of.includes('transfer'))return oi+volta+'Vi que você quer transferir seu curso'+(cs?' de '+cs:'')+' para a UNIASSELVI. A gente analisa as disciplinas que você já cursou para você não perder nada. Pode me mandar seu histórico por aqui?';
-    if(of.includes('enem'))return oi+volta+'Vi sua inscrição'+(cs?' em '+cs:'')+' usando a nota do ENEM. Com ela você entra sem precisar fazer vestibular! Posso te ajudar a finalizar a matrícula agora? Leva só alguns minutos.';
-    if(of.includes('encceja'))return oi+volta+'Vi sua inscrição'+(cs?' em '+cs:'')+' com o certificado do ENCCEJA. Está tudo certo para você começar! Posso te ajudar a finalizar a matrícula agora?';
-    return oi+(volta||'Que alegria ver sua inscrição'+(cs?' em '+cs:'')+'! ')+(volta&&cs?'Vi sua inscrição em '+cs+'. ':'')+'Falta bem pouquinho para você garantir sua vaga. Posso te ajudar a finalizar a matrícula agora? Leva só alguns minutos. 😊';
-  }
-  const oi='Oi, '+n+'! Tudo bem? '+eu+' ';
-  if(orig.includes('abandono'))return oi+'Vi que você começou sua inscrição e não conseguiu terminar. Posso te ajudar a concluir? É rapidinho.';
-  if(cs)return oi+'Vi que você se interessou pelo curso de '+cs+'. Posso te contar como funciona, o valor da mensalidade e as condições deste mês? 😊';
-  if(orig.includes('enem'))return oi+'Vi que você quer usar sua nota do ENEM para entrar na faculdade. Com ela você entra sem vestibular! Qual curso você tem vontade de fazer?';
-  if(orig.includes('indica'))return oi+'Você foi indicado por um amigo para estudar com a gente! Qual curso você tem vontade de fazer? Te conto todas as condições.';
-  return oi+'Vi que você tem interesse em fazer uma graduação com a gente. Qual curso você tem vontade de fazer? Te conto como funciona e as condições deste mês. 😊';
+  const lista=CCMSG.versoes(CCMSG.situacao(r)),v=lista[iv??vSugerida(r)]||lista[0];
+  return CCMSG.preencher(v?.texto||'',{nome:n,consultor:c,polo:p,curso:cs,apresentacao:eu,objetivo:alvo,de_volta:r.reinscrito?'Que bom ter você de volta! ':''});
 }
 function waLink(r){return r.mobile?'https://wa.me/55'+r.mobile+'?text='+encodeURIComponent(mensagem(r)):'';}
 
@@ -109,7 +95,7 @@ async function load(silent){
   if(!silent)msg('Carregando...');
   try{
     cc.campaign=document.getElementById('f-campaign')?.value||APP_CONFIG.campaign;
-    const [{data,error},sum,lk]=await Promise.all([db.rpc('crm_list',{p_campaign:cc.campaign}),db.rpc('crm_summary',{p_campaign:cc.campaign}),db.rpc('crm_locks_of',{p_campaign:cc.campaign})]);
+    const [{data,error},sum,lk]=await Promise.all([db.rpc('crm_list',{p_campaign:cc.campaign}),db.rpc('crm_summary',{p_campaign:cc.campaign}),db.rpc('crm_locks_of',{p_campaign:cc.campaign}),CCMSG.carregar()]);
     if(error)throw error;
     cc.sum=sum.data||null;cc.locks=lk.data||{};
     novidades(data||[]);
@@ -173,7 +159,7 @@ function tag(r){
   if(quente(r))return '<span class="cc-tag cc-hot-tag">'+(dias(r.created)===0?'Chegou hoje':'Novo')+'</span>';
   if(!r.status)return '<span class="cc-tag cc-s-new">Sem contato</span>';
   let t=r.status;if(r.status==='Retornar em outra data'&&r.next_contact)t='Retornar em '+br(r.next_contact);
-  if(r.status==='Não atendeu')t='Não atendeu ('+r.attempts+'x)';
+  if(r.status==='Não atendeu')t='Sem resposta ('+r.attempts+'x)';
   return '<span class="cc-tag '+ST[r.status].cls+'">'+esc(t)+'</span>';
 }
 function row(r){
@@ -210,10 +196,14 @@ function ficha(r){
     ['Polo',poloNome(r.polo_id),''],
     r.created?[r.kind==='inscrito'?'Inscrição em':'Cadastro em',br(r.created)+' ('+(dias(r.created)===0?'hoje':dias(r.created)===1?'ontem':'há '+dias(r.created)+' dias')+')','']:null
   ].filter(Boolean);
-  const wa=r.mobile?'<a class="btn whatsapp-contact" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp com mensagem pronta</a>'+
-    '<div class="cc-contato"><a class="btn btn-gh" href="tel:+55'+r.mobile+'">Ligar</a><button type="button" class="btn btn-gh" onclick="ccCopyMsg(this)">Copiar mensagem</button></div>'+
-    '<details class="cc-preview"><summary>Ver a mensagem</summary><p>'+esc(mensagem(r))+'</p></details>':'';
-  const btns=Object.keys(ST).filter(x=>x!=='Matrícula feita').map(s=>'<button type="button" class="cc-opt '+ST[s].cls+'" data-s="'+esc(s)+'" aria-pressed="false" onclick="ccPick(this)">'+esc(s)+'</button>').join('');
+  const vs=CCMSG.versoes(CCMSG.situacao(r)),sug=vSugerida(r);
+  const wa=r.mobile?'<div class="cc-msgbox"><div class="cc-versoes" role="group" aria-label="Escolha a versão da mensagem"><span>Mensagem:</span>'+
+      vs.map((v,j)=>'<button type="button" data-iv="'+j+'" aria-pressed="'+(j===sug)+'" onclick="ccVersao(this)">'+esc(v.titulo||'Versão '+(j+1))+'</button>').join('')+'</div>'+
+      '<label class="cc-msgtxt"><span class="sr-only">Texto da mensagem (pode editar antes de mandar)</span><textarea id="cc-wa-txt" rows="5" maxlength="2000">'+esc(mensagem(r,sug))+'</textarea></label>'+
+      '<p class="cc-msgdica">Pode mudar o texto só para esta pessoa antes de mandar. O modelo não muda.</p></div>'+
+    '<a class="btn whatsapp-contact" href="#" onclick="return ccWa(this)" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp com esta mensagem</a>'+
+    '<div class="cc-contato"><a class="btn btn-gh" href="tel:+55'+r.mobile+'">Ligar</a><button type="button" class="btn btn-gh" onclick="ccCopyMsg(this)">Copiar mensagem</button></div>':'';
+  const btns=Object.keys(ST).filter(x=>x!=='Matrícula feita').map(s=>'<button type="button" class="cc-opt '+ST[s].cls+'" data-s="'+esc(s)+'" aria-pressed="false" onclick="ccPick(this)">'+esc(ST[s].btn||s)+'</button>').join('');
   return '<button class="btn btn-gh btn-sm drawer-close" onclick="ccClose()">Fechar ficha</button>'+
    '<h3>'+esc(r.name)+'</h3><p class="cc-kind">'+(r.kind==='inscrito'?'Inscrito':'Lead')+(r.status?' · '+tag(r):'')+'</p>'+
    (avisos.length?'<ul class="cc-avisos">'+avisos.map(a=>'<li>'+a+'</li>').join('')+'</ul>':'')+wa+
@@ -233,7 +223,7 @@ async function hist(r){
   try{
     const {data,error}=await db.rpc('crm_history_of',{p_campaign:cc.campaign,p_keys:keys});if(error)throw error;
     if(cc.edit!==r)return;
-    $('hist').innerHTML=data?.length?'<ol class="cc-hist">'+data.map(h=>'<li><strong>'+esc(h.status)+(h.next_contact&&h.status==='Retornar em outra data'?' ('+br(h.next_contact)+')':'')+'</strong><span>'+esc(primeiro(h.actor_name))+', '+new Date(h.created_at).toLocaleString('pt-BR',{timeZone:'America/Rio_Branco',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+(h.pkey!==r.pkey?' · quando era lead':'')+'</span>'+(h.note?'<p>'+esc(h.note)+'</p>':'')+'</li>').join('')+'</ol>':'Nenhum contato registrado ainda.';
+    $('hist').innerHTML=data?.length?'<ol class="cc-hist">'+data.map(h=>'<li><strong>'+esc(rot(h.status))+(h.next_contact&&h.status==='Retornar em outra data'?' ('+br(h.next_contact)+')':'')+'</strong><span>'+esc(primeiro(h.actor_name))+', '+new Date(h.created_at).toLocaleString('pt-BR',{timeZone:'America/Rio_Branco',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+(h.pkey!==r.pkey?' · quando era lead':'')+'</span>'+(h.note?'<p>'+esc(h.note)+'</p>':'')+'</li>').join('')+'</ol>':'Nenhum contato registrado ainda.';
   }catch(e){if(cc.edit===r)$('hist').textContent='Não foi possível carregar o histórico.';}
 }
 
@@ -271,7 +261,7 @@ window.ccPick=function(b){
   const s=b.dataset.s;
   document.querySelectorAll('.cc-opt').forEach(x=>x.setAttribute('aria-pressed',x===b));
   $('date-wrap').hidden=s!=='Retornar em outra data';if(s==='Retornar em outra data')$('date').focus();
-  $('escolha').innerHTML='Resultado: <strong>'+esc(s)+'</strong>. '+esc(ST[s].help);
+  $('escolha').innerHTML='Resultado: <strong>'+esc(rot(s))+'</strong>. '+esc(ST[s].help);
   $('save').disabled=false;$('save').textContent=s==='Lista negra'?'Colocar na lista negra e ir para o próximo':s==='Matrícula feita'?'Registrar matrícula e ir para o próximo':'Salvar e ir para o próximo';
 };
 window.ccSave=async function(s){
@@ -284,13 +274,21 @@ window.ccSave=async function(s){
   try{
     const {error}=await db.rpc('crm_save',{p_campaign:cc.campaign,p_pkey:r.pkey,p_status:s,p_next:next,p_note:note,p_version:r.fkey===r.pkey?r.version:0});
     if(error)throw error;
-    cc.saving=false;clearInterval(cc.hb);cc.edit=null;$('editor').hidden=true;$('editor').innerHTML='';await load(true);msg('Contato de '+primeiro(r.name)+' salvo ('+s.toLowerCase()+').','ok');
+    cc.saving=false;clearInterval(cc.hb);cc.edit=null;$('editor').hidden=true;$('editor').innerHTML='';await load(true);msg('Contato de '+primeiro(r.name)+' salvo ('+rot(s).toLowerCase()+').','ok');
     const prox=filtered().find(x=>!cc.feitos.has(x.pkey)),j=prox?cc.rows.indexOf(prox):-1;
     if(j>=0)ccOpen(j);else msg('Contato de '+primeiro(r.name)+' salvo. Essa lista acabou, parabéns!','ok');
   }catch(e){cc.saving=false;document.querySelectorAll('.cc-opt,#cc-save').forEach(x=>x.disabled=false);$('edit-msg').textContent='Não salvou: '+e.message;}
 };
 window.ccSaveEscolha=function(){const b=document.querySelector('.cc-opt[aria-pressed=true]');if(b)ccSave(b.dataset.s);};
-window.ccCopyMsg=function(b){if(cc.edit)ccCopy(mensagem(cc.edit),b);};
+function textoFicha(){const t=document.getElementById('cc-wa-txt');return t?t.value.trim():cc.edit?mensagem(cc.edit):'';}
+window.ccCopyMsg=function(b){if(cc.edit)ccCopy(textoFicha(),b);};
+window.ccWa=function(a){const r=cc.edit;if(!r?.mobile)return false;a.href='https://wa.me/55'+r.mobile+'?text='+encodeURIComponent(textoFicha());return true;};
+window.ccVersao=async function(b){
+  const t=$('wa-txt'),r=cc.edit;if(!t||!r)return;
+  const atual=document.querySelector('.cc-versoes [aria-pressed=true]'),orig=atual?mensagem(r,+atual.dataset.iv):'';
+  if(t.value.trim()!==orig.trim()&&!(await caixa('Você mudou o texto da mensagem. Trocar de versão apaga essa mudança.',{titulo:'Trocar de versão?',ok:'Trocar',cancelar:'Manter meu texto'})))return;
+  document.querySelectorAll('.cc-versoes [data-iv]').forEach(x=>x.setAttribute('aria-pressed',x===b));t.value=mensagem(r,+b.dataset.iv);
+};
 // o próprio botão vira "✓ Copiado" por 2 segundos
 window.ccCopy=async function(v,b){
   try{await navigator.clipboard.writeText(v);}catch{aviso('Não consegui copiar','Selecione e copie: '+v,{tipo:'erro',tempo:15000});return;}
@@ -319,19 +317,21 @@ function montaModos(){
   const dlg=$('dialog'),ref=$('meudia');
   const nav=document.createElement('nav');nav.id='cc-modos';nav.className='cc-modos';nav.setAttribute('aria-label','Áreas do CRM');
   nav.innerHTML='<button type="button" data-m="atend" aria-pressed="true">Atendimento</button><button type="button" data-m="painel" aria-pressed="false">Painel</button>'+
-    (currentProfile?.role==='admin'?'<button type="button" data-m="equipe" aria-pressed="false">Equipe</button>':'');
+    (currentProfile?.role==='admin'?'<button type="button" data-m="equipe" aria-pressed="false">Equipe</button><button type="button" data-m="msgs" aria-pressed="false">Mensagens</button>':'');
   nav.addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b)ccModo(b.dataset.m);});
   const atend=document.createElement('div');atend.id='cc-atend';
   ref.parentNode.insertBefore(nav,ref);ref.parentNode.insertBefore(atend,ref);
   [ref,$('tabs'),dlg.querySelector('.cc-filtros'),$('count'),dlg.querySelector('.tw'),dlg.querySelector('.cc-paginas')].forEach(el=>el&&atend.appendChild(el));
   const pn=document.createElement('div');pn.id='cc-painel';pn.hidden=true;atend.after(pn);
   const eq=document.createElement('div');eq.id='cc-equipe';eq.hidden=true;pn.after(eq);
+  const ms=document.createElement('div');ms.id='cc-msgs';ms.hidden=true;eq.after(ms);
   if(!$('tabs').querySelector('[data-v="mat"]')){const b=document.createElement('button');b.className='btn btn-gh';b.dataset.v='mat';b.innerHTML='Matrículas feitas<b></b>';b.onclick=()=>ccView('mat');$('tabs').appendChild(b);}
 }
-window.ccModo=function(m){
+window.ccModo=async function(m){
+  if(cc.modo==='msgs'&&m!=='msgs'&&CCMSG.sujo()&&!(await caixa('Você mudou as mensagens e não salvou.',{titulo:'Mensagens não salvas',ok:'Descartar',cancelar:'Voltar',perigo:true})))return;
   cc.modo=m;document.querySelectorAll('#cc-modos [data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m));
-  $('atend').hidden=m!=='atend';$('painel').hidden=m!=='painel';$('equipe').hidden=m!=='equipe';
-  if(m==='painel')painel();if(m==='equipe')equipe();
+  $('atend').hidden=m!=='atend';$('painel').hidden=m!=='painel';$('equipe').hidden=m!=='equipe';$('msgs').hidden=m!=='msgs';
+  if(m==='painel')painel();if(m==='equipe')equipe();if(m==='msgs')CCMSG.carregar().then(()=>CCMSG.editor($('msgs')));
 };
 function periodo(k){
   const t=today();
@@ -367,7 +367,7 @@ async function painel(per){
       '<section class="cc-p-card"><h4>Ranking de matrículas</h4>'+barras(d.ranking,x=>x.name||'Sem nome',x=>x.matriculas,x=>x.contatos+' contatos')+'</section>'+
       '<section class="cc-p-card"><h4>De onde vêm as matrículas</h4>'+barras(d.por_origem,x=>x.origem,x=>x.matriculas)+'</section>'+
       '<section class="cc-p-card"><h4>Por polo</h4>'+barras(d.por_polo,x=>poloNome(x.polo_id)||x.polo_id,x=>x.pessoas,x=>x.contatados+' contatados · '+x.matriculas+' matr.')+'</section>'+
-      '<section class="cc-p-card"><h4>Resultado dos contatos</h4>'+barras(res,x=>x.s,x=>x.n)+'</section></div>';
+      '<section class="cc-p-card"><h4>Resultado dos contatos</h4>'+barras(res,x=>rot(x.s),x=>x.n)+'</section></div>';
   }catch(e){el.querySelector('.cc-muted').textContent='Não consegui carregar o painel: '+e.message;}
 }
 window.ccPainel=p=>painel(p);
@@ -380,7 +380,7 @@ async function equipe(per){
   try{
     const {data,error}=await db.rpc('crm_team',{p_campaign:cc.campaign,p_from:de,p_to:ate});if(error)throw error;
     cc.time=data||[];
-    el.querySelector('.cc-muted').outerHTML=cc.time.length?'<p class="cc-p-legenda">'+NOMES_PER[cc.ePer]+'. Clique no nome para ver o que a pessoa fez.</p><div class="tw"><table class="pt cc-eq"><thead><tr><th>Consultor</th><th>Contatos</th><th>Conversando</th><th>Não atendeu</th><th>Retornos marcados</th><th>Convalidação</th><th>Encerrados</th><th>Matrículas</th></tr></thead><tbody>'+
+    el.querySelector('.cc-muted').outerHTML=cc.time.length?'<p class="cc-p-legenda">'+NOMES_PER[cc.ePer]+'. Clique no nome para ver o que a pessoa fez.</p><div class="tw"><table class="pt cc-eq"><thead><tr><th>Consultor</th><th>Contatos</th><th>Conversando</th><th>Sem resposta</th><th>Retornos marcados</th><th>Convalidação</th><th>Encerrados</th><th>Matrículas</th></tr></thead><tbody>'+
       cc.time.map((t,i)=>'<tr><td><button type="button" class="cc-link cc-eq-nome" onclick="ccEquipeVer('+i+')">'+esc(t.name||'Sem nome')+'</button><span class="cc-sub">'+t.pessoas+' pessoas</span></td><td><strong>'+t.contatos+'</strong></td><td>'+t.conversando+'</td><td>'+t.nao_atendeu+'</td><td>'+t.retornos+'</td><td>'+t.convalidacao+'</td><td>'+t.encerrados+'</td><td><strong>'+t.matriculas+'</strong>'+(t.aguardando?'<span class="cc-sub">+'+t.aguardando+' aguardando</span>':'')+'</td></tr>').join('')+'</tbody></table></div><div id="cc-eq-det"></div>':'<p class="cc-p-legenda">Ninguém registrou contato neste período.</p>';
   }catch(e){el.querySelector('.cc-muted').textContent='Não consegui carregar a equipe: '+e.message;}
 }
@@ -389,7 +389,7 @@ window.ccEquipeVer=async function(i){
   const t=cc.time[i],[de,ate]=periodo(cc.ePer),el=$('eq-det');if(!t||!el)return;
   el.innerHTML='<h4>'+esc(t.name)+'</h4><p class="cc-muted">Carregando...</p>';
   try{const {data,error}=await db.rpc('crm_team_detail',{p_campaign:cc.campaign,p_actor:t.actor_id,p_from:de,p_to:ate});if(error)throw error;
-    el.innerHTML='<h4>O que '+esc(primeiro(t.name))+' fez ('+NOMES_PER[cc.ePer].toLowerCase()+')</h4>'+(data.length?'<ol class="cc-hist">'+data.map(h=>'<li><strong>'+esc(h.name)+' · '+esc(h.status)+(h.next&&h.status==='Retornar em outra data'?' ('+br(h.next)+')':'')+'</strong><span>'+(h.kind==='inscrito'?'Inscrito':'Lead')+' · '+esc(poloNome(h.polo_id))+' · '+new Date(h.at).toLocaleString('pt-BR',{timeZone:'America/Rio_Branco',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>'+(h.note?'<p>'+esc(h.note)+'</p>':'')+'</li>').join('')+'</ol>':'<p class="cc-muted">Nada registrado.</p>');
+    el.innerHTML='<h4>O que '+esc(primeiro(t.name))+' fez ('+NOMES_PER[cc.ePer].toLowerCase()+')</h4>'+(data.length?'<ol class="cc-hist">'+data.map(h=>'<li><strong>'+esc(h.name)+' · '+esc(rot(h.status))+(h.next&&h.status==='Retornar em outra data'?' ('+br(h.next)+')':'')+'</strong><span>'+(h.kind==='inscrito'?'Inscrito':'Lead')+' · '+esc(poloNome(h.polo_id))+' · '+new Date(h.at).toLocaleString('pt-BR',{timeZone:'America/Rio_Branco',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>'+(h.note?'<p>'+esc(h.note)+'</p>':'')+'</li>').join('')+'</ol>':'<p class="cc-muted">Nada registrado.</p>');
     el.scrollIntoView({block:'start',behavior:'smooth'});
   }catch(e){el.innerHTML='<p>Não consegui carregar: '+esc(e.message)+'</p>';}
 };
