@@ -64,7 +64,13 @@ const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 function quando(iso){if(!iso)return '';const d=new Date(iso),hoje=new Date();const hr=d.toLocaleTimeString('pt-BR',{timeZone:'America/Rio_Branco',hour:'2-digit',minute:'2-digit'});
   const dia=d.toLocaleDateString('pt-BR',{timeZone:'America/Rio_Branco'});return (dia===hoje.toLocaleDateString('pt-BR',{timeZone:'America/Rio_Branco'})?'hoje às ':dia+' às ')+hr;}
 function corpo(){
-  return '<p class="context">Baixe no Portal Comercial os relatórios de <strong>matrículas</strong>, <strong>inscritos</strong> e <strong>leads</strong> e solte os três aqui de uma vez. O painel reconhece cada um pelo nome do arquivo.</p>'+
+  return '<div class="env-lembrete"><strong>Antes de baixar, confira no Portal Comercial:</strong><ol>'+
+   '<li>Filtro de polo em <strong>Todos os polos</strong>.</li>'+
+   '<li><strong>Matrículas:</strong> quadro Matrículas, opção <strong>Todos</strong>, botão Baixar.</li>'+
+   '<li><strong>Inscritos:</strong> quadro Inscritos, opção <strong>Todos</strong>, botão Baixar.</li>'+
+   '<li><strong>Leads:</strong> quadro Leads, opção <strong>Todos</strong>, botão Baixar.</li></ol>'+
+   '<span>Se baixar só um polo, os alunos dos outros polos somem do painel até o próximo envio completo.</span></div>'+
+   '<p class="context">Depois, solte os três arquivos aqui de uma vez. O painel reconhece cada um pelo nome.</p>'+
    '<div id="env-status" class="env-status">Carregando a última atualização...</div>'+
    '<label class="env-zona" id="env-zona"><input id="env-file" type="file" accept=".csv,text/csv" multiple onchange="envEscolher(this.files)"><strong>Clique para escolher os arquivos</strong><span>ou arraste os arquivos .csv para cá</span></label>'+
    '<div id="env-lista"></div><p id="env-msg" class="env-msg" role="status" aria-live="polite"></p>';

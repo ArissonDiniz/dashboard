@@ -47,3 +47,7 @@
 .env-msg{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#F6F6F4}
 .env-msg-ok{background:#E3F6F6;border:1.5px solid #00A6A6}
 .env-msg-erro{background:#FBECEB;border:1.5px solid #B3261E}
+.env-lembrete{margin:0 0 12px;padding:14px 16px;border-radius:12px;background:#FFFBE0;border:1.5px solid #FFDD00;font-size:15px}
+.env-lembrete ol{margin:8px 0;padding-left:22px}
+.env-lembrete li+li{margin-top:3px}
+.env-lembrete span{display:block;font-size:14px;color:#575756}
