@@ -4,7 +4,7 @@
 'use strict';
 const ST={
   'Matrícula feita':{cls:'cc-s-mat',help:'Conta para você. Fica aguardando o relatório do portal confirmar.'},
-  'Não atendeu':{cls:'cc-s-wait',ico:'Sem resposta',btn:'Mandei mensagem, sem resposta',help:'Volta para a lista amanhã com uma mensagem de nova tentativa.'},
+  'Não atendeu':{cls:'cc-s-wait',ico:'Sem resposta',btn:'Mandei mensagem, sem resposta',help:'Volta para a lista com uma mensagem de nova tentativa: na 1ª vez amanhã, na 2ª em 2 dias, depois em 4 dias.'},
   'Conversando':{cls:'cc-s-talk',ico:'Conversando',help:'Fica no topo da sua lista.'},
   'Aguardando convalidação':{cls:'cc-s-conv',ico:'Aguardando convalidação',help:'Vai para a aba Convalidação.'},
   'Retornar em outra data':{cls:'cc-s-date',ico:'Retornar em outra data',help:'Some da lista e volta na data escolhida.'},
