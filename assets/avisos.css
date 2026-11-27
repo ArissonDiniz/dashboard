@@ -51,3 +51,4 @@
 .env-lembrete ol{margin:8px 0;padding-left:22px}
 .env-lembrete li+li{margin-top:3px}
 .env-lembrete span{display:block;font-size:14px;color:#575756}
+.env-regioes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 10px}.env-regioes p{flex-basis:100%;margin:0}

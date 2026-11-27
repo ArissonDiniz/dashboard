@@ -153,4 +153,23 @@ if(typeof original==='function'){
     root.prepend(d);desenharLista();status();
   };
 }
+
+// Acessos: atalhos para focais comerciais (marcar polos por estado ou a rede inteira)
+const origEdit=window.editUser;
+if(typeof origEdit==='function'){
+  window.editUser=function(){
+    origEdit.apply(this,arguments);
+    const box=document.querySelector('#user-form .admin-polos');if(!box||box.previousElementSibling?.classList.contains('env-regioes'))return;
+    const regs=[...new Set((snapshot?.polos||[]).map(p=>p.region).filter(Boolean))].sort();
+    const nomes={AC:'Acre',RO:'Rondônia',AM:'Amazonas'};
+    const div=document.createElement('div');div.className='env-regioes';
+    div.innerHTML='<p class="context"><strong>Consultor:</strong> marque só o polo dele. <strong>Focal comercial:</strong> use os atalhos para marcar uma região ou a rede inteira.</p>'+
+      regs.map(r=>'<button type="button" class="btn btn-gh btn-sm" data-r="'+h(r)+'">'+h(nomes[r]||r)+'</button>').join('')+
+      '<button type="button" class="btn btn-gh btn-sm" data-r="*">Rede inteira</button><button type="button" class="btn btn-gh btn-sm" data-r="-">Desmarcar todos</button>';
+    div.addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;const r=b.dataset.r;
+      box.querySelectorAll('input[name=polos]').forEach(i=>{const p=(snapshot?.polos||[]).find(p=>p.id===i.value);
+        if(r==='-')i.checked=false;else if(r==='*')i.checked=true;else if(p?.region===r)i.checked=true;});});
+    box.before(div);
+  };
+}
 })();
