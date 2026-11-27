@@ -97,3 +97,11 @@
 #cc-dialog .pt tbody tr.cc-hot td:last-child{border-right:1px solid var(--amarelo)}
 .cc-tempo{white-space:nowrap}
 .cc-tag{white-space:nowrap}
+.cc-placar{display:flex;flex-wrap:wrap;gap:6px 22px;margin:-4px 0 12px;font-size:15px}
+.cc-placar strong{font-weight:700}
+.cc-contato{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.cc-contato .btn{flex:1;min-width:120px;justify-content:center;text-decoration:none;display:inline-flex;align-items:center}
+.cc-salvar{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:12px}
+.cc-salvar .btn{min-height:50px;font-size:15.5px}
+#cc-save{width:auto;margin-top:0}
+@media (max-width:700px){.cc-salvar{grid-template-columns:1fr}}

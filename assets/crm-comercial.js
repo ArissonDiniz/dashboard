@@ -102,8 +102,9 @@ async function load(silent){
   if(!silent)msg('Carregando...');
   try{
     cc.campaign=document.getElementById('f-campaign')?.value||APP_CONFIG.campaign;
-    const {data,error}=await db.rpc('crm_list',{p_campaign:cc.campaign});
+    const [{data,error},sum]=await Promise.all([db.rpc('crm_list',{p_campaign:cc.campaign}),db.rpc('crm_summary',{p_campaign:cc.campaign})]);
     if(error)throw error;
+    cc.sum=sum.data||null;
     cc.rows=data||[];
     if(!cc.started){cc.started=true;if(cc.rows.some(r=>inView(r,'quente')))cc.view='quente';}
     fillSelects();render();if(!silent)msg('');
@@ -126,7 +127,7 @@ function render(){
   const c=counts();
   document.querySelectorAll('#cc-tabs [data-v]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.v===cc.view);const k=b.querySelector('b');if(k)k.textContent=c[b.dataset.v];});
   const atrasados=cc.rows.filter(r=>ativo(r)&&r.status&&r.status!=='Conversando'&&due(r)).length;
-  $('meudia').innerHTML='<div class="meudia-topo"><h3>Meu dia</h3><p>Primeiro quem está conversando com você. Depois os novos: quanto antes o contato, maior a chance de matrícula.</p></div><div class="meudia-grade">'+
+  $('meudia').innerHTML='<div class="meudia-topo"><h3>Meu dia</h3><p>Primeiro quem está conversando com você. Depois os novos: quanto antes o contato, maior a chance de matrícula.</p></div>'+placar()+'<div class="meudia-grade">'+
     card('quente',c.quente,'Novos: chegaram há até 2 dias',c.quente>0)+
     card('hoje',c.hoje,'Retornos de hoje',atrasados>0)+
     card('agenda',c.agenda,'Retornos agendados',false)+
@@ -134,9 +135,14 @@ function render(){
   const list=filtered(),pages=Math.max(1,Math.ceil(list.length/PAGE));cc.page=Math.min(cc.page,pages-1);
   const slice=list.slice(cc.page*PAGE,(cc.page+1)*PAGE);
   $('count').textContent=list.length+(list.length===1?' pessoa':' pessoas')+' nesta lista';
-  $('rows').innerHTML=slice.length?slice.map(row).join(''):'<tr><td colspan="5" class="cc-vazio">'+(cc.rows.length?'Ninguém nesta lista com esses filtros.':'Nenhum lead ou inscrito ainda. Clique em <strong>Enviar planilhas do portal</strong> para carregar.')+'</td></tr>';
+  $('rows').innerHTML=slice.length?slice.map(row).join(''):'<tr><td colspan="5" class="cc-vazio">'+(cc.rows.length?'Ninguém nesta lista com esses filtros.':'Nenhum lead ou inscrito ainda. Baixe as planilhas de leads e inscritos no Portal Comercial: o vigia envia sozinho.')+'</td></tr>';
   $('page').textContent='Página '+(cc.page+1)+' de '+pages;
   $('prev').disabled=cc.page===0;$('next').disabled=cc.page>=pages-1;
+}
+function placar(){
+  const s=cc.sum;if(!s)return '';
+  const n=(v,a,b)=>v+' '+(v===1?a:b);
+  return '<p class="cc-placar"><span>Você hoje: <strong>'+n(s.meus_hoje,'contato','contatos')+'</strong></span><span>Equipe hoje: <strong>'+n(s.equipe_hoje,'contato','contatos')+'</strong></span><span>Matrículas que passaram pelo CRM: <strong>'+s.matriculas+'</strong></span></p>';
 }
 function card(v,n,t,urg){return '<button type="button" class="meudia-item'+(urg?' meudia-urgente':'')+(cc.view===v?' meudia-ativo':'')+'" onclick="ccView(\''+v+'\')"><strong>'+n+'</strong><span>'+t+'</span></button>';}
 function tag(r){
@@ -181,7 +187,9 @@ function ficha(r){
     ['Polo',poloNome(r.polo_id),''],
     r.created?[r.kind==='inscrito'?'Inscrição em':'Cadastro em',br(r.created)+' ('+(dias(r.created)===0?'hoje':'há '+dias(r.created)+' dias')+')','']:null
   ].filter(Boolean);
-  const wa=r.mobile?'<a class="btn whatsapp-contact" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer" onclick="ccOpened('+i+')">Chamar no WhatsApp com mensagem pronta</a><details class="cc-preview"><summary>Ver a mensagem</summary><p>'+esc(mensagem(r))+'</p></details>':'';
+  const wa=r.mobile?(r.accepts_whats!==false?'<a class="btn whatsapp-contact" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer" onclick="ccOpened('+i+')">Chamar no WhatsApp com mensagem pronta</a>':'')+
+    '<div class="cc-contato"><a class="btn btn-gh" href="tel:+55'+r.mobile+'">Ligar</a><button type="button" class="btn btn-gh" onclick="ccCopyMsg()">Copiar mensagem</button>'+(r.accepts_whats===false?'<a class="btn btn-gh" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer">WhatsApp mesmo assim</a>':'')+'</div>'+
+    '<details class="cc-preview"><summary>Ver a mensagem</summary><p>'+esc(mensagem(r))+'</p></details>':'';
   const btns=Object.keys(ST).map(s=>'<button type="button" class="cc-opt '+ST[s].cls+'" data-s="'+esc(s)+'" aria-pressed="false" onclick="ccPick(this)">'+esc(s)+'</button>').join('');
   return '<button class="btn btn-gh btn-sm drawer-close" onclick="ccClose()">Fechar ficha</button>'+
    '<h3>'+esc(r.name)+'</h3><p class="cc-kind">'+(r.kind==='inscrito'?'Inscrito':'Lead')+(r.status?' · '+tag(r):'')+'</p>'+
@@ -193,7 +201,7 @@ function ficha(r){
    '<label id="cc-date-wrap" hidden>Retornar em<input id="cc-date" type="date" min="'+today()+'" value="'+addDays(today(),1)+'"></label>'+
    '<label>Anotação (opcional)<textarea id="cc-note" rows="3" maxlength="1000" placeholder="Ex.: pediu para ligar depois das 18h"></textarea></label>'+
    '<p id="cc-edit-msg" class="cc-msg" role="status"></p>'+
-   '<button id="cc-save" class="btn" onclick="ccSave()" disabled>Salvar</button>'+
+   '<div class="cc-salvar"><button id="cc-save" class="btn" onclick="ccSave(true)" disabled>Salvar e abrir o próximo</button><button id="cc-save-close" class="btn btn-gh" onclick="ccSave(false)" disabled>Salvar e fechar</button></div>'+
    (r.notes?'<p class="crm-info"><strong>Última anotação:</strong> '+esc(r.notes)+'</p>':'')+
    '<h4>Histórico</h4><div id="cc-hist" class="crm-info">Carregando...</div>';
 }
@@ -225,22 +233,26 @@ window.ccClose=function(){if(!confirmLeave())return;ccCloseEditor();};
 window.ccOpened=function(i){/* abriu o WhatsApp: abre a ficha para registrar o resultado */setTimeout(()=>{if(cc.edit!==cc.rows[i])ccOpen(i);},300);};
 window.ccPick=function(b){
   document.querySelectorAll('.cc-opt').forEach(x=>x.setAttribute('aria-pressed',x===b));
-  const s=b.dataset.s;$('help').textContent=ST[s].help;$('date-wrap').hidden=s!=='Retornar em outra data';$('save').disabled=false;
-  $('save').textContent=s==='Lista negra'?'Colocar na lista negra':'Salvar';
+  const s=b.dataset.s;$('help').textContent=ST[s].help;$('date-wrap').hidden=s!=='Retornar em outra data';$('save').disabled=false;$('save-close').disabled=false;
+  $('save').textContent=s==='Lista negra'?'Colocar na lista negra e abrir o próximo':'Salvar e abrir o próximo';
 };
-window.ccSave=async function(){
+window.ccSave=async function(irProximo){
   const r=cc.edit,b=document.querySelector('.cc-opt[aria-pressed=true]');if(!r||!b||cc.saving)return;
   const s=b.dataset.s,next=s==='Retornar em outra data'?$('date').value:null,note=$('note').value;
   if(s==='Retornar em outra data'&&(!next||next<today())){$('edit-msg').textContent='Escolha uma data de hoje em diante.';return;}
   if(s==='Lista negra'&&!confirm(r.name+' nunca mais vai aparecer no CRM, nem em planilhas novas. Confirmar?'))return;
-  cc.saving=true;$('save').disabled=true;$('edit-msg').textContent='Salvando...';
+  const lista=filtered(),pos=lista.indexOf(r),prox=lista.slice(pos+1).concat(lista.slice(0,Math.max(pos,0))).find(x=>x!==r);
+  const proxKey=prox&&prox.pkey;
+  cc.saving=true;$('save').disabled=true;$('save-close').disabled=true;$('edit-msg').textContent='Salvando...';
   try{
     const {error}=await db.rpc('crm_save',{p_campaign:cc.campaign,p_pkey:r.pkey,p_status:s,p_next:next,p_note:note,p_version:r.fkey===r.pkey?r.version:0});
     if(error)throw error;
-    cc.saving=false;ccCloseEditor();await load(true);msg(primeiro(r.name)+': '+s.toLowerCase()+' salvo.','ok');
-  }catch(e){cc.saving=false;$('save').disabled=false;$('edit-msg').textContent='Não salvou: '+e.message;}
+    cc.saving=false;ccCloseEditor();await load(true);msg('Contato de '+primeiro(r.name)+' salvo ('+s.toLowerCase()+').','ok');
+    if(irProximo){const j=cc.rows.findIndex(x=>x.pkey===proxKey);if(j>=0&&inView(cc.rows[j],cc.view))ccOpen(j);else msg('Contato salvo. Essa lista acabou!','ok');}
+  }catch(e){cc.saving=false;$('save').disabled=false;$('save-close').disabled=false;$('edit-msg').textContent='Não salvou: '+e.message;}
 };
-window.ccCopy=async function(v,l){try{await navigator.clipboard.writeText(v);msg(l.charAt(0).toUpperCase()+l.slice(1)+' copiado.','ok');}catch{prompt('Copie o '+l+':',v);}};
+window.ccCopyMsg=function(){if(cc.edit)ccCopy(mensagem(cc.edit),'mensagem');};
+window.ccCopy=async function(v,l){try{await navigator.clipboard.writeText(v);msg('Copiado: '+l+'.','ok');}catch{prompt('Copie o '+l+':',v);}};
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('dialog')?.open){e.preventDefault();if(cc.edit)ccClose();else closeCC();}});
 // atualização automática a cada 2 minutos quando ninguém está editando
