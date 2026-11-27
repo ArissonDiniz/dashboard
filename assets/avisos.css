@@ -21,3 +21,29 @@
 .av-sai{opacity:0;transform:translateY(8px);transition:.2s}
 @keyframes av-entra{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.av-aviso{animation:none}.av-sai{transition:none}}
+/* Administração > Enviar planilhas */
+.env-secao{border:2px solid var(--amarelo)!important}
+.env-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
+.env-status div{padding:10px 12px;border-radius:10px;background:#F6F6F4;border:1px solid rgba(35,31,32,.12)}
+.env-status strong{display:block;font-size:15px}
+.env-status span{font-size:14px;color:#575756}
+.env-zona{position:relative;display:flex!important;flex-direction:column!important;align-items:center;justify-content:center;gap:4px;min-height:120px;padding:20px;border:2px dashed #231F20;border-radius:14px;background:#FFFBE0;cursor:pointer;text-align:center}
+.env-zona:hover,.env-zona.env-sobre{background:#FFDD00}
+.env-zona:focus-within{outline:3px solid #231F20;outline-offset:2px}
+.env-zona input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.env-zona strong,.env-zona span{display:block}
+.env-zona strong{font-size:17px}
+.env-zona span{font-size:14.5px}
+.env-arquivos{list-style:none;margin:14px 0;padding:0;display:grid;gap:8px}
+.env-arquivos li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border-radius:10px;border:1.5px solid rgba(35,31,32,.18);background:#fff}
+.env-arquivos li.env-ok{border-color:#00A6A6;background:#E3F6F6}
+.env-arquivos li.env-erro{border-color:#B3261E;background:#FBECEB}
+.env-nome{flex:1;min-width:180px;font-weight:600;overflow-wrap:anywhere}
+.env-arquivos select{width:auto;min-width:200px}
+.env-res{flex-basis:100%;font-size:14px}
+.env-tirar{font:inherit;font-size:13.5px;padding:4px 10px;border-radius:999px;border:1px solid #231F20;background:#fff;cursor:pointer}
+#env-enviar{width:100%;min-height:52px;font-size:17px;font-weight:700}
+.env-msg:empty{display:none}
+.env-msg{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#F6F6F4}
+.env-msg-ok{background:#E3F6F6;border:1.5px solid #00A6A6}
+.env-msg-erro{background:#FBECEB;border:1.5px solid #B3261E}
