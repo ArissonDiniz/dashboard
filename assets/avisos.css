@@ -1,6 +1,6 @@
 /* caixas e avisos do painel */
-.av-caixa{position:fixed;inset:0;margin:auto;height:fit-content;max-height:90vh;font-family:'Titillium Web',system-ui,sans-serif;width:min(440px,calc(100vw - 32px));padding:24px;border:0;border-radius:16px;border-top:6px solid var(--amarelo);background:var(--branco);color:var(--preto);box-shadow:0 20px 60px rgba(35,31,32,.3)}
-.av-caixa.av-perigo{border-top-color:var(--preto)}
+.av-caixa{position:fixed;inset:0;margin:auto;height:fit-content;max-height:90vh;font-family:'Titillium Web',system-ui,sans-serif;width:min(440px,calc(100vw - 32px));padding:24px;border:2px solid var(--amarelo);border-radius:16px;background:var(--branco);color:var(--preto);box-shadow:0 20px 60px rgba(35,31,32,.3)}
+.av-caixa.av-perigo{border-color:var(--preto)}
 .av-caixa::backdrop{background:rgba(35,31,32,.45)}
 .av-caixa h2{margin:0 0 8px;font-size:21px}
 .av-caixa p{margin:0 0 20px;font-size:16px;line-height:1.5}
