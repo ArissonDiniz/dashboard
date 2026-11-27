@@ -159,7 +159,7 @@ function placar(){
   const s=cc.sum;if(!s)return '';
   return '<div class="cc-placar"><div><strong>'+s.meus_hoje+'</strong><span>seus contatos hoje</span></div><div><strong>'+s.equipe_hoje+'</strong><span>da equipe hoje</span></div><div><strong>'+s.matriculas+'</strong><span>matrículas pelo CRM</span></div></div>';
 }
-window.ccComecar=function(){cc.view='fila';$('ordem').value='prioridade';cc.page=0;render();const l=filtered();if(l.length)ccOpen(cc.rows.indexOf(l[0]));};
+window.ccComecar=function(){cc.view='fila';cc.feitos=new Set();$('ordem').value='prioridade';cc.page=0;render();const l=filtered();if(l.length)ccOpen(cc.rows.indexOf(l[0]));};
 function card(v,n,t,urg){return '<button type="button" class="meudia-item'+(urg?' meudia-urgente':'')+(cc.view===v?' meudia-ativo':'')+'" onclick="ccView(\''+v+'\')"><strong>'+n+'</strong><span>'+t+'</span></button>';}
 function tag(r){
   if(quente(r))return '<span class="cc-tag cc-hot-tag">'+(dias(r.created)===0?'Chegou hoje':'Novo')+'</span>';
@@ -200,7 +200,7 @@ function ficha(r){
     r.offer?['Forma de ingresso',r.offer,'']:null,
     !r.offer&&r.origin?['Origem',r.origin,'']:null,
     ['Polo',poloNome(r.polo_id),''],
-    r.created?[r.kind==='inscrito'?'Inscrição em':'Cadastro em',br(r.created)+' ('+(dias(r.created)===0?'hoje':'há '+dias(r.created)+' dias')+')','']:null
+    r.created?[r.kind==='inscrito'?'Inscrição em':'Cadastro em',br(r.created)+' ('+(dias(r.created)===0?'hoje':dias(r.created)===1?'ontem':'há '+dias(r.created)+' dias')+')','']:null
   ].filter(Boolean);
   const wa=r.mobile?'<a class="btn whatsapp-contact" href="'+waLink(r)+'" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp com mensagem pronta</a>'+
     '<div class="cc-contato"><a class="btn btn-gh" href="tel:+55'+r.mobile+'">Ligar</a><button type="button" class="btn btn-gh" onclick="ccCopyMsg()">Copiar mensagem</button></div>'+
@@ -235,7 +235,7 @@ window.openCC=function(){
 window.closeCC=async function(){if(cc.saving)return;if(cc.edit&&!(await confirmLeave()))return;ccCloseEditor();$('dialog').close();};
 async function confirmLeave(){const n=document.getElementById('cc-note');const dirty=(n&&n.value.trim())||document.querySelector('.cc-opt[aria-pressed=true]');return !dirty||await caixa('Você escolheu um resultado ou escreveu uma anotação e ainda não salvou.',{titulo:'Contato não salvo',ok:'Descartar',cancelar:'Voltar para a ficha',perigo:true});}
 function ccCloseEditor(){cc.edit=null;const e=$('editor');e.hidden=true;e.innerHTML='';}
-window.ccView=function(v){cc.view=v;cc.page=0;render();$('rows').closest('.tw').scrollIntoView({block:'start',behavior:'smooth'});};
+window.ccView=function(v){cc.view=v;cc.feitos=new Set();cc.page=0;render();$('rows').closest('.tw').scrollIntoView({block:'start',behavior:'smooth'});};
 window.ccFilter=function(){cc.page=0;render();};
 window.ccReset=function(){['search','polo','curso','sit'].forEach(k=>$(k).value='');$('ordem').value='prioridade';ccFilter();};
 window.ccPage=function(d){cc.page+=d;render();$('rows').closest('.tw').scrollIntoView({block:'start'});};
@@ -257,15 +257,14 @@ window.ccSave=async function(s){
   const next=s==='Retornar em outra data'?$('date').value:null,note=$('note').value;
   if(s==='Retornar em outra data'&&(!next||next<today())){$('edit-msg').textContent='Escolha uma data de hoje em diante.';return;}
   if(s==='Lista negra'&&!(await caixa(r.name+' nunca mais vai aparecer no CRM, nem quando vier em planilha nova.',{titulo:'Colocar na lista negra?',ok:'Colocar na lista negra',perigo:true})))return;
-  const lista=filtered(),pos=lista.indexOf(r),prox=lista.slice(pos+1).concat(lista.slice(0,Math.max(pos,0))).find(x=>x!==r);
-  const proxKey=prox&&prox.pkey;
+  (cc.feitos=cc.feitos||new Set()).add(r.pkey);
   cc.saving=true;document.querySelectorAll('.cc-opt,#cc-save').forEach(x=>x.disabled=true);$('edit-msg').textContent='Salvando...';
   try{
     const {error}=await db.rpc('crm_save',{p_campaign:cc.campaign,p_pkey:r.pkey,p_status:s,p_next:next,p_note:note,p_version:r.fkey===r.pkey?r.version:0});
     if(error)throw error;
     cc.saving=false;ccCloseEditor();await load(true);msg('Contato de '+primeiro(r.name)+' salvo ('+s.toLowerCase()+').','ok');
-    const j=cc.rows.findIndex(x=>x.pkey===proxKey);
-    if(j>=0&&inView(cc.rows[j],cc.view))ccOpen(j);else msg('Contato de '+primeiro(r.name)+' salvo. Essa lista acabou, parabéns!','ok');
+    const prox=filtered().find(x=>!cc.feitos.has(x.pkey)),j=prox?cc.rows.indexOf(prox):-1;
+    if(j>=0)ccOpen(j);else msg('Contato de '+primeiro(r.name)+' salvo. Essa lista acabou, parabéns!','ok');
   }catch(e){cc.saving=false;document.querySelectorAll('.cc-opt,#cc-save').forEach(x=>x.disabled=false);$('edit-msg').textContent='Não salvou: '+e.message;}
 };
 window.ccSaveEscolha=function(){const b=document.querySelector('.cc-opt[aria-pressed=true]');if(b)ccSave(b.dataset.s);};
