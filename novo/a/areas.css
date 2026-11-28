@@ -1,0 +1,56 @@
+/* Áreas do painel: menu fixo e telas inteiras (28/11/2026) */
+:root{--nav-h:68px}
+#areas-nav{position:sticky;top:0;z-index:50;background:var(--preto);border-bottom:3px solid var(--amarelo)}
+#areas-nav .an-in{display:flex;gap:4px;max-width:1400px;margin:0 auto;padding:8px clamp(12px,3vw,32px);overflow-x:auto;scrollbar-width:none}
+#areas-nav button{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:50px;padding:6px 18px;border:0;border-radius:12px;background:transparent;color:var(--branco);cursor:pointer;white-space:nowrap;transition:background-color .25s ease,color .25s ease,transform .2s ease}
+#areas-nav button:hover{background:rgba(255,255,255,.08)}
+#areas-nav button:active{transform:scale(.98)}
+#areas-nav button[aria-current=page]{background:var(--amarelo);color:var(--preto)}
+#areas-nav button:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
+.an-t{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700}
+.an-s{font-size:12.5px;opacity:.75}
+#areas-nav button[aria-current=page] .an-s{opacity:.85}
+.an-n{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 7px;border-radius:999px;background:var(--amarelo);color:var(--preto);font-size:12.5px;font-weight:700}
+#areas-nav button[aria-current=page] .an-n{background:var(--preto);color:var(--amarelo)}
+
+/* área aberta: a janela vira a tela inteira, abaixo do menu */
+dialog.area-pagina{position:fixed!important;inset:var(--nav-h) 0 0 0!important;width:100%!important;height:calc(100dvh - var(--nav-h))!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;z-index:40;overflow:auto;background:var(--bg)!important;box-shadow:none!important}
+dialog.area-pagina>*{max-width:1400px;margin-left:auto;margin-right:auto}
+html[data-area=acomp] body,html[data-area=crm] body{overflow:hidden}
+/* sem botão "Fechar" da janela: sai pelo menu */
+#crm-dialog.area-pagina [onclick="closeCRM()"],
+#cc-dialog.area-pagina .cc-fechar,#cc-dialog.area-pagina [onclick="closeCC()"]{display:none!important}
+
+/* efeitos suaves */
+.area-entra{animation:area-in .35s cubic-bezier(.22,1,.36,1) both}
+@keyframes area-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#crm-editor:not([hidden]),#cc-editor:not([hidden]){animation:ficha-in .32s cubic-bezier(.22,1,.36,1) both}
+@keyframes ficha-in{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+.btn,.cc-chip,.cc-opt,.rapido-botoes .btn,.cc-versoes button{transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .15s ease!important}
+.btn:active,.cc-opt:active,.cc-chip:active{transform:scale(.97)}
+.kpi,.queue-item,.post-sale-tile,.crm-today-card,.cc-chip{transition:transform .2s ease,border-color .2s ease}
+#crm-dialog tbody tr,#cc-dialog tbody tr{transition:background-color .2s ease}
+.cal-pop{animation:cal-in .18s ease-out both}
+@keyframes cal-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* caminho até o 1º pagamento, no topo da ficha */
+.jornada{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:14px 0 6px;padding:0;counter-reset:j}
+.jornada li{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;font-size:12.5px;line-height:1.25;color:var(--cinza);padding:0 2px}
+.jornada li::before{content:'';position:absolute;top:13px;left:-50%;width:100%;height:3px;background:var(--br2);z-index:0}
+.jornada li:first-child::before{display:none}
+.jornada .jd{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:28px;height:28px;margin-bottom:6px;border-radius:50%;border:2px solid var(--br2);background:var(--branco);font-weight:700;font-size:13px;color:var(--cinza);transition:all .3s ease}
+.jornada li.ok{color:var(--preto)}
+.jornada li.ok::before{background:var(--preto)}
+.jornada li.ok .jd{background:var(--preto);border-color:var(--preto);color:var(--amarelo)}
+.jornada li.agora{color:var(--preto);font-weight:700}
+.jornada li.agora .jd{border-color:var(--preto);background:var(--amarelo);color:var(--preto);animation:pulso 2.4s ease-in-out infinite}
+.jornada li.meta .jd{border-color:var(--verde)}
+.jornada li.meta.ok .jd{background:var(--verde);border-color:var(--verde);color:var(--branco)}
+@keyframes pulso{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.jornada-dica{margin:4px 0 12px;font-size:14px;color:var(--preto);background:#FFFBE0;border:1px solid var(--amarelo);border-radius:10px;padding:8px 12px}
+@media (max-width:520px){.jornada li{font-size:11.5px}.an-s{display:none}:root{--nav-h:58px}#areas-nav button{min-height:42px;padding:6px 12px}}
+/* com o menu, os botões antigos de abrir as janelas sobram */
+.account-bar button[onclick*="openCRM"],.account-bar button[onclick*="openCC"]{display:none!important}
+/* dentro de uma área, a faixa amarela sai e o menu fica no topo */
+html[data-area=acomp] .hdr,html[data-area=crm] .hdr{display:none}
